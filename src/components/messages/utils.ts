@@ -1,3 +1,19 @@
+// will add a GIF API later, will get rid of hardcoded GIFs in utils - vram 
+
+/*
+ // If we have read receipt data, use it
+  if (readReceiptsByThread) {
+    const receipt = readReceiptsByThread[threadId];
+    if (!receipt) return true;
+    // Find if the receipt messageId is >= last message (i.e. last was seen)
+    const msgs = all.filter((m) => m.threadId === threadId).sort((a, b) => a.createdAt - b.createdAt);
+    const receiptIdx = msgs.findIndex((m) => m.id === receipt.messageId);
+    const lastIdx = msgs.findIndex((m) => m.id === last.id);
+    return receiptIdx < lastIdx;
+  }
+
+*/
+
 import type { Attachment, ID, Message } from "@/types/messages";
 
 export const scrollBarSx = {
@@ -49,24 +65,9 @@ export function getLastMessage(all: Message[], threadId: ID): Message | null {
   return ms.sort((a, b) => b.createdAt - a.createdAt)[0];
 }
 
-export function isThreadUnread(
-  all: Message[],
-  threadId: ID,
-  meId: ID,
-  readReceiptsByThread?: Record<string, { userId: string; messageId: string }>
-): boolean {
+export function isThreadUnread(all: Message[], threadId: ID, meId: ID): boolean {
   const last = getLastMessage(all, threadId);
   if (!last || last.fromUserId === meId) return false;
-  // If we have read receipt data, use it
-  if (readReceiptsByThread) {
-    const receipt = readReceiptsByThread[threadId];
-    if (!receipt) return true;
-    // Find if the receipt messageId is >= last message (i.e. last was seen)
-    const msgs = all.filter((m) => m.threadId === threadId).sort((a, b) => a.createdAt - b.createdAt);
-    const receiptIdx = msgs.findIndex((m) => m.id === receipt.messageId);
-    const lastIdx = msgs.findIndex((m) => m.id === last.id);
-    return receiptIdx < lastIdx;
-  }
   return !new Set(last.seenByUserIds ?? []).has(meId);
 }
 
@@ -105,11 +106,11 @@ const RAW_GIF_LIST: { url: string; title: string }[] = [
   { url: "https://media.giphy.com/media/xT5LMGIKgT6U6M3p2g/giphy.gif", title: "celebration" },
   { url: "https://media.giphy.com/media/l0MYu5M1H2bF2hJ2w/giphy.gif", title: "bruh" },
   { url: "https://media.giphy.com/media/3o6ZtpxSZbQRRnwCKQ/giphy.gif", title: "yikes" },
-
   { url: "https://media.giphy.com/media/l0MYL2SNbbztrug1y/giphy.gif", title: "angry" },
   { url: "https://media.giphy.com/media/3orieR8m9r1CwC0vUA/giphy.gif", title: "evil laugh" },
   { url: "https://media.giphy.com/media/3o6Zt7hRj9KjC3h8iY/giphy.gif", title: "shrug" },
   { url: "https://media.giphy.com/media/xT9IgIc0lryrxvqVGM/giphy.gif", title: "blushing" },
+
   { url: "https://media.giphy.com/media/l0MYB8Ory7Hqefo9a/giphy.gif", title: "side eye" },
   { url: "https://media.giphy.com/media/3o7TKF1fSIs1R19B8k/giphy.gif", title: "cool" },
   { url: "https://media.giphy.com/media/xT5LMQ8rHYTDGFG07e/giphy.gif", title: "sweating" },
@@ -118,6 +119,12 @@ const RAW_GIF_LIST: { url: string; title: string }[] = [
   { url: "https://media.giphy.com/media/3o7TKMfn35NL1ll44U/giphy.gif", title: "victory" },
 
   { url: "https://media.giphy.com/media/l3vR85PnGsBwu1PFK/giphy.gif", title: "sad" },
+
+  { url: "https://media.giphy.com/media/3o7TKF1fSIs1R19B8k/giphy.gif", title: "cool" },
+  { url: "https://media.giphy.com/media/xT5LMQ8rHYTDGFG07e/giphy.gif", title: "sweating" },
+  { url: "https://media.giphy.com/media/3orieZDAp40AhhOOsg/giphy.gif", title: "panic" },
+  { url: "https://media.giphy.com/media/3o7TKMfn35NL1ll44U/giphy.gif", title: "victory" },
+
   { url: "https://media.giphy.com/media/3orieQ3nLzIdR7bGxO/giphy.gif", title: "confetti" },
   { url: "https://media.giphy.com/media/xT0xeJpnrWC4XWblEk/giphy.gif", title: "thinking hard" },
   { url: "https://media.giphy.com/media/3o6ZtaO9BZHcOjmErm/giphy.gif", title: "not bad" },

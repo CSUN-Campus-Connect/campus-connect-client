@@ -1,10 +1,17 @@
 "use client";
 
+/*
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { api } from "@/lib/axios";
-import type { ID, Message, Note, Thread, User } from "@/types/messages";
+*/
 
+import { useCallback, useMemo, useState } from "react";
+import type { ID, Message, Note, Thread, User } from "@/types/messages";
+import { ME_ID } from "./constants";
+import { mockUsers, mockThreads, mockNotes, mockMessagesByThread } from "./mockData";
+
+/*
 function toThread(conv: any): Thread {
   return {
     id: conv.id,
@@ -47,31 +54,22 @@ function getStoredUser(): any | null {
     return raw ? JSON.parse(raw) : null;
   } catch { return null; }
 }
+*/
+const placeholderMe: User = { id: ME_ID, username: "me", displayName: "You", avatarUrl: "", lastActiveAt: Date.now() };
 
 export function useMessagesData() {
-  const [threads, setThreads] = useState<Thread[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [notes] = useState<Note[]>([]);
-  const [messagesByThread, setMessagesByThread] = useState<Record<string, Message[]>>({});
-  const [selectedThreadId, setSelectedThreadId] = useState<ID | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [typingByThread, setTypingByThread] = useState<Record<string, string | null>>({});
-  const [reactionsByMessage, setReactionsByMessage] = useState<Record<string, { emoji: string; userId: string }[]>>({});
-  const [readReceiptsByThread, setReadReceiptsByThread] = useState<Record<string, { userId: string; messageId: string }>>({});
-  const [hasMoreByThread, setHasMoreByThread] = useState<Record<string, boolean>>({});
-  const [loadingMoreByThread, setLoadingMoreByThread] = useState<Record<string, boolean>>({});
-  
-  const socketRef = useRef<Socket | null>(null);
-  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const meIdRef = useRef<string>("");
-  const loadingMoreRef = useRef<Record<string, boolean>>({});
 
-  const storedUser = getStoredUser();
-  const meId: ID = storedUser?.id || "";
-  meIdRef.current = meId;
 
-  const me: User = useMemo(() => ({
+const [threads, setThreads] = useState<Thread[]>(mockThreads);
+  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [notes, setNotes] = useState<Note[]>(mockNotes);
+  const [messagesByThread, setMessagesByThread] = useState<Record<string, Message[]>>(mockMessagesByThread);
+  const [selectedThreadId, setSelectedThreadId] = useState<ID | null>(() => {
+    const first = mockThreads.find((t) => !t.isRequest);
+    return first?.id ?? null;
+  });
+/*
+const me: User = useMemo(() => ({
     id: meId,
     username: storedUser?.firstName?.toLowerCase() || "me",
     displayName: `${storedUser?.firstName || ""} ${storedUser?.lastName || ""}`.trim() || "You",
@@ -83,14 +81,20 @@ export function useMessagesData() {
     if (users.some((u) => u.id === meId)) return users;
     return [me, ...users];
   }, [users, meId, me]);
+ */ 
 
+  const usersWithMe = useMemo(() => (users.some((u) => u.id === ME_ID) ? users : [placeholderMe, ...users]), [users]);
+  const me = useMemo(() => usersWithMe.find((u) => u.id === ME_ID) ?? placeholderMe, [usersWithMe]);
   const allMessages = useMemo(() => Object.values(messagesByThread).flat(), [messagesByThread]);
+  /*
   const threadMessages = useMemo(
     () => (selectedThreadId ? messagesByThread[selectedThreadId] ?? [] : []),
     [selectedThreadId, messagesByThread]
   );
+  */
+  const threadMessages = useMemo(() => (selectedThreadId ? messagesByThread[selectedThreadId] ?? [] : []), [selectedThreadId, messagesByThread]);
 
-  const fetchConversations = useCallback(async () => {
+  /*const fetchConversations = useCallback(async () => {
     const token = getToken();
     if (!token) { setError("Not authenticated"); setLoading(false); return; }
 
@@ -126,9 +130,16 @@ export function useMessagesData() {
     } finally {
       setLoading(false);
     }
+  */ 
+ 
+    const onSend = useCallback<(threadId: string, text: string, attachmentUrls?: string[]) => Promise<void>>(async (threadId, text, attachmentUrls) => {
+    const attachments = (attachmentUrls ?? []).map((url, i) => ({ id: `opt-${Date.now()}-${i}`, type: "image" as const, name: "GIF", url }));
+    const newMsg: Message = { id: `opt-${Date.now()}`, threadId, fromUserId: ME_ID, text, createdAt: Date.now(), ...(attachments.length > 0 ? { attachments } : {}) };
+    setMessagesByThread((prev) => ({ ...prev, [threadId]: [...(prev[threadId] ?? []), newMsg] }));
+    setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, updatedAt: Date.now() } : t)));
   }, []);
-
-  const fetchMessages = useCallback(async (threadId: string) => {
+/*
+const fetchMessages = useCallback(async (threadId: string) => {
     const token = getToken();
     if (!token) return;
 
@@ -163,9 +174,19 @@ export function useMessagesData() {
     } catch (err) {
       console.error("Failed to fetch messages:", err);
     }
+
+ */  
+
+    const onUpdateNote = useCallback<(text: string) => Promise<void>>(async (text) => {
+    setNotes((prev) => {
+      const withoutMe = prev.filter((n) => n.userId !== ME_ID);
+      return [{ id: "n_me", userId: ME_ID, text: text.slice(0, 60), updatedAt: Date.now() }, ...withoutMe];
+    });
   }, []);
 
-  const fetchOlderMessages = useCallback(async (threadId: string) => {
+
+/*
+const fetchOlderMessages = useCallback(async (threadId: string) => {
     const token = getToken();
     if (!token) return;
     if (loadingMoreRef.current[threadId]) return;
@@ -419,9 +440,24 @@ export function useMessagesData() {
     } catch (err) {
       console.error("Failed to create conversation:", err);
     }
+
+  */ 
+ 
+
+
+
+const onPickUser = useCallback<(userId: ID) => Promise<void>>(async (userId) => {
+    if (userId === ME_ID) return;
+    const existing = threads.find((t) => t.participantIds.includes(ME_ID) && t.participantIds.includes(userId) && t.participantIds.length === 2);
+    if (existing) { setSelectedThreadId(existing.id); return; }
+    const newThread: Thread = { id: `t_${Date.now()}`, participantIds: [ME_ID, userId], updatedAt: Date.now(), isRequest: false };
+    setThreads((prev) => [newThread, ...prev]);
+    setSelectedThreadId(newThread.id);
   }, [threads]);
 
-  const refresh = useCallback(() => {
+
+/*
+const refresh = useCallback(() => {
     setLoading(true);
     fetchConversations();
   }, [fetchConversations]);
@@ -438,7 +474,16 @@ export function useMessagesData() {
       console.error("User search failed:", err);
       return [];
     }
+  */ 
+ 
+
+    const onCreateGroup = useCallback<(participantIds: ID[], name: string) => Promise<void>>(async (participantIds, name) => {
+    const newThread: Thread = { id: `t_${Date.now()}`, participantIds, updatedAt: Date.now(), isRequest: false, name: name.trim() || "Group chat" };
+    setThreads((prev) => [newThread, ...prev]);
+    setSelectedThreadId(newThread.id);
   }, []);
+
+  const refresh = useCallback(() => {}, []);
 
   return {
     threads,
@@ -449,23 +494,12 @@ export function useMessagesData() {
     selectedThreadId,
     setSelectedThreadId,
     me,
-    loading,
-    error,
+    loading: false,
+    error: null,
     onSend,
-    onEditMessage,
-    onDeleteMessage,
-    onReactMessage,
-    onTypingStart,
-    onTypingStop,
-    typingByThread,
-    reactionsByMessage,
-    readReceiptsByThread,
     onUpdateNote,
     onPickUser,
+    onCreateGroup,
     refresh,
-    onSearchUsers,
-    hasMoreByThread,
-    loadingMoreByThread,
-    fetchOlderMessages,
   };
 }

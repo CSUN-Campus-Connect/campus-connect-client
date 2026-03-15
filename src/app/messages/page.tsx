@@ -40,19 +40,8 @@ export default function MessagesPage() {
       onSend={data.onSend}
       onUpdateNote={data.onUpdateNote}
       onPickUser={data.onPickUser}
+      onCreateGroup={data.onCreateGroup}
       onRefresh={data.refresh}
-      onEditMessage={data.onEditMessage}
-      onDeleteMessage={data.onDeleteMessage}
-      onTypingStart={data.onTypingStart}
-      onTypingStop={data.onTypingStop}
-      typingByThread={data.typingByThread}
-      readReceiptsByThread={data.readReceiptsByThread}
-      onReactMessage={data.onReactMessage}
-      reactionsByMessage={data.reactionsByMessage}
-      onSearchUsers={data.onSearchUsers}
-      hasMoreByThread={data.hasMoreByThread}
-      loadingMoreByThread={data.loadingMoreByThread}
-      onFetchOlder={data.fetchOlderMessages}
     />
   );
 }

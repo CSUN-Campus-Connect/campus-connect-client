@@ -1,3 +1,54 @@
+/*
+
+Voice Message System 
+
+1. Recording (Client Side)
+- Voice messages are recorded in the browser using MediaRecorder.
+- Supported formats depend on the browser: webm, ogg, or mp4.
+- Max recording length: 15 seconds.
+- The recording is stored as a File object in memory (e.g., voice-<timestamp>.webm).
+- The component does NOT upload the file; it only passes the File and duration to the UI.
+
+2. Draft Handling
+- The voice File is added to the message draft like any other attachment.
+- The draft stores:
+  - files: array of File objects
+  - duration: stored separately by file name for playback.
+
+3. Sending Messages (Current Behavior)
+- When the user clicks "Send", the client:
+  - Creates temporary blob URLs from the files.
+  - Stores duration and file references for playback.
+  - Calls onSend(threadId, text, urls).
+- Only URLs (blob URLs or GIF URLs) are sent — NOT the actual file data.
+
+4. What the Backend Currently Receives
+- In the current implementation the backend only receives:
+  - threadId
+  - message text
+- Voice files are never uploaded.
+- In mock mode the voice message exists only in local memory using blob URLs (lost on refresh).
+
+5. Current State
+- Voice files are recorded and stored temporarily on the client.
+- They are not uploaded or persisted by the backend yet.
+
+
+6. Requirements to Support Voice Messages
+
+- File upload endpoint (e.g., POST /api/v1/messages/upload)
+  - Accept multipart/form-data
+  - Validate audio type (webm/ogg/mp4) and size
+  - Store file and return a stable URL.
+
+- Message creation endpoint that supports attachments
+
+
+
+*/
+
+
+
 "use client";
 
 import * as React from "react";
@@ -143,4 +194,5 @@ export default function VoiceMessageButton({ disabled, onVoiceRecorded }: VoiceM
       )}
     </Box>
   );
+
 }

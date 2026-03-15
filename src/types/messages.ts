@@ -20,7 +20,11 @@ export interface Thread {
   participantIds: ID[];
   updatedAt: number;
   isRequest?: boolean;
+<<<<<<< HEAD
   /** Optional display name for group chats */
+=======
+  /** Optional name for group chats */
+>>>>>>> 7acbbfd (refactored messaging added files from dev branch)
   name?: string;
 }
 
