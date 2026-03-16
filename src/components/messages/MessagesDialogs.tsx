@@ -55,7 +55,7 @@ export type MessagesDialogsProps = {
   onSubmitReport: () => void;
   createGroupOpen?: boolean;
   onCloseCreateGroup?: () => void;
-  onCreateGroup?: (participantIds: ID[], name: string) => void | Promise<void>;
+  onCreateGroup?: (participantIds: ID[], name: string, groupPictureUrl?: string) => void | Promise<void>;
 };
 
 export default function MessagesDialogs(props: MessagesDialogsProps) {
@@ -98,11 +98,13 @@ export default function MessagesDialogs(props: MessagesDialogsProps) {
   React.useEffect(() => { if (!newMsgOpen) setNewMsgQuery(""); }, [newMsgOpen]);
   React.useEffect(() => { if (noteOpen) setNoteText(myNoteText); }, [noteOpen, myNoteText]);
   React.useEffect(() => { if (!gifOpen) setGifTab("all"); }, [gifOpen]);
+  const [createGroupPictureUrl, setCreateGroupPictureUrl] = React.useState<string>("");
   React.useEffect(() => {
     if (!createGroupOpen) {
       setCreateGroupQuery("");
       setCreateGroupSelected(new Set());
       setCreateGroupName("");
+      setCreateGroupPictureUrl("");
     }
   }, [createGroupOpen]);
 
@@ -135,7 +137,7 @@ export default function MessagesDialogs(props: MessagesDialogsProps) {
     const name = createGroupName.trim() || "Group chat";
     const participantIds = [meId, ...createGroupSelected];
     if (participantIds.length < 2) return;
-    onCreateGroup?.(participantIds, name);
+    onCreateGroup?.(participantIds, name, createGroupPictureUrl || undefined);
     onCloseCreateGroup?.();
   };
 
@@ -237,10 +239,33 @@ export default function MessagesDialogs(props: MessagesDialogsProps) {
             <IconButton onClick={onCloseCreateGroup} sx={{ position: "absolute", right: 10, top: 10 }}><CloseIcon /></IconButton>
           </DialogTitle>
           <DialogContent sx={{ pt: 1 }}>
-            <TextField value={createGroupName} onChange={(e) => setCreateGroupName(e.target.value.slice(0, 60))} placeholder="Group name (optional)" fullWidth size="small" sx={{ mb: 1.5 }} />
-            <TextField value={createGroupQuery} onChange={(e) => setCreateGroupQuery(e.target.value)} placeholder="Search people" fullWidth size="small" InputProps={{ sx: { bgcolor: "rgba(0,0,0,0.04)", borderRadius: 999 } }} />
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1.5 }}>
+              <Button variant="outlined" component="label" sx={{ borderRadius: 999, fontWeight: 900, textTransform: "none", minWidth: 0, p: 1.25 }}>
+                {createGroupPictureUrl ? (
+                  <Avatar src={createGroupPictureUrl} sx={{ width: 56, height: 56, border: `2px solid ${RED}` }} />
+                ) : (
+                  <Typography sx={{ fontSize: 12 }}>Add photo</Typography>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () => setCreateGroupPictureUrl(String(reader.result));
+                    reader.readAsDataURL(file);
+                    e.target.value = "";
+                  }}
+                />
+              </Button>
+              <TextField value={createGroupName} onChange={(e) => setCreateGroupName(e.target.value.slice(0, 60))} placeholder="Group name" fullWidth size="small" />
+            </Box>
+            <Typography sx={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.6)", mb: 1 }}>Add followers to the group</Typography>
+            <TextField value={createGroupQuery} onChange={(e) => setCreateGroupQuery(e.target.value)} placeholder="Search followers" fullWidth size="small" InputProps={{ sx: { bgcolor: "rgba(0,0,0,0.04)", borderRadius: 999 } }} />
             <Divider sx={{ my: 1.5 }} />
-            <List sx={{ p: 0, maxHeight: 320, overflow: "auto" }}>
+            <List sx={{ p: 0, maxHeight: 280, overflow: "auto" }}>
               {createGroupFilteredUsers.map((u) => (
                 <ListItemButton key={u.id} onClick={() => toggleCreateGroupUser(u.id)} sx={{ borderRadius: 2 }}>
                   <ListItemIcon>

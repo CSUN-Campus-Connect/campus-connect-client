@@ -41,6 +41,8 @@ export default function MessagesPage() {
       onSend={data.onSend}
       onUpdateNote={data.onUpdateNote}
       onPickUser={data.onPickUser}
+      onCreateGroup={data.onCreateGroup}
+      groupPictureByThreadId={data.groupPictureByThreadId}
       onRefresh={data.refresh}
     />
   );

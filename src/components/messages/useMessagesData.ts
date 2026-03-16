@@ -5,7 +5,8 @@ import type { ID, Message, Note, Thread, User } from "@/types/messages";
 import { ME_ID } from "./constants";
 import { mockUsers, mockThreads, mockNotes, mockMessagesByThread } from "./mockData";
 
-const placeholderMe: User = { id: ME_ID, username: "me", displayName: "You", avatarUrl: "", lastActiveAt: Date.now() };
+// Use fixed timestamp so placeholder user is consistent between server and client (avoids hydration mismatch).
+const placeholderMe: User = { id: ME_ID, username: "me", displayName: "You", avatarUrl: "", lastActiveAt: 1700000000000 };
 
 export function useMessagesData() {
   const [threads, setThreads] = useState<Thread[]>(mockThreads);
@@ -45,7 +46,43 @@ export function useMessagesData() {
     setSelectedThreadId(newThread.id);
   }, [threads]);
 
+  const [groupPictureByThreadId, setGroupPictureByThreadId] = useState<Record<string, string>>({});
+
+  const onCreateGroup = useCallback(
+    async (participantIds: ID[], name: string, groupPictureUrl?: string) => {
+      if (participantIds.length < 2) return;
+      const newThread: Thread = {
+        id: `t_${Date.now()}`,
+        participantIds,
+        updatedAt: Date.now(),
+        isRequest: false,
+        name: name.trim() || "Group chat",
+      };
+      setThreads((prev) => [newThread, ...prev]);
+      setSelectedThreadId(newThread.id);
+      if (groupPictureUrl) setGroupPictureByThreadId((prev) => ({ ...prev, [newThread.id]: groupPictureUrl }));
+    },
+    []
+  );
+
   const refresh = useCallback(() => {}, []);
 
-  return { threads, usersWithMe, notes, allMessages, threadMessages, selectedThreadId, setSelectedThreadId, me, loading: false, error: null, onSend, onUpdateNote, onPickUser, refresh };
+  return {
+    threads,
+    usersWithMe,
+    notes,
+    allMessages,
+    threadMessages,
+    selectedThreadId,
+    setSelectedThreadId,
+    me,
+    loading: false,
+    error: null,
+    onSend,
+    onUpdateNote,
+    onPickUser,
+    onCreateGroup,
+    groupPictureByThreadId,
+    refresh,
+  };
 }
