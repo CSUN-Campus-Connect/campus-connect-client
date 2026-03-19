@@ -2,7 +2,7 @@
 
 import React, { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { api } from "../../../lib/axios";
+import { api } from "../../lib/axios";
 import DarkVeil from "@/components/Landingpage/DarkVeil";
 import PasswordField from "@/components/authTools/ViewFilter";
 import { z } from "zod";
