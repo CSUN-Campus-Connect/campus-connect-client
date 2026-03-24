@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { useAuthorize } from '@/lib/useAuthorize';
-import { useRouter } from 'next/navigation';
 
 type AudienceId = 'all' | 'undergrad' | 'graduate' | 'alumni';
 type CategoryId =
@@ -542,21 +540,6 @@ const EventsPage: React.FC = () => {
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [registrationData, setRegistrationData] = useState({ name: '', email: '', phone: '' });
 
-  const router = useRouter();
-  const { auth, user, token, loading } = useAuthorize();
-
-  React.useEffect(() => {
-    if(loading) return;
-    
-    if (auth && token)
-    console.log("Stored user: ", user);
-    else {
-      console.log("User not logged in.");
-      console.log("auth: " + auth, ". token: " + token);
-      router.replace("/");
-    }
-  }, [auth, token, user, loading, router]); 
-
   const filteredEvents = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     const base = events.filter((event) => {
@@ -646,7 +629,6 @@ const EventsPage: React.FC = () => {
     }
   };
 
-  if (!auth) return null;
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e1e2e 0%, #2a1a3d 100%)', position: 'relative' }}>
       <div
