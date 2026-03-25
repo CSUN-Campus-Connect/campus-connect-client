@@ -1,51 +1,11 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-
-type AudienceId = 'all' | 'undergrad' | 'graduate' | 'alumni';
-type CategoryId =
-  | 'all'
-  | 'academic'
-  | 'career'
-  | 'social'
-  | 'wellness'
-  | 'sports'
-  | 'arts'
-  | 'workshop';
-
-type Speaker = { name: string; title: string };
-type AgendaItem = { time: string; activity: string };
-
-type EventItem = {
-  id: number;
-  title: string;
-  shortDescription: string;
-  fullDescription: string;
-  category: Exclude<CategoryId, 'all'>;
-  date: string;          // human readable for UI
-  time: string;          // human readable for UI
-  startISO?: string;     // optional ISO start for calendar
-  endISO?: string;       // optional ISO end   for calendar
-  location: string;
-  building: string;
-  image: string;
-  price: string;
-  capacity: number;
-  registered: number;
-  audience: AudienceId[];
-  organizer: string;
-  contact: string;
-  phone: string;
-  speakers: Speaker[];
-  agenda: AgendaItem[];
-  tags: string[];
-  hybrid: boolean;
-  accessibility: string;
-  parking: string;
-  featured?: boolean;
-  trending?: boolean;
-  freebies?: string[];   // swag / perks (pizza, shirts, etc.)
-};
+import { AnimatePresence, motion } from 'framer-motion';
+import type { AudienceId, CategoryId, EventItem } from './types';
+import EventGridCard from './components/EventGridCard';
+import EventDetailsModal from './components/EventDetailsModal';
+import EventRegisterModal from './components/EventRegisterModal';
 
 const categories: { id: CategoryId; name: string; icon: string; color: string }[] = [
   { id: 'all',       name: 'All Events',         icon: '', color: '#D22030' },
@@ -631,14 +591,39 @@ const EventsPage: React.FC = () => {
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e1e2e 0%, #2a1a3d 100%)', position: 'relative' }}>
-      <div
+      <motion.div
+        aria-hidden
         style={{
           position: 'fixed',
-          inset: 0,
-          background: 'radial-gradient(circle at 20% 50%, rgba(210, 32, 48, 0.1) 0%, transparent 50%)',
+          top: '-10%',
+          left: '-10%',
+          width: '520px',
+          height: '520px',
+          borderRadius: '999px',
+          background: 'rgba(210, 32, 48, 0.14)',
+          filter: 'blur(120px)',
           zIndex: 0,
-          animation: 'pulse 8s ease-in-out infinite',
+          pointerEvents: 'none',
         }}
+        animate={{ x: [0, 30, -20, 0], y: [0, -25, 20, 0] }}
+        transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        aria-hidden
+        style={{
+          position: 'fixed',
+          right: '-8%',
+          top: '18%',
+          width: '420px',
+          height: '420px',
+          borderRadius: '999px',
+          background: 'rgba(56, 189, 248, 0.1)',
+          filter: 'blur(110px)',
+          zIndex: 0,
+          pointerEvents: 'none',
+        }}
+        animate={{ x: [0, -35, 10, 0], y: [0, 20, -15, 0] }}
+        transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut' }}
       />
 
       <div style={{ position: 'relative', zIndex: 1 }}>
@@ -885,457 +870,63 @@ const EventsPage: React.FC = () => {
               gap: '2rem',
             }}
           >
-            {filteredEvents.map((event) => (
-              <div
-                key={event.id}
-                id={`event-${event.id}`}
-                onClick={() => {
-                  setSelectedEvent(event);
-                  setShowEventModal(true);
-                }}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  borderRadius: '24px',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  transition: 'all 0.4s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-8px)';
-                  e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                {/* Image */}
-                <div style={{ position: 'relative', height: '14rem' }}>
-                  <img src={event.image} alt={event.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-
-                  {/* Badges */}
-                  <div style={{ position: 'absolute', top: '1rem', left: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {event.featured && (
-                      <span
-                        style={{
-                          background: '#fbbf24',
-                          color: 'white',
-                          padding: '0.5rem 1rem',
-                          borderRadius: '12px',
-                          fontSize: '0.75rem',
-                          fontWeight: 800,
-                        }}
-                      >
-                         Featured
-                      </span>
-                    )}
-                    {event.trending && (
-                      <span
-                        style={{
-                          background: '#D22030',
-                          color: 'white',
-                          padding: '0.5rem 1rem',
-                          borderRadius: '12px',
-                          fontSize: '0.75rem',
-                          fontWeight: 800,
-                        }}
-                      >
-                         Trending
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Favorite */}
-                  <button
-                    onClick={(e) => toggleFavorite(event.id, e)}
-                    style={{
-                      position: 'absolute',
-                      top: '1rem',
-                      right: '1rem',
-                      background: 'rgba(255, 255, 255, 0.95)',
-                      padding: '0.75rem',
-                      borderRadius: '50%',
-                      border: 'none',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <svg width="24" height="24" fill={favorites.has(event.id) ? '#D22030' : 'none'} stroke={favorites.has(event.id) ? '#D22030' : '#374151'} strokeWidth="2.5">
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                    </svg>
-                  </button>
-
-                  {/* Capacity */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      bottom: '1rem',
-                      right: '1rem',
-                      background: 'rgba(0, 0, 0, 0.7)',
-                      color: 'white',
-                      padding: '0.5rem 1rem',
-                      borderRadius: '8px',
-                      fontSize: '0.875rem',
-                      fontWeight: 600,
-                    }}
-                  >
-                    {event.registered}/{event.capacity} Registered
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div style={{ padding: '1.5rem' }}>
-                  <h3 style={{ color: 'white', fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.75rem' }}>{event.title}</h3>
-
-                  <p style={{ color: 'rgba(255, 255, 255, 0.6)', marginBottom: '1rem' }}>{event.shortDescription}</p>
-
-                  {/* Details */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'rgba(255, 255, 255, 0.8)' }}>
-                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                        <line x1="16" y1="2" x2="16" y2="6" />
-                        <line x1="8" y1="2" x2="8" y2="6" />
-                        <line x1="3" y1="10" x2="21" y2="10" />
-                      </svg>
-                      <span style={{ fontSize: '0.95rem' }}>{event.date} • {event.time}</span>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'rgba(255, 255, 255, 0.8)' }}>
-                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                        <circle cx="12" cy="10" r="3" />
-                      </svg>
-                      <span style={{ fontSize: '0.95rem' }}>{event.location}</span>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'rgba(255, 255, 255, 0.8)' }}>
-                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M12 6v6l4 2" />
-                      </svg>
-                      <span style={{ fontSize: '0.95rem' }}>{event.price}</span>
-                    </div>
-                  </div>
-
-                  {/* Tags */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
-                    {event.tags.slice(0, 4).map((tag, i) => (
-                      <span
-                        key={i}
-                        style={{
-                          background: 'rgba(255, 255, 255, 0.1)',
-                          color: 'white',
-                          padding: '0.25rem 0.75rem',
-                          borderRadius: '8px',
-                          fontSize: '0.875rem',
-                        }}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                    {event.freebies?.length ? (
-                      <span
-                        style={{
-                          background: 'rgba(210, 32, 48, 0.2)',
-                          color: '#fff',
-                          padding: '0.25rem 0.75rem',
-                          borderRadius: '8px',
-                          fontSize: '0.875rem',
-                          border: '1px solid rgba(210,32,48,0.4)',
-                        }}
-                      >
-                         {event.freebies.join(' • ')}
-                      </span>
-                    ) : null}
-                  </div>
-
-                  {/* Actions */}
-                  <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    <button
-                      onClick={(e) => handleRegister(event, e)}
-                      style={{
-                        flex: 1,
-                        background: getCategoryColor(event.category),
-                        color: 'white',
-                        padding: '1rem',
-                        borderRadius: '14px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontWeight: 700,
-                        fontSize: '1rem',
-                      }}
-                    >
-                      Register Now
-                    </button>
-                    <button
-                      onClick={(e) => addToCalendar(event, e)}
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        color: 'white',
-                        padding: '1rem',
-                        borderRadius: '14px',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" />
-                        <line x1="16" y1="2" x2="16" y2="6" />
-                        <line x1="8" y1="2" x2="8" y2="6" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={(e) => shareEvent(event, e)}
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        color: 'white',
-                        padding: '1rem',
-                        borderRadius: '14px',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="18" cy="5" r="3" />
-                        <circle cx="6" cy="12" r="3" />
-                        <circle cx="18" cy="19" r="3" />
-                        <line x1="8.59" y1="13.51" x2="15.42" y2="8.49" />
-                        <line x1="8.59" y1="10.49" x2="15.42" y2="15.51" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+            <AnimatePresence mode="popLayout">
+              {filteredEvents.map((event, idx) => (
+                <motion.div
+                  layout
+                  key={event.id}
+                  id={`event-${event.id}`}
+                  initial={{ opacity: 0, y: 24, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -14, scale: 0.97 }}
+                  transition={{ delay: idx * 0.03, type: 'spring', stiffness: 170, damping: 22 }}
+                  whileHover={{ y: -8, scale: 1.012 }}
+                  onClick={() => {
+                    setSelectedEvent(event);
+                    setShowEventModal(true);
+                  }}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: '24px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    boxShadow: '0 12px 28px rgba(0, 0, 0, 0.18)',
+                  }}
+                >
+                  <EventGridCard
+                    event={event}
+                    isFavorite={favorites.has(event.id)}
+                    onToggleFavorite={toggleFavorite}
+                    onRegister={handleRegister}
+                    onAddToCalendar={addToCalendar}
+                    onShare={shareEvent}
+                    getCategoryColor={getCategoryColor}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         </div>
 
-        {/* Event Modal */}
-        {showEventModal && selectedEvent && (
-          <div
-            onClick={() => setShowEventModal(false)}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              background: 'rgba(0,0,0,0.6)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '2rem',
-              zIndex: 50,
-            }}
-          >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                width: 'min(980px, 100%)',
-                background: '#10121a',
-                color: 'white',
-                borderRadius: '16px',
-                overflow: 'hidden',
-                border: '1px solid rgba(255,255,255,0.1)',
-              }}
-            >
-              <img src={selectedEvent.image} alt={selectedEvent.title} style={{ width: '100%', height: '260px', objectFit: 'cover' }} />
-              <div style={{ padding: '1.25rem 1.5rem' }}>
-                <h3 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '0.5rem' }}>{selectedEvent.title}</h3>
-                <p style={{ opacity: 0.9, marginBottom: '1rem' }}>{selectedEvent.fullDescription}</p>
+        <EventDetailsModal
+          open={showEventModal}
+          event={selectedEvent}
+          onClose={() => setShowEventModal(false)}
+          onRegister={handleRegister}
+          onAddToCalendar={addToCalendar}
+          getCategoryColor={getCategoryColor}
+        />
 
-                <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', marginBottom: '1rem' }}>
-                  <div> <b>Date/Time:</b> {selectedEvent.date} • {selectedEvent.time}</div>
-                  <div> <b>Location:</b> {selectedEvent.location} ({selectedEvent.building})</div>
-                  <div> <b>Price:</b> {selectedEvent.price}</div>
-                  <div> <b>Access:</b> {selectedEvent.accessibility}</div>
-                  <div> <b>Parking:</b> {selectedEvent.parking}</div>
-                  <div> <b>Audience:</b> {selectedEvent.audience.join(', ')}</div>
-                  <div> <b>Tags:</b> {selectedEvent.tags.join(', ')}</div>
-                  {selectedEvent.freebies?.length ? <div> <b>Freebies:</b> {selectedEvent.freebies.join(', ')}</div> : null}
-                  <div> <b>Contact:</b> {selectedEvent.contact} • {selectedEvent.phone}</div>
-                </div>
-
-                {!!selectedEvent.speakers.length && (
-                  <div style={{ marginBottom: '1rem' }}>
-                    <h4 style={{ fontWeight: 800, marginBottom: '0.5rem' }}>Speakers</h4>
-                    <ul style={{ paddingLeft: '1rem', opacity: 0.9 }}>
-                      {selectedEvent.speakers.map((s, i) => (
-                        <li key={i}>{s.name} — {s.title}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {!!selectedEvent.agenda.length && (
-                  <div style={{ marginBottom: '1rem' }}>
-                    <h4 style={{ fontWeight: 800, marginBottom: '0.5rem' }}>Agenda</h4>
-                    <ul style={{ paddingLeft: '1rem', opacity: 0.9 }}>
-                      {selectedEvent.agenda.map((a, i) => (
-                        <li key={i}><b>{a.time}</b> — {a.activity}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                  <button
-                    onClick={() => {
-                      setShowEventModal(false);
-                      handleRegister(selectedEvent);
-                    }}
-                    style={{
-                      background: getCategoryColor(selectedEvent.category),
-                      color: 'white',
-                      padding: '0.9rem 1.1rem',
-                      borderRadius: '12px',
-                      border: 'none',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Register
-                  </button>
-                  <button
-                    onClick={() => addToCalendar(selectedEvent)}
-                    style={{
-                      background: 'rgba(255,255,255,0.08)',
-                      color: 'white',
-                      padding: '0.9rem 1.1rem',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Add to Calendar
-                  </button>
-                  <button
-                    onClick={() => setShowEventModal(false)}
-                    style={{
-                      background: 'rgba(255,255,255,0.08)',
-                      color: 'white',
-                      padding: '0.9rem 1.1rem',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Register Modal */}
-        {showRegisterModal && selectedEvent && (
-          <div
-            onClick={() => setShowRegisterModal(false)}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              background: 'rgba(0,0,0,0.6)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '2rem',
-              zIndex: 60,
-            }}
-          >
-            <form
-              onSubmit={submitRegistration}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                width: 'min(520px, 100%)',
-                background: '#10121a',
-                color: 'white',
-                borderRadius: '16px',
-                padding: '1.5rem',
-                border: '1px solid rgba(255,255,255,0.1)',
-              }}
-            >
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '0.25rem' }}>
-                Register for {selectedEvent.title}
-              </h3>
-              <p style={{ opacity: 0.8, marginBottom: '1rem' }}>
-                {selectedEvent.date} • {selectedEvent.time}
-              </p>
-
-              <div style={{ display: 'grid', gap: '0.75rem' }}>
-                <input
-                  required
-                  placeholder="Full name"
-                  value={registrationData.name}
-                  onChange={(e) => setRegistrationData({ ...registrationData, name: e.target.value })}
-                  style={{
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.15)',
-                    borderRadius: '10px',
-                    padding: '0.85rem 0.9rem',
-                    color: 'white',
-                  }}
-                />
-                <input
-                  required
-                  type="email"
-                  placeholder="Email"
-                  value={registrationData.email}
-                  onChange={(e) => setRegistrationData({ ...registrationData, email: e.target.value })}
-                  style={{
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.15)',
-                    borderRadius: '10px',
-                    padding: '0.85rem 0.9rem',
-                    color: 'white',
-                  }}
-                />
-                <input
-                  placeholder="Phone (optional)"
-                  value={registrationData.phone}
-                  onChange={(e) => setRegistrationData({ ...registrationData, phone: e.target.value })}
-                  style={{
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.15)',
-                    borderRadius: '10px',
-                    padding: '0.85rem 0.9rem',
-                    color: 'white',
-                  }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
-                <button
-                  type="submit"
-                  style={{
-                    background: getCategoryColor(selectedEvent.category),
-                    color: 'white',
-                    padding: '0.9rem 1.1rem',
-                    borderRadius: '12px',
-                    border: 'none',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    flex: 1,
-                  }}
-                >
-                  Confirm Registration
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowRegisterModal(false)}
-                  style={{
-                    background: 'rgba(255,255,255,0.08)',
-                    color: 'white',
-                    padding: '0.9rem 1.1rem',
-                    borderRadius: '12px',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+        <EventRegisterModal
+          open={showRegisterModal}
+          event={selectedEvent}
+          registrationData={registrationData}
+          setRegistrationData={setRegistrationData}
+          onClose={() => setShowRegisterModal(false)}
+          onSubmit={submitRegistration}
+          getCategoryColor={getCategoryColor}
+        />
       </div>
     </div>
   );
