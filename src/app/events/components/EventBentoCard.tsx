@@ -73,6 +73,9 @@ export default function EventBentoCard({ event, index, isFavorite, onOpen, onTog
           WebkitBackdropFilter: 'blur(8px)',
           transition: 'border-color 0.25s',
           position: 'relative',
+          minHeight: '580px',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         {/* Image */}
@@ -217,7 +220,7 @@ export default function EventBentoCard({ event, index, isFavorite, onOpen, onTog
         </div>
 
         {/* Body */}
-        <div style={{ padding: '16px 18px 18px' }}>
+        <div style={{ padding: '16px 18px 18px', flex: 1, display: 'flex', flexDirection: 'column' }}>
           <h3
             style={{
               fontFamily: "'Syne', sans-serif",
@@ -291,7 +294,7 @@ export default function EventBentoCard({ event, index, isFavorite, onOpen, onTog
           )}
 
           {/* Actions */}
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
             <button
               onClick={(e) => { e.stopPropagation(); onRegister(event); }}
               disabled={full}
