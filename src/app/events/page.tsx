@@ -6,51 +6,11 @@ import type { AudienceId, CategoryId, EventItem } from './types';
 import EventGridCard from './components/EventGridCard';
 import EventDetailsModal from './components/EventDetailsModal';
 import EventRegisterModal from './components/EventRegisterModal';
-
-const categories: { id: CategoryId; name: string; icon: string; color: string }[] = [
-  { id: 'all',       name: 'All Events',         icon: '', color: '#D22030' },
-  { id: 'academic',  name: 'Academic',           icon: '', color: '#3b82f6' },
-  { id: 'career',    name: 'Career & Jobs',      icon: '', color: '#10b981' },
-  { id: 'social',    name: 'Social',             icon: '', color: '#f59e0b' },
-  { id: 'wellness',  name: 'Wellness',           icon: '', color: '#8b5cf6' },
-  { id: 'sports',    name: 'Sports',             icon: '', color: '#ef4444' },
-  { id: 'arts',      name: 'Arts & Culture',     icon: '', color: '#ec4899' },
-  { id: 'workshop',  name: 'Workshops',          icon: '', color: '#06b6d4' },
-];
-
-const audiences: { id: AudienceId; name: string }[] = [
-  { id: 'all',       name: 'All Students' },
-  { id: 'undergrad', name: 'Undergraduates' },
-  { id: 'graduate',  name: 'Graduate Students' },
-  { id: 'alumni',    name: 'Alumni' },
-];
+import { categories, audiences } from './data/filters';
+import { buildICS } from './utils/calendar';
 
 function getCategoryColor(categoryId: CategoryId) {
   return categories.find((c) => c.id === categoryId)?.color || '#D22030';
-}
-
-function buildICS(e: EventItem) {
-  // Basic ICS content for download
-  const dtStart = e.startISO ? e.startISO.replace(/[-:]/g, '').replace('.000', '').replace(/Z$/, 'Z') : '';
-  const dtEnd   = e.endISO   ? e.endISO.replace(/[-:]/g, '').replace('.000', '').replace(/Z$/, 'Z')   : '';
-  const uid = `campusconnect-${e.id}@csun.edu`;
-  const lines = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//CampusConnect//Events//EN',
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
-    'BEGIN:VEVENT',
-    dtStart ? `DTSTART:${dtStart}` : '',
-    dtEnd   ? `DTEND:${dtEnd}`     : '',
-    `UID:${uid}`,
-    `SUMMARY:${e.title.replace(/\n/g, ' ')}`,
-    `DESCRIPTION:${e.fullDescription.replace(/\n/g, ' ')}`,
-    `LOCATION:${e.location} (${e.building})`,
-    'END:VEVENT',
-    'END:VCALENDAR',
-  ].filter(Boolean);
-  return lines.join('\r\n');
 }
 
 const initialEvents: EventItem[] = [
