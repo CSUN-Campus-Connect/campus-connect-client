@@ -6,47 +6,66 @@ import type { EventItem } from '../types';
 /**
  * useEventRanking
  *
- * Ranks and scores events based on:
- * 1. Engagement metrics (registered ÷ capacity, trending status)
- * 2. Proximity to current date (urgency)
- * 3. Event popularity (featured status)
+ * Applies a weighted engagement score to each event so that the
+ * Discover feed surfaces the most relevant events first.
  *
- * Returns events sorted by composite score (engagement + urgency + popularity weighting).
+ * Scoring formula (inspired by the Hacker News "gravity" algorithm):
+ *
+ *   engagementScore = (rsvpDensity * W_density)
+ *                   + (viewWeight   * W_views)
+ *                   - (hoursUntil   * W_urgency)
+ *                   + (featuredBoost)
+ *                   + (trendingBoost)
+ *
+ * Where:
+ *   rsvpDensity  = registered / capacity          (0–1)
+ *   viewWeight   = log10(viewCount + 1) / 4       (0–1 normalised)
+ *   hoursUntil   = hours from now until startISO  (decay for far-future events)
+ *   W_density    = 40
+ *   W_views      = 20
+ *   W_urgency    = 0.002 (gentle — we don't want to bury future events)
+ *   featuredBoost = 15
+ *   trendingBoost = 10
+ *
+ * Time complexity:  O(N)
+ * Space complexity: O(N)
  */
 
-export function useEventRanking(events: EventItem[]) {
+interface RankingResult {
+  rankedEvents: EventItem[];
+}
+
+export function useEventRanking(events: EventItem[]): RankingResult {
   const rankedEvents = useMemo(() => {
-    const now = new Date();
+    const now = Date.now();
 
-    return [...events]
-      .map((ev) => {
-        // Engagement score: capacity utilization + popularity
-        const capacityRatio = ev.capacity > 0 ? ev.registered / ev.capacity : 0;
-        const engagementScore =
-          capacityRatio * 40 +
-          (ev.trending ? 30 : 0) +
-          (ev.featured ? 20 : 0) +
-          (ev.viewCount ?? 0) * 0.01;
+    const scored = events.map((ev): EventItem => {
+      const rsvpDensity = ev.capacity > 0 ? ev.registered / ev.capacity : 0;
 
-        // Urgency score: how soon the event is
-        const eventDate = new Date(ev.startISO);
-        const daysUntil = (eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-        const urgencyScore = Math.max(0, 100 - daysUntil * 2); // Decreases as date is further away
+      const views = ev.viewCount ?? 0;
+      const viewWeight = Math.log10(views + 1) / 4;
 
-        // Popularity modifier
-        const popularityBoost = ev.featured ? 15 : 0;
+      const startMs = new Date(ev.startISO).getTime();
+      const hoursUntil = Math.max(0, (startMs - now) / 3_600_000);
 
-        const finalScore = engagementScore + urgencyScore * 0.4 + popularityBoost;
+      const featuredBoost = ev.featured ? 15 : 0;
+      const trendingBoost = ev.trending ? 10 : 0;
 
-        return {
-          ...ev,
-          engagementScore: Math.round(engagementScore),
-          urgencyScore: Math.round(urgencyScore),
-          _sortScore: finalScore,
-        };
-      })
-      .sort((a, b) => b._sortScore - a._sortScore)
-      .map(({ _sortScore, ...ev }) => ev);
+      const engagementScore =
+        rsvpDensity * 40 +
+        viewWeight * 20 -
+        hoursUntil * 0.002 +
+        featuredBoost +
+        trendingBoost;
+
+      // urgencyScore: days until event — for the timeline view
+      const urgencyScore = hoursUntil / 24;
+
+      return { ...ev, engagementScore, urgencyScore };
+    });
+
+    // Sort descending by engagement score
+    return scored.sort((a, b) => (b.engagementScore ?? 0) - (a.engagementScore ?? 0));
   }, [events]);
 
   return { rankedEvents };

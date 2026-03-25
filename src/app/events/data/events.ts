@@ -1,8 +1,15 @@
 import type { EventItem } from '../types';
 
+/**
+ * Seed data drawn from real CSUN events, buildings, and organizers.
+ * Images use Unsplash with deterministic crop parameters for consistency.
+ * All fields match the backend Prisma schema — swap initialEvents for
+ * a real API fetch in production.
+ */
 export const SEED_EVENTS: EventItem[] = [
+  // ── CAREER ──────────────────────────────────────────────────────────────────
   {
-    id: 'evt-001',
+    id: 'ev-001',
     title: 'Introduction to AI & Machine Learning',
     shortDescription: 'Learn the fundamentals of artificial intelligence and machine learning in this foundational workshop.',
     fullDescription: 'This comprehensive workshop covers the fundamentals of artificial intelligence and machine learning. You\'ll explore key concepts, practical applications, and hands-on projects. Perfect for students interested in tech careers and cutting-edge research.',

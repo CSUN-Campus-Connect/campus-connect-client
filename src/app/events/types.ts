@@ -12,6 +12,22 @@ export type CategoryId =
 
 export type NavSection = 'discover' | 'graph' | 'timeline' | 'calendar';
 
+export interface Category {
+  id: CategoryId;
+  name: string;
+  color: string;
+}
+
+export interface Audience {
+  id: AudienceId;
+  name: string;
+}
+
+export interface NavItem {
+  id: NavSection;
+  label: string;
+}
+
 export interface Speaker {
   name: string;
   title: string;
