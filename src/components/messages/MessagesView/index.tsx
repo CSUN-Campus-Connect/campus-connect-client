@@ -64,6 +64,7 @@ import {
 } from "../utils";
 import MessagesDialogs from "../MessagesDialogs";
 import VoiceMessageButton from "../VoiceMessageButton";
+import { useToast, Toast } from "../Toast";
 import Grainient from "../backgroundanimations/Grainient";
 import GridScan from "../backgroundanimations/GridScan";
 import Lightning from "../backgroundanimations/Lightning";
@@ -165,6 +166,7 @@ export default function MessagesView(props: MessagesViewProps) {
   const [reportReason, setReportReason] = React.useState("");
   const [reportDetails, setReportDetails] = React.useState("");
   const [gifFavorites, setGifFavorites] = React.useState<string[]>([]);
+  const toast = useToast();
 
   const [hoveredMsgId, setHoveredMsgId] = React.useState<ID | null>(null);
   const [msgMenuAnchor, setMsgMenuAnchor] = React.useState<null | HTMLElement>(null);
@@ -637,7 +639,7 @@ export default function MessagesView(props: MessagesViewProps) {
                 onScroll={handleScroll}
                 sx={{ position: "relative", zIndex: 1, flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", px: 2.5, py: 2, ...scrollBarSx }}
                 onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => { e.preventDefault(); if (selectedThread) addFiles(e.dataTransfer.files); }}
+                onDrop={(e) => { e.preventDefault(); toast.show("File attachments coming soon!", "info"); }}
               >
                 {!selectedThread || (!otherUser && !isGroupThread(selectedThread)) ? (
                   <Box sx={{ height: "100%", display: "grid", placeItems: "center", textAlign: "center" }}>
@@ -820,8 +822,8 @@ export default function MessagesView(props: MessagesViewProps) {
                 </Stack>
               )}
               <Stack direction="row" spacing={1} alignItems="center">
-                <IconButton component="label" disabled={!selectedThread} title="Attach file"><AttachFileIcon /><input hidden type="file" multiple accept="image/*,audio/*,application/pdf" onChange={(e) => { if (e.target.files) { addFiles(e.target.files); e.currentTarget.value = ""; } }} /></IconButton>
-                <VoiceMessageButton disabled={!selectedThread} onVoiceRecorded={(file, durationSec) => { voiceDurationsByFileName.current[file.name] = durationSec; addFiles([file]); }} />
+                <IconButton disabled={!selectedThread} onClick={() => toast.show("File attachments coming soon!", "info")} title="Attach file"><AttachFileIcon /></IconButton>
+                <IconButton disabled={!selectedThread} onClick={() => toast.show("Voice messages coming soon!", "info")} title="Voice message"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></IconButton>
                 <IconButton disabled={!selectedThread} onClick={() => setGifOpen(true)} title="GIFs"><GifBoxIcon /></IconButton>
                 <TextField
                   value={selectedDraft.text}
@@ -834,7 +836,7 @@ export default function MessagesView(props: MessagesViewProps) {
                 />
                 <IconButton onClick={handleSend} disabled={!selectedThread} title="Send"><SendIcon sx={{ color: selectedThread ? RED : "rgba(0,0,0,0.25)" }} /></IconButton>
               </Stack>
-              <Typography sx={{ mt: 0.7, fontSize: 11, color: "rgba(0,0,0,0.45)" }}>Tip: drag and drop files into the chat area to attach.</Typography>
+              <Typography sx={{ mt: 0.7, fontSize: 11, color: "rgba(0,0,0,0.45)" }}>File attachments and voice messages coming soon.</Typography>
             </Box>
           </Box>
         </Paper>
@@ -1107,6 +1109,8 @@ export default function MessagesView(props: MessagesViewProps) {
           <Button onClick={() => setSettingsOpen(false)} sx={{ fontWeight: 900, textTransform: "none" }}>Close</Button>
         </DialogActions>
       </Dialog>
+
+      <Toast open={toast.open} message={toast.message} severity={toast.severity} onClose={toast.close} />
     </Box>
   );
 }

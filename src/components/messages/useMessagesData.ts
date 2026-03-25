@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { api } from "@/lib/axios";
-import type { ID, Message, Note, Thread, User } from "@/types/messages";
+import type { ID, Message, Note, Thread, User, Attachment } from "@/types/messages";
 
 function toThread(conv: any): Thread {
   return {
@@ -22,18 +22,29 @@ function toUser(participant: any): User {
     username: u.firstName?.toLowerCase() + (u.lastName ? u.lastName.toLowerCase() : ""),
     displayName: `${u.firstName || ""} ${u.lastName || ""}`.trim(),
     avatarUrl: u.profilePicture || "",
-    lastActiveAt: Date.now(),
+    lastActiveAt: u.lastActiveAt ? new Date(u.lastActiveAt).getTime() : Date.now(),
+  };
+}
+
+function toAttachment(att: any): Attachment {
+  return {
+    id: att.id,
+    type: att.type || "file",
+    name: att.fileName || "File",
+    url: att.fileUrl || "",
+    size: att.fileSize ?? undefined,
   };
 }
 
 function toMessage(msg: any): Message {
+  const attachments: Attachment[] = (msg.Attachments ?? []).map(toAttachment);
   return {
     id: msg.id,
     threadId: msg.conversationId,
     fromUserId: msg.senderId,
     text: msg.content || "",
     createdAt: new Date(msg.createdAt).getTime(),
-    attachments: [],
+    attachments: attachments.length > 0 ? attachments : undefined,
     seenByUserIds: [],
   };
 }
@@ -103,19 +114,34 @@ export function useMessagesData() {
 
       const convos: Thread[] = [];
       const userMap = new Map<ID, User>();
+      const groupPictures: Record<string, string> = {};
+      const readReceipts: Record<string, { userId: string; messageId: string }> = {};
 
       for (const conv of res.data) {
         convos.push(toThread(conv));
 
+        if (conv.groupPictureUrl) {
+          groupPictures[conv.id] = conv.groupPictureUrl;
+        }
+
         for (const p of conv.Participants) {
           if (p.userId !== meIdRef.current && !userMap.has(p.userId)) {
             userMap.set(p.userId, toUser(p));
+          }
+
+          if (p.lastReadMessageId && p.userId !== meIdRef.current) {
+            readReceipts[conv.id] = {
+              userId: p.userId,
+              messageId: p.lastReadMessageId,
+            };
           }
         }
       }
 
       setThreads(convos);
       setUsers(Array.from(userMap.values()));
+      setGroupPictureByThreadId((prev) => ({ ...prev, ...groupPictures }));
+      setReadReceiptsByThread((prev) => ({ ...prev, ...readReceipts }));
       setError(null);
 
       if (socketRef.current?.connected) {
@@ -430,7 +456,12 @@ export function useMessagesData() {
     try {
       const res = await api.post(
         "/api/v1/messages/conversations",
-        { isGroup: true, participantIds: participantIds.filter((id) => id !== meIdRef.current), name: name.trim() || "Group chat" },
+        {
+          isGroup: true,
+          participantIds: participantIds.filter((id) => id !== meIdRef.current),
+          name: name.trim() || "Group chat",
+          groupPictureUrl: groupPictureUrl || undefined,
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -438,7 +469,9 @@ export function useMessagesData() {
       setThreads((prev) => [newThread, ...prev]);
       setSelectedThreadId(newThread.id);
 
-      if (groupPictureUrl) {
+      if (res.data.groupPictureUrl) {
+        setGroupPictureByThreadId((prev) => ({ ...prev, [newThread.id]: res.data.groupPictureUrl }));
+      } else if (groupPictureUrl) {
         setGroupPictureByThreadId((prev) => ({ ...prev, [newThread.id]: groupPictureUrl }));
       }
 
