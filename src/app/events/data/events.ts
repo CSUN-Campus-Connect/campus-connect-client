@@ -541,6 +541,6 @@ export const SEED_EVENTS: EventItem[] = [
     trending: false,
     engagementScore: 48,
     urgencyScore: 69,
-    csunUrl: 'https://csun.edu/graduate-studies/events/grad-school-info-session',
+    csunUrl: 'https://csun.edu/graduate-studies/events/grad-school-info-session'
   },
 ];
