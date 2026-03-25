@@ -40,7 +40,7 @@ function buildGraph(events: EventItem[], W: number, H: number): { nodes: NodeDat
     const r = BASE_RADIUS * (0.45 + density * 0.7);
     const [cx, cy] = CLUSTER_CENTERS[ev.category] ?? [0.5, 0.5];
     const angle = (idx * 137.5 * Math.PI) / 180;
-    const spread = BASE_RADIUS * 1.6 * (1 - (ev.engagementScore ?? 20) / 100);
+    const spread = Math.min(W, H) * 0.12 * (1 + (ev.engagementScore ?? 20) / 100);
     const x = cx * W + Math.cos(angle) * spread;
     const y = cy * H + Math.sin(angle) * spread;
     return { event: ev, x, y, r, color: CATEGORY_COLOR_MAP[ev.category] ?? '#D22030' };
