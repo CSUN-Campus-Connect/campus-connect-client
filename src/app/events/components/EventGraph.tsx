@@ -24,13 +24,13 @@ interface EdgeData {
 }
 
 const CLUSTER_CENTERS: Record<string, [number, number]> = {
-  career:   [0.22, 0.32],
-  academic: [0.52, 0.25],
-  workshop: [0.75, 0.32],
-  social:   [0.20, 0.70],
-  sports:   [0.50, 0.75],
-  arts:     [0.78, 0.68],
-  wellness: [0.62, 0.52],
+  career:   [0.18, 0.30],
+  academic: [0.55, 0.22],
+  workshop: [0.80, 0.30],
+  social:   [0.15, 0.70],
+  sports:   [0.50, 0.78],
+  arts:     [0.80, 0.70],
+  wellness: [0.50, 0.50],
 };
 
 function buildGraph(events: EventItem[], W: number, H: number): { nodes: NodeData[]; edges: EdgeData[] } {
@@ -40,7 +40,7 @@ function buildGraph(events: EventItem[], W: number, H: number): { nodes: NodeDat
     const r = BASE_RADIUS * (0.45 + density * 0.7);
     const [cx, cy] = CLUSTER_CENTERS[ev.category] ?? [0.5, 0.5];
     const angle = (idx * 137.5 * Math.PI) / 180;
-    const spread = Math.min(W, H) * 0.12 * (1 + (ev.engagementScore ?? 20) / 100);
+    const spread = Math.min(W, H) * 0.22;
     const x = cx * W + Math.cos(angle) * spread;
     const y = cy * H + Math.sin(angle) * spread;
     return { event: ev, x, y, r, color: CATEGORY_COLOR_MAP[ev.category] ?? '#D22030' };
