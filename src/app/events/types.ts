@@ -1,4 +1,4 @@
-export type AudienceId = 'all' | 'undergrad' | 'graduate' | 'alumni';
+export type AudienceId = 'all' | 'undergrad' | 'graduate' | 'alumni' | 'faculty';
 
 export type CategoryId =
   | 'all'
@@ -10,19 +10,29 @@ export type CategoryId =
   | 'arts'
   | 'workshop';
 
-export type Speaker = { name: string; title: string };
-export type AgendaItem = { time: string; activity: string };
+export type NavSection = 'discover' | 'graph' | 'timeline' | 'calendar';
 
-export type EventItem = {
-  id: number;
+export interface Speaker {
+  name: string;
+  title: string;
+  affiliation?: string;
+}
+
+export interface AgendaItem {
+  time: string;
+  activity: string;
+}
+
+export interface EventItem {
+  id: string;
   title: string;
   shortDescription: string;
   fullDescription: string;
   category: Exclude<CategoryId, 'all'>;
   date: string;
   time: string;
-  startISO?: string;
-  endISO?: string;
+  startISO: string;
+  endISO: string;
   location: string;
   building: string;
   image: string;
@@ -31,6 +41,7 @@ export type EventItem = {
   registered: number;
   audience: AudienceId[];
   organizer: string;
+  organizerUrl?: string;
   contact: string;
   phone: string;
   speakers: Speaker[];
@@ -42,4 +53,9 @@ export type EventItem = {
   featured?: boolean;
   trending?: boolean;
   freebies?: string[];
-};
+  // Algorithm fields
+  engagementScore?: number;   // computed by useEventRanking
+  urgencyScore?: number;      // computed by useEventRanking
+  viewCount?: number;
+  csunUrl?: string;           // Real CSUN event portal link
+}

@@ -1,895 +1,859 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import type { AudienceId, CategoryId, EventItem } from './types';
-import EventGridCard from './components/EventGridCard';
-import EventDetailsModal from './components/EventDetailsModal';
+import type { CategoryId, AudienceId, EventItem, NavSection } from './types';
+import { CATEGORIES, AUDIENCES, NAV_SECTIONS } from './data/constants';
+import { useEventRanking } from './hooks/useEventRanking';
+import { SEED_EVENTS } from './data/events';
+import EventBentoCard from './components/EventBentoCard';
+import EventDetailsDrawer from './components/EventDetailsDrawer';
 import EventRegisterModal from './components/EventRegisterModal';
-import { categories, audiences } from './data/filters';
-import { buildICS } from './utils/calendar';
+import EventGraph from './components/EventGraph';
+import EventTimeline from './components/EventTimeline';
+import EventCalendarView from './components/EventCalendarView';
 
-function getCategoryColor(categoryId: CategoryId) {
-  return categories.find((c) => c.id === categoryId)?.color || '#D22030';
+// ─── Background Canvas ────────────────────────────────────────────────────────
+// Replicates the crimson-over-black atmospheric depth from the reference images.
+// Uses layered radial gradients + a subtle SVG noise texture — no canvas required.
+
+function PageBackground() {
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: 'none',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Base — near-black with deep crimson warmth */}
+      <div style={{ position: 'absolute', inset: 0, background: '#100608' }} />
+
+      {/* Primary crimson glow — bottom-left, like the ember in reference image 10 */}
+      <motion.div
+        style={{
+          position: 'absolute',
+          bottom: '-20%',
+          left: '-10%',
+          width: '70vw',
+          height: '70vw',
+          borderRadius: '50%',
+          background:
+            'radial-gradient(circle, rgba(180,18,28,0.35) 0%, rgba(130,10,18,0.18) 40%, transparent 70%)',
+          filter: 'blur(60px)',
+        }}
+        animate={{ x: [0, 30, -20, 0], y: [0, -20, 15, 0] }}
+        transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
+      />
+
+      {/* Secondary highlight — top-right, the lighter pinkish-crimson from reference */}
+      <motion.div
+        style={{
+          position: 'absolute',
+          top: '-15%',
+          right: '-15%',
+          width: '55vw',
+          height: '55vw',
+          borderRadius: '50%',
+          background:
+            'radial-gradient(circle, rgba(210,32,48,0.2) 0%, rgba(160,24,36,0.1) 45%, transparent 70%)',
+          filter: 'blur(80px)',
+        }}
+        animate={{ x: [0, -25, 10, 0], y: [0, 20, -10, 0] }}
+        transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+      />
+
+      {/* Subtle metallic sheen — mimics the dusted-crimson texture of reference image 9 */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,
+          backgroundRepeat: 'repeat',
+          opacity: 0.6,
+          mixBlendMode: 'overlay',
+        }}
+      />
+
+      {/* Top vignette */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '30vh',
+          background: 'linear-gradient(to bottom, rgba(8,2,3,0.7) 0%, transparent 100%)',
+        }}
+      />
+    </div>
+  );
 }
 
-const initialEvents: EventItem[] = [
-  // ==== Your originals (dates bumped to current academic year) ====
-  {
-    id: 1,
-    title: 'Career Fair: Tech Industry',
-    shortDescription: 'Connect with leading tech companies and explore career opportunities.',
-    fullDescription:
-      "Join us for CSUN's largest tech career fair featuring representatives from Google, Microsoft, Amazon, and 50+ companies. Resume reviews, mock interviews, and real recruiting.",
-    category: 'career',
-    date: 'Dec 15, 2025',
-    time: '10:00 AM – 4:00 PM',
-    startISO: '2025-12-15T10:00:00-08:00',
-    endISO:   '2025-12-15T16:00:00-08:00',
-    location: 'University Student Union - Grand Salon',
-    building: 'USU, Grand Salon, 2nd Floor',
-    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&h=700&fit=crop',
-    price: 'Free',
-    capacity: 500,
-    registered: 342,
-    audience: ['undergrad', 'graduate', 'alumni'],
-    organizer: 'Career Center',
-    contact: 'career@csun.edu',
-    phone: '(818) 677-2878',
-    speakers: [
-      { name: 'Sarah Chen', title: 'Google Recruiter' },
-      { name: 'Michael Rodriguez', title: 'Amazon Talent Acquisition' },
-    ],
-    agenda: [
-      { time: '10:00 AM', activity: 'Check-in & Networking' },
-      { time: '11:00 AM', activity: 'Resume Review Sessions' },
-      { time: '1:00 PM',  activity: 'Mock Interviews' },
-      { time: '3:00 PM',  activity: 'Industry Panel Discussion' },
-    ],
-    tags: ['Networking', 'Tech', 'Internships'],
-    hybrid: true,
-    accessibility: 'Wheelchair accessible, ASL interpreter available',
-    parking: 'Available in B3 lot with validation',
-    featured: true,
-    trending: true,
-    freebies: ['Free company swag', 'Resume checks'],
-  },
-  {
-    id: 2,
-    title: 'Matador Nights: Winter Wonderland',
-    shortDescription: 'End-of-semester celebration with food, games, and entertainment.',
-    fullDescription:
-      'Celebrate the end of finals with free food, carnival games, photo booths, live music, and giveaways! A beloved CSUN tradition.',
-    category: 'social',
-    date: 'Dec 18, 2025',
-    time: '7:00 PM – 11:00 PM',
-    startISO: '2025-12-18T19:00:00-08:00',
-    endISO:   '2025-12-18T23:00:00-08:00',
-    location: 'Matador Square',
-    building: 'Outdoor Plaza, Main Courtyard',
-    image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&h=700&fit=crop',
-    price: 'Free',
-    capacity: 2000,
-    registered: 1567,
-    audience: ['all'],
-    organizer: 'Associated Students',
-    contact: 'as@csun.edu',
-    phone: '(818) 677-2875',
-    speakers: [],
-    agenda: [
-      { time: '7:00 PM', activity: 'Gates Open - Food & Games' },
-      { time: '8:00 PM', activity: 'Live Band Performance' },
-      { time: '9:30 PM', activity: 'DJ Set & Dancing' },
-    ],
-    tags: ['Free Food', 'Entertainment', 'Music'],
-    hybrid: false,
-    accessibility: 'Fully accessible venue',
-    parking: 'Free parking after 6 PM',
-    featured: true,
-    trending: true,
-    freebies: ['Free food', 'T-shirt giveaway'],
-  },
-  {
-    id: 3,
-    title: 'Research Symposium: Innovation in STEM',
-    shortDescription: 'Showcase of student research projects.',
-    fullDescription:
-      'Annual research symposium featuring cutting-edge student and faculty research in Science, Technology, Engineering, and Mathematics.',
-    category: 'academic',
-    date: 'Dec 20, 2025',
-    time: '9:00 AM – 5:00 PM',
-    startISO: '2025-12-20T09:00:00-08:00',
-    endISO:   '2025-12-20T17:00:00-08:00',
-    location: 'Oviatt Library',
-    building: 'Delmar T. Oviatt Library',
-    image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=1200&h=700&fit=crop',
-    price: 'Free',
-    capacity: 300,
-    registered: 178,
-    audience: ['undergrad', 'graduate'],
-    organizer: 'Office of Research',
-    contact: 'research@csun.edu',
-    phone: '(818) 677-2901',
-    speakers: [{ name: 'Dr. Lisa Wang', title: 'NASA Scientist' }],
-    agenda: [
-      { time: '9:00 AM',  activity: 'Registration & Coffee' },
-      { time: '10:00 AM', activity: 'Keynote Address' },
-      { time: '11:00 AM', activity: 'Poster Sessions' },
-    ],
-    tags: ['Research', 'STEM', 'Academic'],
-    hybrid: true,
-    accessibility: 'Wheelchair accessible',
-    parking: 'Visitor parking in B5 lot',
-    featured: true,
-  },
-  {
-    id: 4,
-    title: 'Mindfulness & Meditation Workshop',
-    shortDescription: 'Learn stress-reduction techniques.',
-    fullDescription:
-      'Join our certified wellness instructor for mindfulness meditation and stress management strategies.',
-    category: 'wellness',
-    date: 'Dec 14, 2025',
-    time: '12:00 PM – 1:30 PM',
-    startISO: '2025-12-14T12:00:00-08:00',
-    endISO:   '2025-12-14T13:30:00-08:00',
-    location: 'Student Recreation Center',
-    building: 'SRC, Mind & Body Studio',
-    image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&h=700&fit=crop',
-    price: 'Free',
-    capacity: 30,
-    registered: 28,
-    audience: ['all'],
-    organizer: 'University Counseling Services',
-    contact: 'counseling@csun.edu',
-    phone: '(818) 677-2366',
-    speakers: [{ name: 'Amanda Green', title: 'Meditation Instructor' }],
-    agenda: [
-      { time: '12:00 PM', activity: 'Introduction' },
-      { time: '12:20 PM', activity: 'Guided Meditation' },
-    ],
-    tags: ['Wellness', 'Mental Health'],
-    hybrid: true,
-    accessibility: 'Wheelchair accessible',
-    parking: 'SRC parking available',
-  },
+// ─── Top Navigation Bar ───────────────────────────────────────────────────────
 
-  // ==== NEW: Arts & Culture ====
-  {
-    id: 5,
-    title: 'CSUN Student Film Festival: Red Carpet Night',
-    shortDescription: 'Premiere of student shorts with Q&A and red carpet photos.',
-    fullDescription:
-      'Walk the red carpet and watch award-worthy student short films. Meet the directors, vote for Audience Choice, and enjoy a post-screening mixer.',
-    category: 'arts',
-    date: 'Jan 24, 2026',
-    time: '6:30 PM – 9:30 PM',
-    startISO: '2026-01-24T18:30:00-08:00',
-    endISO:   '2026-01-24T21:30:00-08:00',
-    location: 'Armer Theater',
-    building: 'MZ 100',
-    image: 'https://images.unsplash.com/photo-1517602302552-471fe67acf66?w=1200&h=700&fit=crop',
-    price: 'Free w/ RSVP',
-    capacity: 350,
-    registered: 210,
-    audience: ['all', 'alumni'],
-    organizer: 'Department of Cinema & Television Arts',
-    contact: 'film@csun.edu',
-    phone: '(818) 677-3192',
-    speakers: [{ name: 'Student Directors', title: 'CTVA' }],
-    agenda: [
-      { time: '6:30 PM', activity: 'Red Carpet & Photos' },
-      { time: '7:00 PM', activity: 'Shorts Block 1' },
-      { time: '8:15 PM', activity: 'Shorts Block 2 + Q&A' },
-      { time: '9:10 PM', activity: 'Awards & Mixer' },
-    ],
-    tags: ['Film', 'CTVA', 'Red Carpet'],
-    hybrid: false,
-    accessibility: 'Wheelchair accessible seating available',
-    parking: 'B1/B2 garages',
-    featured: true,
-    freebies: ['Photo booth prints'],
-  },
+interface NavBarProps {
+  activeSection: NavSection;
+  onSection: (s: NavSection) => void;
+}
 
-  // ==== NEW: Career / Entrepreneurship ====
-  {
-    id: 6,
-    title: 'Startup Pitch Competition – $10K in Prizes',
-    shortDescription: 'Pitch your startup to judges from LA’s tech ecosystem.',
-    fullDescription:
-      'Teams have 5 minutes to pitch and 5 minutes of Q&A. Mentors from local VCs & accelerators. Top teams split $10,000 in non-dilutive prizes.',
-    category: 'career',
-    date: 'Feb 5, 2026',
-    time: '5:00 PM – 8:00 PM',
-    startISO: '2026-02-05T17:00:00-08:00',
-    endISO:   '2026-02-05T20:00:00-08:00',
-    location: 'Bookstein Hall',
-    building: 'BH 411',
-    image: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1200&h=700&fit=crop',
-    price: 'Free (teams must apply)',
-    capacity: 200,
-    registered: 150,
-    audience: ['undergrad', 'graduate', 'alumni'],
-    organizer: 'Entrepreneurship Club',
-    contact: 'eclub@csun.edu',
-    phone: '(818) 677-XXXX',
-    speakers: [
-      { name: 'VC Panel', title: 'Guest Judges' },
-      { name: 'A. Patel', title: 'Techstars Mentor' },
-    ],
-    agenda: [
-      { time: '5:00 PM', activity: 'Check-in & Networking' },
-      { time: '5:30 PM', activity: 'Opening Remarks' },
-      { time: '5:40 PM', activity: 'Team Pitches' },
-      { time: '7:30 PM', activity: 'Awards & Photos' },
-    ],
-    tags: ['Entrepreneurship', 'Pitch', 'Prizes'],
-    hybrid: false,
-    accessibility: 'Elevator access available',
-    parking: 'B3 lot',
-    trending: true,
-    freebies: ['Pizza & drinks'],
-  },
+function NavBar({ activeSection, onSection }: NavBarProps) {
+  return (
+    <div
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        background: 'rgba(16,4,6,0.82)',
+        borderBottom: '1px solid rgba(210,32,48,0.15)',
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1400,
+          margin: '0 auto',
+          padding: '0 2rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          height: 56,
+        }}
+      >
+        {/* Brand */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            marginRight: '2rem',
+          }}
+        >
+          <div
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #D22030 0%, #8b1220 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <div
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.9)',
+              }}
+            />
+          </div>
+          <span
+            style={{
+              fontFamily: "'Syne', sans-serif",
+              fontWeight: 800,
+              fontSize: 14,
+              letterSpacing: '0.02em',
+              color: '#fff',
+            }}
+          >
+            CSUN <span style={{ color: '#D22030' }}>Events</span>
+          </span>
+        </div>
 
-  // ==== NEW: Social / Dance ====
-  {
-    id: 7,
-    title: 'Salsa Night – Lessons + Social',
-    shortDescription: 'Free beginner lessons followed by social dancing.',
-    fullDescription:
-      'No experience needed! Come with friends or solo. Learn fundamentals from pros, then dance the night away. Dress comfy.',
-    category: 'social',
-    date: 'Jan 31, 2026',
-    time: '7:00 PM – 10:00 PM',
-    startISO: '2026-01-31T19:00:00-08:00',
-    endISO:   '2026-01-31T22:00:00-08:00',
-    location: 'University Student Union',
-    building: 'Grand Salon',
-    image: 'https://images.unsplash.com/photo-1520975916090-3105956dac38?w=1200&h=700&fit=crop',
-    price: 'Free',
-    capacity: 400,
-    registered: 260,
-    audience: ['all'],
-    organizer: 'CSUN Dance Club',
-    contact: 'dance@csun.edu',
-    phone: '(818) 677-XXXX',
-    speakers: [{ name: 'StudioX Instructors', title: 'Guest Instructors' }],
-    agenda: [
-      { time: '7:00 PM', activity: 'Beginner Lesson' },
-      { time: '8:00 PM', activity: 'Social Dancing' },
-      { time: '9:45 PM', activity: 'Group Photo' },
-    ],
-    tags: ['Dance', 'Latin', 'Social'],
-    hybrid: false,
-    accessibility: 'Wheelchair accessible',
-    parking: 'B3 lot',
-    freebies: ['Bottled water'],
-  },
+        {NAV_SECTIONS.map((s) => (
+          <button
+            key={s.id}
+            onClick={() => onSection(s.id)}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: 10,
+              border: activeSection === s.id ? '1px solid rgba(210,32,48,0.5)' : '1px solid transparent',
+              background: activeSection === s.id ? 'rgba(210,32,48,0.12)' : 'transparent',
+              color: activeSection === s.id ? '#fff' : 'rgba(255,255,255,0.5)',
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 13,
+              fontWeight: activeSection === s.id ? 600 : 400,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {s.label}
+          </button>
+        ))}
 
-  // ==== NEW: Workshop / Academic (AI) ====
-  {
-    id: 8,
-    title: 'AI & Machine Learning Workshop: Build Your First Neural Net',
-    shortDescription: 'Hands-on intro—train, test, and visualize a simple NN.',
-    fullDescription:
-      'Bring your laptop. We’ll use hosted notebooks (no installs) to build a small image classifier. Great first step into ML.',
-    category: 'workshop',
-    date: 'Jan 27, 2026',
-    time: '2:00 PM – 5:00 PM',
-    startISO: '2026-01-27T14:00:00-08:00',
-    endISO:   '2026-01-27T17:00:00-08:00',
-    location: 'Jacaranda Hall',
-    building: 'JD 1568 Lab',
-    image: 'https://images.unsplash.com/photo-1555255707-c07966088b7b?w=1200&h=700&fit=crop',
-    price: 'Free (limited seats)',
-    capacity: 40,
-    registered: 35,
-    audience: ['undergrad', 'graduate'],
-    organizer: 'CS Department',
-    contact: 'cs@csun.edu',
-    phone: '(818) 677-XXXX',
-    speakers: [{ name: 'Dr. Nguyen', title: 'ML Researcher' }],
-    agenda: [
-      { time: '2:00 PM', activity: 'Setup & Notebook' },
-      { time: '2:30 PM', activity: 'Model Building' },
-      { time: '3:30 PM', activity: 'Training & Evaluation' },
-      { time: '4:30 PM', activity: 'Q&A / Next Steps' },
-    ],
-    tags: ['AI', 'ML', 'Coding'],
-    hybrid: true,
-    accessibility: 'Wheelchair accessible, captions',
-    parking: 'B5 lot',
-    featured: true,
-    freebies: ['Stickers'],
-  },
+        {/* Live indicator */}
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: '#16c878',
+              boxShadow: '0 0 8px rgba(22,200,120,0.8)',
+              animation: 'livePulse 2s ease-in-out infinite',
+            }}
+          />
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontFamily: "'DM Sans', sans-serif" }}>
+            Live
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  // ==== NEW: Sports ====
-  {
-    id: 9,
-    title: 'Bicycle Race Game – CSUN vs UC Riverside',
-    shortDescription: 'Pack the Matadome! Free pizza for first 300 students.',
-    fullDescription:
-      'Cheer on the Matadors in a high-energy rivalry game. Wear red! Giveaways during halftime.',
-    category: 'sports',
-    date: 'Feb 12, 2026',
-    time: '6:30 PM – 9:00 PM',
-    startISO: '2026-02-12T18:30:00-08:00',
-    endISO:   '2026-02-12T21:00:00-08:00',
-    location: 'The Matadome',
-    building: 'Redwood Hall',
-    image: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=1200&h=700&fit=crop',
-    price: 'Free w/ CSUN ID',
-    capacity: 2500,
-    registered: 1900,
-    audience: ['all', 'alumni'],
-    organizer: 'Athletics',
-    contact: 'athletics@csun.edu',
-    phone: '(818) 677-XXXX',
-    speakers: [],
-    agenda: [
-      { time: '6:30 PM', activity: 'Doors Open' },
-      { time: '7:00 PM', activity: 'Tip Off' },
-      { time: '8:00 PM', activity: 'Halftime Giveaways' },
-    ],
-    tags: ['Game Day', 'Giveaways', 'Spirit'],
-    hybrid: false,
-    accessibility: 'Accessible seating available',
-    parking: 'F5/F6 lots',
-    trending: true,
-    freebies: ['Pizza', 'Foam fingers'],
-  },
+// ─── Hero Section ─────────────────────────────────────────────────────────────
 
-  // ==== NEW: Theatre ====
-  {
-    id: 10,
-    title: 'Shakespeare in the Quad – “Much Ado About Nothing”',
-    shortDescription: 'Outdoor theatre performance under the lights.',
-    fullDescription:
-      'Bring a blanket or lawn chair and enjoy a modern, student-directed production with live music.',
-    category: 'arts',
-    date: 'Mar 6, 2026',
-    time: '7:00 PM – 9:00 PM',
-    startISO: '2026-03-06T19:00:00-08:00',
-    endISO:   '2026-03-06T21:00:00-08:00',
-    location: 'Matador Walk (The Quad)',
-    building: 'Outdoor Stage',
-    image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1200&h=700&fit=crop',
-    price: 'Free',
-    capacity: 500,
-    registered: 260,
-    audience: ['all', 'alumni'],
-    organizer: 'Theatre Department',
-    contact: 'theatre@csun.edu',
-    phone: '(818) 677-XXXX',
-    speakers: [{ name: 'Student Cast', title: 'Directed by M. Lopez' }],
-    agenda: [
-      { time: '7:00 PM', activity: 'Act I' },
-      { time: '7:50 PM', activity: 'Intermission' },
-      { time: '8:00 PM', activity: 'Act II' },
-    ],
-    tags: ['Theatre', 'Shakespeare', 'Outdoors'],
-    hybrid: false,
-    accessibility: 'Accessible seating zones',
-    parking: 'B2/B3 after 6 PM',
-  },
+interface HeroProps {
+  totalEvents: number;
+  search: string;
+  onSearch: (v: string) => void;
+}
 
-  // ==== NEW: Grad School Prep ====
-  {
-    id: 11,
-    title: 'Graduate School Workshop – USC & UCLA Advisors',
-    shortDescription: 'Applications, statements of purpose, funding Q&A.',
-    fullDescription:
-      'Advisors from USC & UCLA share tips on crafting strong applications and finding funding. Bring questions!',
-    category: 'academic',
-    date: 'Jan 22, 2026',
-    time: '3:00 PM – 4:30 PM',
-    startISO: '2026-01-22T15:00:00-08:00',
-    endISO:   '2026-01-22T16:30:00-08:00',
-    location: 'Sierra Hall',
-    building: 'SH 190',
-    image: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=1200&h=700&fit=crop',
-    price: 'Free (RSVP)',
-    capacity: 120,
-    registered: 80,
-    audience: ['undergrad', 'graduate'],
-    organizer: 'Graduate Studies',
-    contact: 'grad@csun.edu',
-    phone: '(818) 677-XXXX',
-    speakers: [
-      { name: 'USC Advisor Panel', title: 'Admissions' },
-      { name: 'UCLA Advisor Panel', title: 'Admissions' },
-    ],
-    agenda: [
-      { time: '3:00 PM', activity: 'Admissions Overview' },
-      { time: '3:35 PM', activity: 'Funding & Fellowships' },
-      { time: '4:00 PM', activity: 'Q&A' },
-    ],
-    tags: ['Grad School', 'Applications', 'Funding'],
-    hybrid: true,
-    accessibility: 'Captions provided',
-    parking: 'B2 lot',
-    freebies: ['Guide PDF'],
-  },
+function HeroSection({ totalEvents, search, onSearch }: HeroProps) {
+  return (
+    <div style={{ padding: '5rem 2rem 3rem', maxWidth: 1400, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+      {/* Eyebrow */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 8,
+          background: 'rgba(210,32,48,0.1)',
+          border: '1px solid rgba(210,32,48,0.25)',
+          borderRadius: 20,
+          padding: '5px 14px',
+          marginBottom: 20,
+        }}
+      >
+        <div
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: '50%',
+            background: '#D22030',
+            animation: 'livePulse 1.5s ease-in-out infinite',
+          }}
+        />
+        <span
+          style={{
+            fontFamily: "'Syne', sans-serif",
+            fontWeight: 700,
+            fontSize: 10,
+            letterSpacing: '2.5px',
+            color: '#D22030',
+            textTransform: 'uppercase',
+          }}
+        >
+          California State University, Northridge
+        </span>
+      </motion.div>
 
-  // ==== NEW: Training Fair (Training For dogs!) ====
-  {
-    id: 12,
-    title: 'Dog Training',
-    shortDescription: 'Dog Training resources, free snacks, and puppy train.',
-    fullDescription:
-      'De-stress before midterms. Meet campus counselors, grab snacks, and hang out with certified dog trainers.',
-    category: 'wellness',
-    date: 'Feb 26, 2026',
-    time: '11:00 AM – 2:00 PM',
-    startISO: '2026-02-26T11:00:00-08:00',
-    endISO:   '2026-02-26T14:00:00-08:00',
-    location: 'USU Plaza del Sol',
-    building: 'USU',
-    image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=1200&h=700&fit=crop',
-    price: 'Free',
-    capacity: 800,
-    registered: 420,
-    audience: ['all'],
-    organizer: 'University Counseling Services',
-    contact: 'counseling@csun.edu',
-    phone: '(818) 677-2366',
-    speakers: [],
-    agenda: [
-      { time: '11:00 AM', activity: 'Booths Open' },
-      { time: '12:00 PM', activity: 'Mindfulness Mini-Session' },
-      { time: '1:00 PM',  activity: 'Service Dogs and Trainers Meet & Greet' },
-    ],
-    tags: ['Trainers', 'Service Dogs', 'Snacks'],
-    hybrid: false,
-    accessibility: 'Wheelchair accessible',
-    parking: 'G3/G4',
-    freebies: ['Snacks', 'Stress balls'],
-  },
-];
+      {/* Title */}
+      <motion.h1
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.1 }}
+        style={{
+          fontFamily: "'Syne', sans-serif",
+          fontWeight: 800,
+          fontSize: 'clamp(44px, 6vw, 80px)',
+          lineHeight: 0.95,
+          letterSpacing: '-3px',
+          color: '#fff',
+          marginBottom: 16,
+        }}
+      >
+        Campus
+        <br />
+        <span
+          style={{
+            color: 'transparent',
+            WebkitTextStroke: '1.5px rgba(210,32,48,0.6)',
+          }}
+        >
+          Events
+        </span>
+        <span style={{ color: '#D22030' }}> Nexus</span>
+      </motion.h1>
 
-const EventsPage: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<CategoryId>('all');
-  const [selectedAudience, setSelectedAudience] = useState<AudienceId>('all');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [showFilters, setShowFilters] = useState(false);
-  const [favorites, setFavorites] = useState<Set<number>>(new Set<number>());
-  const [events, setEvents] = useState<EventItem[]>(initialEvents);
+      <motion.p
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        style={{
+          color: 'rgba(255,255,255,0.5)',
+          fontSize: 16,
+          maxWidth: 520,
+          marginBottom: 32,
+          lineHeight: 1.7,
+          fontFamily: "'DM Sans', sans-serif",
+        }}
+      >
+        Every event at CSUN — ranked by engagement, clustered by affinity, and
+        surfaced when it matters to you.
+      </motion.p>
+
+      {/* Search */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+        style={{ display: 'flex', gap: 12, maxWidth: 640, marginBottom: 40 }}
+      >
+        <div
+          style={{
+            flex: 1,
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 14,
+            padding: '13px 18px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            transition: 'border-color 0.2s',
+          }}
+          onFocus={() => {}}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2.5">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
+            value={search}
+            onChange={(e) => onSearch(e.target.value)}
+            placeholder="Search events, buildings, organizers..."
+            style={{
+              flex: 1,
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
+              color: '#fff',
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 14,
+            }}
+          />
+        </div>
+        <button
+          style={{
+            background: '#D22030',
+            border: 'none',
+            borderRadius: 14,
+            padding: '13px 24px',
+            color: '#fff',
+            fontFamily: "'Syne', sans-serif",
+            fontWeight: 700,
+            fontSize: 13,
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+            letterSpacing: '0.5px',
+          }}
+        >
+          Search
+        </button>
+      </motion.div>
+
+      {/* Stats */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.4 }}
+        style={{ display: 'flex', gap: 0, flexWrap: 'wrap' }}
+      >
+        {[
+          { value: String(totalEvents), label: 'Active events' },
+          { value: '7', label: 'Categories' },
+          { value: '5.2K+', label: 'Registered students' },
+          { value: 'Free', label: 'Most events' },
+        ].map((stat, i, arr) => (
+          <React.Fragment key={stat.label}>
+            <div style={{ paddingRight: 28 }}>
+              <div
+                style={{
+                  fontFamily: "'Syne', sans-serif",
+                  fontWeight: 800,
+                  fontSize: 28,
+                  color: i === 0 ? '#D22030' : '#fff',
+                  lineHeight: 1,
+                }}
+              >
+                {stat.value}
+              </div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 3, fontFamily: "'DM Sans', sans-serif" }}>
+                {stat.label}
+              </div>
+            </div>
+            {i < arr.length - 1 && (
+              <div
+                style={{
+                  width: 1,
+                  height: 40,
+                  background: 'rgba(255,255,255,0.08)',
+                  marginRight: 28,
+                  alignSelf: 'center',
+                }}
+              />
+            )}
+          </React.Fragment>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
+// ─── Filter Bar ───────────────────────────────────────────────────────────────
+
+interface FilterBarProps {
+  category: CategoryId;
+  audience: AudienceId;
+  showFree: boolean;
+  showTrending: boolean;
+  onCategory: (c: CategoryId) => void;
+  onAudience: (a: AudienceId) => void;
+  onFree: () => void;
+  onTrending: () => void;
+}
+
+function FilterBar({
+  category, audience, showFree, showTrending,
+  onCategory, onAudience, onFree, onTrending,
+}: FilterBarProps) {
+  return (
+    <div
+      style={{
+        position: 'sticky',
+        top: 56,
+        zIndex: 40,
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        background: 'rgba(14,4,6,0.75)',
+        borderBottom: '1px solid rgba(255,255,255,0.05)',
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1400,
+          margin: '0 auto',
+          padding: '0.875rem 2rem',
+          display: 'flex',
+          gap: 8,
+          alignItems: 'center',
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+        }}
+      >
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => onCategory(cat.id)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '0.5rem 1rem',
+              borderRadius: 20,
+              border:
+                category === cat.id
+                  ? `1px solid ${cat.color}`
+                  : '1px solid rgba(255,255,255,0.08)',
+              background:
+                category === cat.id
+                  ? `${cat.color}22`
+                  : 'rgba(255,255,255,0.03)',
+              color: category === cat.id ? '#fff' : 'rgba(255,255,255,0.45)',
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 12,
+              fontWeight: category === cat.id ? 600 : 400,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              transition: 'all 0.2s',
+            }}
+          >
+            <div
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: cat.color,
+                opacity: category === cat.id ? 1 : 0.5,
+              }}
+            />
+            {cat.name}
+          </button>
+        ))}
+
+        <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,0.08)', margin: '0 4px' }} />
+
+        <button
+          onClick={onTrending}
+          style={{
+            padding: '0.5rem 1rem',
+            borderRadius: 20,
+            border: showTrending ? '1px solid #D22030' : '1px solid rgba(255,255,255,0.08)',
+            background: showTrending ? 'rgba(210,32,48,0.15)' : 'rgba(255,255,255,0.03)',
+            color: showTrending ? '#D22030' : 'rgba(255,255,255,0.45)',
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 12,
+            fontWeight: showTrending ? 600 : 400,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}
+        >
+          Trending
+        </button>
+
+        <button
+          onClick={onFree}
+          style={{
+            padding: '0.5rem 1rem',
+            borderRadius: 20,
+            border: showFree ? '1px solid #16c878' : '1px solid rgba(255,255,255,0.08)',
+            background: showFree ? 'rgba(22,200,120,0.12)' : 'rgba(255,255,255,0.03)',
+            color: showFree ? '#16c878' : 'rgba(255,255,255,0.45)',
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 12,
+            fontWeight: showFree ? 600 : 400,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}
+        >
+          Free
+        </button>
+
+        <select
+          value={audience}
+          onChange={(e) => onAudience(e.target.value as AudienceId)}
+          style={{
+            marginLeft: 'auto',
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 10,
+            padding: '0.45rem 0.875rem',
+            color: 'rgba(255,255,255,0.6)',
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 12,
+            cursor: 'pointer',
+            outline: 'none',
+          }}
+        >
+          {AUDIENCES.map((a) => (
+            <option key={a.id} value={a.id} style={{ background: '#1a0408' }}>
+              {a.name}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
+export default function EventsNexusPage() {
+  const [activeSection, setActiveSection] = useState<NavSection>('discover');
+  const [category, setCategory] = useState<CategoryId>('all');
+  const [audience, setAudience] = useState<AudienceId>('all');
+  const [showFree, setShowFree] = useState(false);
+  const [showTrending, setShowTrending] = useState(false);
+  const [search, setSearch] = useState('');
+  const [events, setEvents] = useState<EventItem[]>(SEED_EVENTS);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
-  const [showEventModal, setShowEventModal] = useState(false);
-  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [registerEvent, setRegisterEvent] = useState<EventItem | null>(null);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [registrationData, setRegistrationData] = useState({ name: '', email: '', phone: '' });
 
-  const filteredEvents = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    const base = events.filter((event) => {
-      const matchesSearch =
-        !q ||
-        event.title.toLowerCase().includes(q) ||
-        event.tags.some((tag) => tag.toLowerCase().includes(q)) ||
-        event.shortDescription.toLowerCase().includes(q);
+  const { rankedEvents } = useEventRanking(events);
 
-      const matchesCategory = selectedCategory === 'all' || event.category === selectedCategory;
-      const matchesAudience =
-        selectedAudience === 'all' ||
-        event.audience.includes(selectedAudience) ||
-        event.audience.includes('all');
-
-      return matchesSearch && matchesCategory && matchesAudience;
+  // Filter pipeline
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return rankedEvents.filter((ev) => {
+      if (category !== 'all' && ev.category !== category) return false;
+      if (audience !== 'all' && !ev.audience.includes(audience) && !ev.audience.includes('all')) return false;
+      if (showFree && ev.price !== 'Free' && !ev.price.toLowerCase().includes('free')) return false;
+      if (showTrending && !ev.trending) return false;
+      if (q && !ev.title.toLowerCase().includes(q) && !ev.location.toLowerCase().includes(q) &&
+          !ev.organizer.toLowerCase().includes(q) && !ev.tags.some((t) => t.toLowerCase().includes(q))) return false;
+      return true;
     });
+  }, [rankedEvents, category, audience, showFree, showTrending, search]);
 
-    // Surface featured/trending first, then alphabetically
-    return [...base].sort((a, b) => {
-      const aScore = (a.featured ? 2 : 0) + (a.trending ? 1 : 0);
-      const bScore = (b.featured ? 2 : 0) + (b.trending ? 1 : 0);
-      if (bScore !== aScore) return bScore - aScore;
-      return a.title.localeCompare(b.title);
-    });
-  }, [events, searchQuery, selectedCategory, selectedAudience]);
+  const openEvent = useCallback((ev: EventItem) => {
+    setSelectedEvent(ev);
+    setDrawerOpen(true);
+  }, []);
 
-  const toggleFavorite = (id: number, e: React.MouseEvent) => {
+  const toggleFav = useCallback((id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setFavorites((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
+      const n = new Set(prev);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
     });
-  };
+  }, []);
 
-  const handleRegister = (event: EventItem, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setSelectedEvent(event);
-    setShowRegisterModal(true);
-  };
-
-  const submitRegistration = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedEvent) return;
-
-    // Optimistically update registrations
+  const handleRegister = useCallback((ev: EventItem) => {
     setEvents((prev) =>
-      prev.map((ev) =>
-        ev.id === selectedEvent.id && ev.registered < ev.capacity
-          ? { ...ev, registered: ev.registered + 1 }
-          : ev
+      prev.map((e) =>
+        e.id === ev.id && e.registered < e.capacity
+          ? { ...e, registered: e.registered + 1 }
+          : e
       )
     );
+  }, []);
 
-    alert(
-      ` Registration successful for "${selectedEvent.title}".\nA confirmation will be sent to ${registrationData.email}.`
-    );
-    setShowRegisterModal(false);
-    setRegistrationData({ name: '', email: '', phone: '' });
+  const getCategoryColor = (categoryId: CategoryId): string => {
+    const CATEGORY_COLOR_MAP: Record<CategoryId, string> = {
+      all: '#D22030',
+      academic: '#3B82F6',
+      career: '#10B981',
+      social: '#F59E0B',
+      wellness: '#8B5CF6',
+      sports: '#EC4899',
+      arts: '#14B8A6',
+      workshop: '#F97316',
+    };
+    return CATEGORY_COLOR_MAP[categoryId] || '#D22030';
   };
 
-  const addToCalendar = (event: EventItem, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    const ics = buildICS(event);
-    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.download = `${event.title.replace(/\s+/g, '_')}.ics`;
-    a.href = url;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const shareEvent = async (event: EventItem, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const link = `${window.location.origin}/events#event-${event.id}`; // simple anchor link
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(link);
-        alert(` Share link copied!\n\n"${event.title}"`);
-      } else {
-        throw new Error('Clipboard not available');
-      }
-    } catch {
-      alert(` Share link:\n${link}`);
+  const handleRegistrationSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (registerEvent) {
+      handleRegister(registerEvent);
+      setRegisterEvent(null);
+      setRegistrationData({ name: '', email: '', phone: '' });
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e1e2e 0%, #2a1a3d 100%)', position: 'relative' }}>
-      <motion.div
-        aria-hidden
-        style={{
-          position: 'fixed',
-          top: '-10%',
-          left: '-10%',
-          width: '520px',
-          height: '520px',
-          borderRadius: '999px',
-          background: 'rgba(210, 32, 48, 0.14)',
-          filter: 'blur(120px)',
-          zIndex: 0,
-          pointerEvents: 'none',
-        }}
-        animate={{ x: [0, 30, -20, 0], y: [0, -25, 20, 0] }}
-        transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+    <>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap"
       />
-      <motion.div
-        aria-hidden
-        style={{
-          position: 'fixed',
-          right: '-8%',
-          top: '18%',
-          width: '420px',
-          height: '420px',
-          borderRadius: '999px',
-          background: 'rgba(56, 189, 248, 0.1)',
-          filter: 'blur(110px)',
-          zIndex: 0,
-          pointerEvents: 'none',
-        }}
-        animate={{ x: [0, -35, 10, 0], y: [0, 20, -15, 0] }}
-        transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut' }}
-      />
+      <style>{`
+        * { box-sizing: border-box; }
+        body { margin: 0; }
+        @keyframes livePulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(0.85); }
+        }
+        @keyframes shimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(210,32,48,0.3); border-radius: 2px; }
+        input::placeholder { color: rgba(255,255,255,0.3); }
+        select option { background: #1a0408; }
+      `}</style>
 
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        {/* Hero */}
-        <div
-          style={{
-            background: 'linear-gradient(135deg, rgba(210, 32, 48, 0.95) 0%, rgba(139, 25, 35, 0.95) 100%)',
-            color: 'white',
-            padding: '4rem 2rem',
-          }}
-        >
-          <div style={{ maxWidth: '1400px', margin: '0 auto', textAlign: 'center' }}>
-            <div
-              style={{
-                display: 'inline-block',
-                background: 'rgba(255, 255, 255, 0.15)',
-                padding: '0.5rem 1.5rem',
-                borderRadius: '50px',
-                marginBottom: '1.5rem',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-              }}
-            >
-               DISCOVER OPPORTUNITIES AT CSUN
-            </div>
+      <div style={{ minHeight: '100vh', position: 'relative', color: '#fff' }}>
+        <PageBackground />
 
-            <h1 style={{ fontSize: '4.5rem', fontWeight: 900, marginBottom: '1rem', letterSpacing: '-2px' }}>
-              Campus Events Hub
-            </h1>
-            <p style={{ fontSize: '1.5rem', marginBottom: '2rem', opacity: 0.9 }}>
-              Explore workshops, career fairs, social gatherings, and academic events
-            </p>
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <NavBar activeSection={activeSection} onSection={setActiveSection} />
 
-            {/* Search */}
-            <div
-              style={{
-                background: 'white',
-                borderRadius: '20px',
-                padding: '0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1rem',
-                maxWidth: '900px',
-                margin: '0 auto 2rem',
-              }}
-            >
-              <svg style={{ marginLeft: '1rem', color: '#6b7280' }} width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.35-4.35" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search events, tags, or topics..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{
-                  flex: 1,
-                  padding: '1rem',
-                  border: 'none',
-                  outline: 'none',
-                  fontSize: '1.125rem',
-                  fontWeight: 500,
-                }}
-              />
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                style={{
-                  background: showFilters ? '#D22030' : '#f3f4f6',
-                  color: showFilters ? 'white' : '#374151',
-                  padding: '1rem 1.5rem',
-                  borderRadius: '12px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                }}
+          <AnimatePresence mode="wait">
+            {activeSection === 'discover' && (
+              <motion.div
+                key="discover"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
               >
-                Filters
-              </button>
-            </div>
+                <HeroSection totalEvents={filtered.length} search={search} onSearch={setSearch} />
 
-            {/* Stats */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '3rem', flexWrap: 'wrap' }}>
-              {[
-                { icon: '', label: 'Events', value: `${events.length}+` },
-                { icon: '', label: 'Categories', value: `${categories.length - 1}` },
-                { icon: '', label: 'Students', value: '5.2K+' },
-              ].map((stat, i) => (
+                <FilterBar
+                  category={category}
+                  audience={audience}
+                  showFree={showFree}
+                  showTrending={showTrending}
+                  onCategory={setCategory}
+                  onAudience={setAudience}
+                  onFree={() => setShowFree((v) => !v)}
+                  onTrending={() => setShowTrending((v) => !v)}
+                />
+
+                {/* Section heading */}
                 <div
-                  key={i}
                   style={{
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    padding: '1.25rem 2rem',
-                    borderRadius: '16px',
+                    maxWidth: 1400,
+                    margin: '0 auto',
+                    padding: '2.5rem 2rem 1.25rem',
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
+                    alignItems: 'baseline',
+                    justifyContent: 'space-between',
                   }}
                 >
-                  <span style={{ fontSize: '2rem' }}>{stat.icon}</span>
                   <div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 800 }}>{stat.value}</div>
-                    <div style={{ fontSize: '0.875rem' }}>{stat.label}</div>
+                    <div
+                      style={{
+                        fontFamily: "'Syne', sans-serif",
+                        fontWeight: 700,
+                        fontSize: 9,
+                        letterSpacing: '3px',
+                        textTransform: 'uppercase',
+                        color: '#D22030',
+                        marginBottom: 4,
+                      }}
+                    >
+                      Ranked by Engagement Score
+                    </div>
+                    <h2
+                      style={{
+                        fontFamily: "'Syne', sans-serif",
+                        fontWeight: 800,
+                        fontSize: 22,
+                        color: '#fff',
+                        margin: 0,
+                      }}
+                    >
+                      {category === 'all'
+                        ? 'All Events'
+                        : CATEGORIES.find((c) => c.id === category)?.name ?? 'Events'}
+                      <span style={{ color: '#D22030', marginLeft: 10 }}>({filtered.length})</span>
+                    </h2>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
 
-        {/* Categories */}
-        <div
-          style={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 40,
-            background: 'rgba(30, 30, 46, 0.95)',
-            backdropFilter: 'blur(20px)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-          }}
-        >
-          <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '1.25rem 2rem' }}>
-            <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto' }}>
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
+                {/* Bento Grid */}
+                <div
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.6rem',
-                    padding: '0.85rem 1.25rem',
-                    borderRadius: '16px',
-                    fontWeight: 700,
-                    whiteSpace: 'nowrap',
-                    border: selectedCategory === cat.id ? `2px solid ${cat.color}` : '2px solid transparent',
-                    cursor: 'pointer',
-                    background: selectedCategory === cat.id ? cat.color : 'rgba(255, 255, 255, 0.05)',
-                    color: 'white',
+                    maxWidth: 1400,
+                    margin: '0 auto',
+                    padding: '0 2rem 4rem',
                   }}
                 >
-                  <span style={{ fontSize: '1.25rem' }}>{cat.icon}</span>
-                  <span>{cat.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Filters */}
-        {showFilters && (
-          <div
-            style={{
-              background: 'rgba(30, 30, 46, 0.9)',
-              padding: '1.5rem 2rem',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-            }}
-          >
-            <div
-              style={{
-                maxWidth: '1400px',
-                margin: '0 auto',
-                display: 'flex',
-                gap: '2rem',
-                flexWrap: 'wrap',
-              }}
-            >
-              <div style={{ flex: 1, minWidth: '200px' }}>
-                <label style={{ display: 'block', color: 'white', fontWeight: 600, marginBottom: '0.5rem' }}>
-                  Audience
-                </label>
-                <select
-                  value={selectedAudience}
-                  onChange={(e) => setSelectedAudience(e.target.value as AudienceId)}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '12px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    color: 'white',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {audiences.map((aud) => (
-                    <option key={aud.id} value={aud.id} style={{ background: '#1e1e2e' }}>
-                      {aud.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div style={{ flex: 1, minWidth: '200px' }}>
-                <label style={{ display: 'block', color: 'white', fontWeight: 600, marginBottom: '0.5rem' }}>
-                  View
-                </label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button
-                    onClick={() => setViewMode('grid')}
-                    style={{
-                      flex: 1,
-                      padding: '0.75rem',
-                      borderRadius: '12px',
-                      border: 'none',
-                      background: viewMode === 'grid' ? '#D22030' : 'rgba(255, 255, 255, 0.05)',
-                      color: 'white',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Grid
-                  </button>
-                  <button
-                    onClick={() => setViewMode('list')}
-                    style={{
-                      flex: 1,
-                      padding: '0.75rem',
-                      borderRadius: '12px',
-                      border: 'none',
-                      background: viewMode === 'list' ? '#D22030' : 'rgba(255, 255, 255, 0.05)',
-                      color: 'white',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    List
-                  </button>
+                  {filtered.length === 0 ? (
+                    <div
+                      style={{
+                        textAlign: 'center',
+                        padding: '80px 0',
+                        color: 'rgba(255,255,255,0.3)',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: "'Syne', sans-serif",
+                          fontWeight: 700,
+                          fontSize: 18,
+                          marginBottom: 8,
+                        }}
+                      >
+                        No events found
+                      </div>
+                      <div style={{ fontSize: 14, fontFamily: "'DM Sans', sans-serif" }}>
+                        Try adjusting your filters or search terms
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+                        gap: 18,
+                      }}
+                    >
+                      <AnimatePresence mode="popLayout">
+                        {filtered.map((event, idx) => (
+                          <EventBentoCard
+                            key={event.id}
+                            event={event}
+                            index={idx}
+                            isFavorite={favorites.has(event.id)}
+                            onOpen={openEvent}
+                            onToggleFav={toggleFav}
+                            onRegister={(ev) => {
+                              setRegisterEvent(ev);
+                            }}
+                          />
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  )}
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
+              </motion.div>
+            )}
 
-        {/* Events */}
-        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '3rem 2rem' }}>
-          <h2 style={{ color: 'white', fontSize: '2rem', fontWeight: 800, marginBottom: '2rem' }}>
-            {selectedCategory === 'all' ? 'All Events' : categories.find((c) => c.id === selectedCategory)?.name}
-            <span style={{ color: '#D22030', marginLeft: '1rem' }}>({filteredEvents.length})</span>
-          </h2>
+            {activeSection === 'graph' && (
+              <motion.div
+                key="graph"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <EventGraph events={events} onSelectEvent={openEvent} />
+              </motion.div>
+            )}
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(380px, 1fr))' : '1fr',
-              gap: '2rem',
-            }}
-          >
-            <AnimatePresence mode="popLayout">
-              {filteredEvents.map((event, idx) => (
-                <motion.div
-                  layout
-                  key={event.id}
-                  id={`event-${event.id}`}
-                  initial={{ opacity: 0, y: 24, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -14, scale: 0.97 }}
-                  transition={{ delay: idx * 0.03, type: 'spring', stiffness: 170, damping: 22 }}
-                  whileHover={{ y: -8, scale: 1.012 }}
-                  onClick={() => {
-                    setSelectedEvent(event);
-                    setShowEventModal(true);
-                  }}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    borderRadius: '24px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                    boxShadow: '0 12px 28px rgba(0, 0, 0, 0.18)',
-                  }}
-                >
-                  <EventGridCard
-                    event={event}
-                    isFavorite={favorites.has(event.id)}
-                    onToggleFavorite={toggleFavorite}
-                    onRegister={handleRegister}
-                    onAddToCalendar={addToCalendar}
-                    onShare={shareEvent}
-                    getCategoryColor={getCategoryColor}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
+            {activeSection === 'timeline' && (
+              <motion.div
+                key="timeline"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <EventTimeline events={events} onSelectEvent={openEvent} />
+              </motion.div>
+            )}
+
+            {activeSection === 'calendar' && (
+              <motion.div
+                key="calendar"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <EventCalendarView events={events} onSelectEvent={openEvent} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        <EventDetailsModal
-          open={showEventModal}
+        {/* Details Drawer */}
+        <EventDetailsDrawer
           event={selectedEvent}
-          onClose={() => setShowEventModal(false)}
-          onRegister={handleRegister}
-          onAddToCalendar={addToCalendar}
-          getCategoryColor={getCategoryColor}
+          open={drawerOpen}
+          isFavorite={selectedEvent ? favorites.has(selectedEvent.id) : false}
+          onClose={() => setDrawerOpen(false)}
+          onToggleFav={(id, e) => toggleFav(id, e)}
+          onRegister={(ev) => {
+            setDrawerOpen(false);
+            setRegisterEvent(ev);
+          }}
         />
 
+        {/* Register Modal */}
         <EventRegisterModal
-          open={showRegisterModal}
-          event={selectedEvent}
+          event={registerEvent}
+          open={!!registerEvent}
           registrationData={registrationData}
           setRegistrationData={setRegistrationData}
-          onClose={() => setShowRegisterModal(false)}
-          onSubmit={submitRegistration}
+          onClose={() => {
+            setRegisterEvent(null);
+            setRegistrationData({ name: '', email: '', phone: '' });
+          }}
+          onSubmit={handleRegistrationSubmit}
           getCategoryColor={getCategoryColor}
         />
       </div>
-    </div>
+    </>
   );
-};
-
-export default EventsPage;
+}
