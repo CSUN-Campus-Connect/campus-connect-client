@@ -155,6 +155,22 @@ export default function EventRegisterModal({
           from { stroke-dashoffset: 30; }
           to   { stroke-dashoffset: 0;  }
         }
+        .custom-scrollbar {
+          scrollbar-width: none;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(210,32,48,0.3);
+          border-radius: 2px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(210,32,48,0.5);
+        }
       `}</style>
 
       <AnimatePresence>
@@ -187,14 +203,17 @@ export default function EventRegisterModal({
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
                 width: 'min(540px, 95vw)',
-                maxHeight: '90vh',
+                maxHeight: 'min(95vh, 100vh - 40px)',
                 overflowY: 'auto',
+                overflowX: 'hidden',
                 background: '#130608',
                 border: `1px solid ${catColor}33`,
                 borderRadius: 22,
                 zIndex: 201,
-                scrollbarWidth: 'none',
+                display: 'flex',
+                flexDirection: 'column',
               }}
+              className="custom-scrollbar"
             >
               <AnimatePresence mode="wait">
                 {/* ── REGISTRATION FORM ─────────────────────────────────── */}
@@ -207,7 +226,7 @@ export default function EventRegisterModal({
                     transition={{ duration: 0.25 }}
                   >
                     {/* Event image header */}
-                    <div style={{ position: 'relative', height: 140, overflow: 'hidden', borderRadius: '22px 22px 0 0' }}>
+                    <div style={{ position: 'relative', height: 'clamp(100px, 30vw, 140px)', overflow: 'hidden', borderRadius: '22px 22px 0 0', flexShrink: 0 }}>
                       <img
                         src={event.image}
                         alt={event.title}
@@ -232,7 +251,7 @@ export default function EventRegisterModal({
                       </button>
                     </div>
 
-                    <div style={{ padding: '20px 24px 24px' }}>
+                    <div style={{ padding: 'clamp(16px, 4vw, 20px) clamp(16px, 5vw, 24px) clamp(16px, 4vw, 24px)', flex: 1, overflowY: 'auto' }}>
                       <div
                         style={{
                           display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -339,7 +358,7 @@ export default function EventRegisterModal({
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    style={{ padding: '32px 28px 28px' }}
+                    style={{ padding: 'clamp(16px, 4vw, 32px) clamp(16px, 5vw, 28px)', overflowY: 'auto', flex: 1 }}
                   >
                     {/* Animated success icon */}
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
