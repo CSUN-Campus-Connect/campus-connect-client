@@ -10,7 +10,7 @@ export type CategoryId =
   | 'arts'
   | 'workshop';
 
-export type NavSection = 'discover' | 'graph' | 'timeline' | 'calendar';
+export type NavSection = 'discover' | 'graph' | 'timeline' | 'calendar' | 'favorites';
 
 export interface Category {
   id: CategoryId;
@@ -74,4 +74,15 @@ export interface EventItem {
   urgencyScore?: number;      // computed by useEventRanking
   viewCount?: number;
   csunUrl?: string;           // Real CSUN event portal link
+}
+
+export interface RegistrationForm {
+  name: string;
+  email: string;
+  phone: string;
+}
+
+export interface RelatedEventSlot {
+  event: EventItem;
+  reason: 'same_category' | 'same_audience' | 'trending';
 }

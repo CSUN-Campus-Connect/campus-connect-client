@@ -24,6 +24,7 @@ export const NAV_SECTIONS: { id: NavSection; label: string }[] = [
   { id: 'graph',     label: 'Engagement Graph' },
   { id: 'timeline',  label: 'Timeline' },
   { id: 'calendar',  label: 'Calendar' },
+  { id: 'favorites', label: 'Favorites' },
 ];
 
 export const CATEGORY_COLOR_MAP: Record<Exclude<CategoryId, 'all'>, string> = {
