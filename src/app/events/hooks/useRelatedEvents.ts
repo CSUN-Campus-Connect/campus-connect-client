@@ -1,68 +1,59 @@
-/**
- * useRelatedEvents — compute suggestions for an event
- *
- * Returns up to 3 related events triggered when a user registers for an event.
- * Prefers: same category > trending > same audience.
- *
- * Rationale: Since registration happens "in place" (modal doesn't close), we want
- * immediate suggestions rather than waiting for detailed comparison. Speed = UX.
- */
-
 import { useMemo } from 'react';
 import type { EventItem, RelatedEventSlot } from '../types';
 
-interface UseRelatedEventsResult {
-  slots: RelatedEventSlot[];
-}
-
+/**
+ * useRelatedEvents
+ *
+ * After a user registers for an event, this hook surfaces up to 3
+ * related events they might also want to attend.
+ *
+ * Scoring algorithm — O(N):
+ *   1. Exclude the registered event itself.
+ *   2. Score each remaining event:
+ *      +3 if same category (strongest affinity signal)
+ *      +2 if audience arrays overlap (shared target demographic)
+ *      +1 if trending (social proof)
+ *      +0.5 * (engagementScore / 100) normalised boost
+ *   3. Sort descending, return top 3.
+ *
+ * reason field explains the primary match to the UI layer.
+ */
 export function useRelatedEvents(
-  currentEvent: EventItem | null,
-  allEvents: EventItem[]
+  registeredEvent: EventItem | null,
+  allEvents: EventItem[],
+  max = 3
 ): RelatedEventSlot[] {
   return useMemo(() => {
-    if (!currentEvent) return [];
+    if (!registeredEvent) return [];
 
-    type ReasonScore = [eventId: string, event: EventItem, reason: RelatedEventSlot['reason'], score: number];
+    return allEvents
+      .filter((ev) => ev.id !== registeredEvent.id)
+      .map((ev): { ev: EventItem; score: number; reason: RelatedEventSlot['reason'] } => {
+        let score = 0;
+        let reason: RelatedEventSlot['reason'] = 'trending';
 
-    const candidates: ReasonScore[] = allEvents
-      .filter((ev) => ev.id !== currentEvent.id)
-      .flatMap((ev) => {
-        const scores: ReasonScore[] = [];
+        const sameCategory = ev.category === registeredEvent.category;
+        const audienceOverlap = ev.audience.some((a) =>
+          registeredEvent.audience.includes(a)
+        );
 
-        // Same category (highest priority)
-        if (ev.category === currentEvent.category) {
-          scores.push([ev.id, ev, 'same_category', 1000]);
+        if (sameCategory) {
+          score += 3;
+          reason = 'same_category';
         }
-
-        // Trending (medium priority)
+        if (audienceOverlap) {
+          score += 2;
+          if (!sameCategory) reason = 'same_audience';
+        }
         if (ev.trending) {
-          scores.push([ev.id, ev, 'trending', 500]);
+          score += 1;
         }
+        score += ((ev.engagementScore ?? 0) / 100) * 0.5;
 
-        // Same audience (low priority). Match if any audience overlaps (excluding 'all')
-        const currentAuds = currentEvent.audience.filter((a) => a !== 'all');
-        const evAuds = ev.audience.filter((a) => a !== 'all');
-        if (currentAuds.some((a) => evAuds.includes(a))) {
-          scores.push([ev.id, ev, 'same_audience', 200]);
-        }
-
-        return scores;
-      });
-
-    // Group by eventId, pick best reason for each
-    const bestByEvent = new Map<string, ReasonScore>();
-    candidates.forEach(([eventId, event, reason, score]) => {
-      const existing = bestByEvent.get(eventId);
-      if (!existing || existing[3] < score) {
-        bestByEvent.set(eventId, [eventId, event, reason, score]);
-      }
-    });
-
-    // Sort by score descending, take top 3
-    const sorted = Array.from(bestByEvent.values())
-      .sort(([, , , scoreA], [, , , scoreB]) => scoreB - scoreA)
-      .slice(0, 3);
-
-    return sorted.map(([, event, reason]) => ({ event, reason }));
-  }, [currentEvent, allEvents]);
+        return { ev, score, reason };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, max)
+      .map(({ ev, reason }) => ({ event: ev, reason }));
+  }, [registeredEvent, allEvents, max]);
 }

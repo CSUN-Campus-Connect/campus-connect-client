@@ -1,57 +1,47 @@
+import { useState, useCallback, useEffect } from 'react';
+
+const STORAGE_KEY = 'csun_event_favorites_v1';
+
 /**
- * useFavorites — localStorage-backed favorites management hook
+ * useFavorites
  *
- * Provides heart-save persistence across page reloads.
- * Stored as Set<eventId> in localStorage under 'csun-event-favorites'.
+ * Manages a Set of favorited event IDs.
+ * Persists to localStorage so favorites survive page reloads.
+ * Safe to call on SSR — localStorage access is guarded.
  */
-
-import { useEffect, useState } from 'react';
-
-const STORAGE_KEY = 'csun-event-favorites';
-
-interface UseFavoritesResult {
-  favorites: Set<string>;
-  isFavorite: (eventId: string) => boolean;
-  toggleFavorite: (eventId: string) => void;
-}
-
-export function useFavorites(): UseFavoritesResult {
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  // Hydrate from localStorage on mount (client-side only)
-  useEffect(() => {
-    if (typeof window === 'undefined') return; // SSR safety
+export function useFavorites() {
+  const [favorites, setFavorites] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') return new Set();
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      const parsed = stored ? JSON.parse(stored) : [];
-      setFavorites(new Set(parsed));
-    } catch (error) {
-      console.warn('Failed to load favorites from localStorage:', error);
-      setFavorites(new Set());
+      return stored ? new Set<string>(JSON.parse(stored)) : new Set<string>();
+    } catch {
+      return new Set<string>();
     }
-    setIsHydrated(true);
-  }, []);
+  });
 
-  // Persist to localStorage whenever favorites change
+  // Sync to localStorage whenever favorites change
   useEffect(() => {
-    if (!isHydrated || typeof window === 'undefined') return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(favorites)));
-  }, [favorites, isHydrated]);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([...favorites]));
+    } catch {
+      // Storage might be full or unavailable — fail silently
+    }
+  }, [favorites]);
 
-  const isFavorite = (eventId: string) => favorites.has(eventId);
-
-  const toggleFavorite = (eventId: string) => {
+  const toggleFavorite = useCallback((id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     setFavorites((prev) => {
       const next = new Set(prev);
-      if (next.has(eventId)) {
-        next.delete(eventId);
-      } else {
-        next.add(eventId);
-      }
+      next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
-  };
+  }, []);
 
-  return { favorites, isFavorite, toggleFavorite };
+  const isFavorite = useCallback(
+    (id: string) => favorites.has(id),
+    [favorites]
+  );
+
+  return { favorites, toggleFavorite, isFavorite };
 }
