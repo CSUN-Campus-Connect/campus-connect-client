@@ -175,7 +175,18 @@ export default function EventRegisterModal({
 
       <AnimatePresence>
         {open && event && (
-          <>
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 200,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px',
+              overflowY: 'auto',
+            }}
+          >
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -183,35 +194,31 @@ export default function EventRegisterModal({
               exit={{ opacity: 0 }}
               onClick={resetAndClose}
               style={{
-                position: 'fixed', inset: 0,
+                position: 'absolute',
+                inset: 0,
                 background: 'rgba(0,0,0,0.78)',
                 backdropFilter: 'blur(8px)',
                 WebkitBackdropFilter: 'blur(8px)',
-                zIndex: 200,
               }}
             />
 
             {/* Modal */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.94, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 20 }}
+              initial={{ opacity: 0, scale: 0.94 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.94 }}
               transition={{ type: 'spring', stiffness: 280, damping: 26 }}
               style={{
-                position: 'fixed',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
+                position: 'relative',
+                zIndex: 201,
                 width: 'min(540px, 95vw)',
-                maxHeight: 'min(95vh, 100vh - 40px)',
-                overflowY: 'auto',
-                overflowX: 'hidden',
+                maxHeight: '95vh',
                 background: '#130608',
                 border: `1px solid ${catColor}33`,
                 borderRadius: 22,
-                zIndex: 201,
                 display: 'flex',
                 flexDirection: 'column',
+                overflow: 'hidden',
               }}
               className="custom-scrollbar"
             >
@@ -226,7 +233,7 @@ export default function EventRegisterModal({
                     transition={{ duration: 0.25 }}
                   >
                     {/* Event image header */}
-                    <div style={{ position: 'relative', height: 'clamp(100px, 30vw, 140px)', overflow: 'hidden', borderRadius: '22px 22px 0 0', flexShrink: 0 }}>
+                    <div style={{ position: 'relative', height: 140, overflow: 'hidden', borderRadius: '22px 22px 0 0', flexShrink: 0 }}>
                       <img
                         src={event.image}
                         alt={event.title}
@@ -251,7 +258,7 @@ export default function EventRegisterModal({
                       </button>
                     </div>
 
-                    <div style={{ padding: 'clamp(16px, 4vw, 20px) clamp(16px, 5vw, 24px) clamp(16px, 4vw, 24px)', flex: 1, overflowY: 'auto' }}>
+                    <div style={{ padding: '20px 24px 24px', flex: 1, overflowY: 'auto' }}>
                       <div
                         style={{
                           display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -358,7 +365,7 @@ export default function EventRegisterModal({
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    style={{ padding: 'clamp(16px, 4vw, 32px) clamp(16px, 5vw, 28px)', overflowY: 'auto', flex: 1 }}
+                    style={{ padding: '32px 28px', overflowY: 'auto', flex: 1 }}
                   >
                     {/* Animated success icon */}
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
@@ -472,7 +479,7 @@ export default function EventRegisterModal({
                 )}
               </AnimatePresence>
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
     </>
