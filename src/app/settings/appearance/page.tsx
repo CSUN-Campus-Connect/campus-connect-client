@@ -12,6 +12,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 
 import { api } from "../../../lib/axios";
 
+
 const red = "#B11226";
 
 type ThemeMode = "light" | "dark";
@@ -141,14 +142,12 @@ export default function AppearancePage() {
         setHasLoaded(false);
         setSaveStatus("loading");
 
-        // TODO: Replace this placeholder data with a backend settings-module route
-        // for the current user's appearance preferences.
+        const token = localStorage.getItem("token");
 
-        const data: AppearanceSettings = {
-          theme: "light",
-          textSize: "medium",
-        };
-
+        const response = await api.get("/api/v1/settings/appearance", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data: AppearanceSettings = response.data.data;
         if (!isMounted) return;
 
         setTheme(data.theme);
@@ -158,8 +157,6 @@ export default function AppearancePage() {
       } catch (error) {
         if (!isMounted) return;
 
-        // If loading saved appearance settings fails, fall back to defaults so the page
-        // remains usable while backend persistence is unavailable or still being implemented.
         setTheme(DEFAULT_APPEARANCE_SETTINGS.theme);
         setTextSize(DEFAULT_APPEARANCE_SETTINGS.textSize);
         setInitialSettings(DEFAULT_APPEARANCE_SETTINGS);
@@ -214,7 +211,10 @@ export default function AppearancePage() {
       try {
         setSaveStatus("saving");
 
-        // TODO: Persist these appearance preferences through the backend settings route.
+        const token = localStorage.getItem("token");
+        await api.patch("/api/v1/settings/appearance", currentSettings, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         setInitialSettings(currentSettings);
         setSaveStatus("saved");
@@ -223,8 +223,6 @@ export default function AppearancePage() {
           setSaveStatus("idle");
         }, 1800);
       } catch (error) {
-        // TODO: Add user-visible save failure feedback if this page is wired to the backend.
-        // For now, we only clear the saving state.
         setSaveStatus("idle");
       }
     }, 700);
