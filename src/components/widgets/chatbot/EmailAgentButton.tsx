@@ -5,11 +5,7 @@ import * as React from "react";
 const MAILTO =
   "mailto:vram.ghazourian.747@my.csun.edu?subject=Campus%20Connect%20Help&body=Hi%20Vram,%0A%0AI%20need%20help%20with:%0A%0A";
 
-export function EmailAgentButton({
-  label = "Email Agent",
-}: {
-  label?: string;
-}) {
+export function EmailAgentButton({ label = "Email Agent" }: { label?: string }) {
   return (
     <a
       href={MAILTO}
@@ -32,4 +28,3 @@ export function EmailAgentButton({
     </a>
   );
 }
-

@@ -9,20 +9,24 @@ import {
   Badge,
   Box,
   Button,
+  Checkbox,
   Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Divider,
+  FormControlLabel,
   IconButton,
   List,
   ListItemButton,
+  ListItemIcon,
   ListItemText,
   Menu,
   MenuItem,
   Paper,
   Stack,
+  Switch,
   Tab,
   Tabs,
   TextField,
@@ -45,9 +49,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import PushPinIcon from "@mui/icons-material/PushPin";
 import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
 import WallpaperIcon from "@mui/icons-material/Wallpaper";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import PauseIcon from "@mui/icons-material/Pause";
-import { RED, DRAWER_WIDTH } from "./constants";
+import { RED, DRAWER_WIDTH } from "../constants";
 import {
   panelScrollSx,
   scrollBarSx,
@@ -57,180 +59,20 @@ import {
   isThreadUnread,
   emptyDraft,
   type DraftState,
-} from "./utils";
-import MessagesDialogs from "./MessagesDialogs";
-import VoiceMessageButton from "./VoiceMessageButton";
-import bg1 from "./backgroundImages/ai-generated-ruled-paper-background-free-photo.jpg";
-import bg2 from "./backgroundImages/RYr5wp.png.webp";
-import bg3 from "./backgroundImages/Messenger-Sky-Chat-Theme-Hero.png.webp";
-import bg4 from "./backgroundImages/Messenger-Valentines-Day-Chat-Theme-Hero.png.webp";
-import bg5 from "./backgroundImages/7e7349a10a37cf62330cd9c4dd356b27.jpg";
-import bg6 from "./backgroundImages/7351b72a516a99f1d024bcd113cb1b1b.jpg";
-import bg7 from "./backgroundImages/8ff1e61516ecd920472d5f746aea62f1.jpg";
+} from "../utils";
+import MessagesDialogs from "../MessagesDialogs";
+import VoiceMessageButton from "../VoiceMessageButton";
+import Grainient from "../backgroundanimations/Grainient";
+import GridScan from "../backgroundanimations/GridScan";
+import Lightning from "../backgroundanimations/Lightning";
+import Particles from "../backgroundanimations/Particles";
+import { BACKGROUNDS, hexToHue, type AnimatedBg } from "./backgrounds";
+import { VoiceMessageBubble } from "./VoiceMessageBubble";
 
 const DashboardSidebar = dynamic(() => import("@/components/dashboard/sidebar"), {
   ssr: false,
   loading: () => <Box sx={{ width: 220, flexShrink: 0, height: "100vh", borderRight: "1px solid rgba(0,0,0,0.08)", bgcolor: "white" }} />,
 });
-
-const BACKGROUNDS = [
-  { id: 1, label: "Background 1", src: (bg1 as any).src ?? (bg1 as any) },
-  { id: 2, label: "Background 2", src: (bg2 as any).src ?? (bg2 as any) },
-  { id: 3, label: "Background 3", src: (bg3 as any).src ?? (bg3 as any) },
-  { id: 4, label: "Background 4", src: (bg4 as any).src ?? (bg4 as any) },
-  { id: 5, label: "Background 5", src: (bg5 as any).src ?? (bg5 as any) },
-  { id: 6, label: "Background 6", src: (bg6 as any).src ?? (bg6 as any) },
-  { id: 7, label: "Background 7", src: (bg7 as any).src ?? (bg7 as any) },
-] as const;
-
-function VoiceMessageBubble({ url, mine, initialDuration, sourceFile }: { url: string; mine: boolean; initialDuration?: number; sourceFile?: File | null }) {
-  const playerRef = React.useRef<HTMLAudioElement | null>(null);
-  const objectUrlRef = React.useRef<string | null>(null);
-  const [durationSec, setDurationSec] = React.useState<number | null>(initialDuration ?? null);
-  const [currentSec, setCurrentSec] = React.useState(0);
-  const [isPlaying, setIsPlaying] = React.useState(false);
-  const knownDuration = durationSec ?? (initialDuration != null ? initialDuration : null);
-
-  const stopPlayer = React.useCallback(() => {
-    const p = playerRef.current;
-    if (p) {
-      p.pause();
-      p.src = "";
-      p.load();
-      playerRef.current = null;
-    }
-    if (objectUrlRef.current) {
-      try {
-        URL.revokeObjectURL(objectUrlRef.current);
-      } catch {}
-      objectUrlRef.current = null;
-    }
-    setIsPlaying(false);
-    setCurrentSec(0);
-  }, []);
-
-  React.useEffect(() => {
-    return () => {
-      const p = playerRef.current;
-      if (p) {
-        p.pause();
-        p.src = "";
-      }
-      if (objectUrlRef.current) {
-        try {
-          URL.revokeObjectURL(objectUrlRef.current);
-        } catch {}
-      }
-    };
-  }, []);
-
-  const togglePlay = React.useCallback(() => {
-    if (objectUrlRef.current) {
-      try {
-        URL.revokeObjectURL(objectUrlRef.current);
-      } catch {}
-      objectUrlRef.current = null;
-    }
-    const playUrl = sourceFile ? (objectUrlRef.current = URL.createObjectURL(sourceFile)) : url;
-    if (!playUrl) return;
-    const existing = playerRef.current;
-    if (existing) {
-      if (!existing.paused) {
-        existing.pause();
-        setIsPlaying(false);
-        return;
-      }
-      existing.src = "";
-      existing.load();
-      playerRef.current = null;
-    }
-    const audio = new Audio(playUrl);
-    playerRef.current = audio;
-    audio.onloadedmetadata = () => {
-      if (Number.isFinite(audio.duration)) setDurationSec((prev) => (prev === null ? Math.ceil(audio.duration) : prev));
-    };
-    audio.ontimeupdate = () => setCurrentSec(audio.currentTime);
-    audio.onended = () => stopPlayer();
-    audio.onerror = () => stopPlayer();
-    setCurrentSec(0);
-    setIsPlaying(true);
-    const p = audio.play();
-    if (p && typeof p.catch === "function") {
-      p.catch(() => stopPlayer());
-    }
-  }, [url, sourceFile, stopPlayer]);
-
-  const displayDuration = knownDuration !== null ? knownDuration : 0;
-  const displayCurrent = knownDuration !== null ? Math.min(Math.round(currentSec), knownDuration) : 0;
-  const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 0.75,
-        px: 1.25,
-        py: 1.25,
-        borderRadius: 2.5,
-        border: "1px solid rgba(0,0,0,0.10)",
-        bgcolor: mine ? "rgba(168,5,50,0.06)" : "rgba(0,0,0,0.05)",
-        maxWidth: 280,
-      }}
-    >
-      <Stack direction="row" alignItems="center" spacing={1.25}>
-        <IconButton
-          onClick={togglePlay}
-          size="small"
-          sx={{
-            width: 40,
-            height: 40,
-            bgcolor: "white",
-            border: "1px solid rgba(0,0,0,0.12)",
-            "&:hover": { bgcolor: "rgba(255,255,255,0.9)" },
-          }}
-          aria-label={isPlaying ? "Pause" : "Play"}
-        >
-          {isPlaying ? <PauseIcon sx={{ fontSize: 26, color: "rgba(0,0,0,0.85)" }} /> : <PlayArrowIcon sx={{ fontSize: 26, color: "rgba(0,0,0,0.85)", ml: 0.25 }} />}
-        </IconButton>
-        <Box sx={{ flex: 1, display: "flex", alignItems: "center", gap: 0.5, minWidth: 0 }}>
-          {Array.from({ length: 24 }).map((_, i) => {
-            const progress = knownDuration ? (displayCurrent / knownDuration) * 24 : 0;
-            const filled = i < Math.round(progress);
-            return (
-              <Box
-                key={i}
-                sx={{
-                  width: 4,
-                  height: 12,
-                  borderRadius: 1,
-                  bgcolor: filled ? (mine ? RED : "rgba(0,0,0,0.6)") : "rgba(0,0,0,0.18)",
-                }}
-              />
-            );
-          })}
-        </Box>
-        <Typography
-          component="span"
-          sx={{
-            fontSize: 12,
-            fontWeight: 700,
-            color: "rgba(0,0,0,0.7)",
-            bgcolor: "rgba(255,255,255,0.9)",
-            px: 1,
-            py: 0.5,
-            borderRadius: 1.5,
-          }}
-        >
-          {fmt(displayCurrent)} / {fmt(displayDuration)}
-        </Typography>
-      </Stack>
-      <Typography sx={{ fontSize: 12, color: "rgba(0,0,0,0.5)", fontWeight: 600 }}>
-        press play to listen to this voice message
-      </Typography>
-    </Box>
-  );
-}
 
 export type MessagesViewProps = {
   me: User;
@@ -245,7 +87,8 @@ export type MessagesViewProps = {
   onSend: (threadId: string, text: string, attachmentUrls?: string[]) => void | Promise<void>;
   onUpdateNote: (text: string) => void | Promise<void>;
   onPickUser: (userId: ID) => void | Promise<void>;
-  onCreateGroup?: (participantIds: ID[], name: string) => void | Promise<void>;
+  onCreateGroup?: (participantIds: ID[], name: string, groupPictureUrl?: string) => void | Promise<void>;
+  groupPictureByThreadId?: Record<string, string>;
   onRefresh: () => void;
 };
 
@@ -265,6 +108,7 @@ export default function MessagesView(props: MessagesViewProps) {
     onUpdateNote,
     onPickUser,
     onCreateGroup,
+    groupPictureByThreadId = {},
     onRefresh,
   } = props;
 
@@ -275,10 +119,16 @@ export default function MessagesView(props: MessagesViewProps) {
   const [newMsgOpen, setNewMsgOpen] = React.useState(false);
   const [createGroupOpen, setCreateGroupOpen] = React.useState(false);
   const [settingsOpen, setSettingsOpen] = React.useState(false);
-  const [settingsTab, setSettingsTab] = React.useState<"pins" | "backgrounds" | "blocked">("pins");
+  const [settingsTab, setSettingsTab] = React.useState<"backgrounds" | "pins" | "blocked" | "followers" | "notifications">("backgrounds");
+  const [muteNotifications, setMuteNotifications] = React.useState(false);
+  const [doNotDisturb, setDoNotDisturb] = React.useState(false);
+  const [backgroundApplyToThreadIds, setBackgroundApplyToThreadIds] = React.useState<Set<ID>>(new Set());
+  const [settingsFollowerQuery, setSettingsFollowerQuery] = React.useState("");
   const [pinnedThreadIds, setPinnedThreadIds] = React.useState<Set<ID>>(new Set());
   const [pinnedOrder, setPinnedOrder] = React.useState<ID[]>([]);
   const [backgroundByThreadId, setBackgroundByThreadId] = React.useState<Record<ID, number | null>>({});
+  const [animatedBackgroundByThreadId, setAnimatedBackgroundByThreadId] = React.useState<Record<ID, AnimatedBg>>({});
+  const [customBackgroundByThreadId, setCustomBackgroundByThreadId] = React.useState<Record<ID, string>>({});
   const [leftGroupThreadIds, setLeftGroupThreadIds] = React.useState<Set<ID>>(new Set());
   const [noteOpen, setNoteOpen] = React.useState(false);
   const [gifOpen, setGifOpen] = React.useState(false);
@@ -344,6 +194,9 @@ export default function MessagesView(props: MessagesViewProps) {
       .map((id) => userById.get(id))
       .filter((u): u is User => !!u);
   }, [selectedThread, userById, meId]);
+
+  const backgroundPreviewTid =
+    backgroundApplyToThreadIds.size > 0 ? Array.from(backgroundApplyToThreadIds)[0]! : selectedThreadId;
 
   const myNoteText = notes.find((n) => n.userId === meId)?.text ?? "";
   const requestsCount = threads.filter((t) => t.isRequest).length;
@@ -467,7 +320,6 @@ export default function MessagesView(props: MessagesViewProps) {
       <DashboardSidebar drawerWidth={DRAWER_WIDTH} onLogout={() => router.push("/")} />
       <Box component="main" sx={{ flexGrow: 1, width: { md: `calc(100% - ${DRAWER_WIDTH}px)` }, p: 3, height: "100vh", overflow: "hidden", display: "flex", minWidth: 0 }}>
         <Paper elevation={0} sx={{ width: "100%", height: "100%", minHeight: 0, maxHeight: "100%", borderRadius: 3, overflow: "hidden", bgcolor: "white", border: "1px solid rgba(0,0,0,0.08)", display: "grid", gridTemplateColumns: { xs: "1fr", md: "420px 1fr" }, gridTemplateRows: "1fr" }}>
-          {/* Sidebar */}
           <Box sx={{ borderRight: "1px solid rgba(0,0,0,0.08)", display: "flex", flexDirection: "column", minHeight: 0, minWidth: 0, overflow: "hidden", bgcolor: "white" }}>
             <Box sx={{ px: 2, py: 1.25, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <Stack direction="row" alignItems="center" spacing={1.2} sx={{ minWidth: 0 }}>
@@ -475,7 +327,7 @@ export default function MessagesView(props: MessagesViewProps) {
                 <Stack direction="row" spacing={0.25} alignItems="center" sx={{ minWidth: 0 }}>
                   <Typography sx={{ fontWeight: 1000, fontSize: 16 }} noWrap>{me.username}</Typography>
                   <Tooltip title="Message settings">
-                    <IconButton size="small" onClick={() => { setSettingsTab("pins"); setSettingsOpen(true); }} sx={{ borderRadius: 2 }}>
+                    <IconButton size="small" onClick={() => { setSettingsTab("backgrounds"); setSettingsOpen(true); }} sx={{ borderRadius: 2 }}>
                       <SettingsIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
@@ -527,7 +379,11 @@ export default function MessagesView(props: MessagesViewProps) {
                   const displayName = isGroup ? (t.name ?? "Group chat") : (other?.displayName ?? "");
                   const avatarSlot = isGroup ? (
                     <Box sx={{ position: "relative", width: 44, height: 44, mr: 1.5 }}>
-                      <GroupsIcon sx={{ fontSize: 40, color: "rgba(0,0,0,0.35)" }} />
+                      {groupPictureByThreadId[t.id] ? (
+                        <Avatar src={groupPictureByThreadId[t.id]} sx={{ width: 44, height: 44, bgcolor: "white" }} />
+                      ) : (
+                        <GroupsIcon sx={{ fontSize: 40, color: "rgba(0,0,0,0.35)" }} />
+                      )}
                     </Box>
                   ) : (
                     <Avatar src={other!.avatarUrl} sx={{ width: 44, height: 44, bgcolor: "white" }} />
@@ -579,7 +435,11 @@ export default function MessagesView(props: MessagesViewProps) {
                 <IconButton onClick={() => onSelectedThreadIdChange(null)} sx={{ display: { xs: "inline-flex", md: "none" } }}><ArrowBackIcon /></IconButton>
                 {selectedThread && isGroupThread(selectedThread) ? (
                   <>
-                    <GroupsIcon sx={{ fontSize: 32, color: "rgba(0,0,0,0.4)" }} />
+                    {selectedThreadId && groupPictureByThreadId[selectedThreadId] ? (
+                      <Avatar src={groupPictureByThreadId[selectedThreadId]} sx={{ width: 40, height: 40, bgcolor: "white" }} />
+                    ) : (
+                      <GroupsIcon sx={{ fontSize: 32, color: "rgba(0,0,0,0.4)" }} />
+                    )}
                     <Box sx={{ minWidth: 0 }}>
                       <Typography sx={{ fontWeight: 1000, fontSize: 16 }} noWrap>{selectedThread.name ?? "Group chat"}</Typography>
                       <Typography sx={{ fontSize: 12, color: "rgba(0,0,0,0.55)" }} noWrap>{groupParticipants.map((p) => p.displayName).join(", ")}</Typography>
@@ -614,28 +474,129 @@ export default function MessagesView(props: MessagesViewProps) {
                 </>
               )}
             </Box>
-            <Box
-              ref={scrollerRef}
-              sx={{
-                flex: 1,
-                minHeight: 0,
-                overflowY: "auto",
-                overflowX: "hidden",
-                px: 2.5,
-                py: 2,
-                ...scrollBarSx,
-                ...(selectedThreadId && backgroundByThreadId[selectedThreadId]
-                  ? {
-                      backgroundImage: `url(${BACKGROUNDS.find((b) => b.id === backgroundByThreadId[selectedThreadId])?.src})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      backgroundRepeat: "no-repeat",
-                    }
+            <Box sx={{ flex: 1, minHeight: 0, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+              {/* Background layer: fixed to viewport so it doesn't scroll away when conversation grows */}
+              <Box
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  zIndex: 0,
+                  overflow: "hidden",
+                ...(selectedThreadId && !animatedBackgroundByThreadId[selectedThreadId]
+                  ? customBackgroundByThreadId[selectedThreadId]
+                    ? {
+                        backgroundImage: `url(${customBackgroundByThreadId[selectedThreadId]})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        backgroundRepeat: "no-repeat",
+                      }
+                    : backgroundByThreadId[selectedThreadId]
+                      ? {
+                          backgroundImage: `url(${BACKGROUNDS.find((b) => b.id === backgroundByThreadId[selectedThreadId])?.src})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                          backgroundRepeat: "no-repeat",
+                        }
+                      : {}
                   : {}),
-              }}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => { e.preventDefault(); if (selectedThread) addFiles(e.dataTransfer.files); }}
-            >
+                }}
+              >
+              {selectedThreadId && animatedBackgroundByThreadId[selectedThreadId] && (
+                <>
+                  {animatedBackgroundByThreadId[selectedThreadId]?.type === "grainient" && (
+                    <Grainient
+                      color1={
+                        animatedBackgroundByThreadId[selectedThreadId].type === "grainient"
+                          ? animatedBackgroundByThreadId[selectedThreadId].color1
+                          : "#ebebeb"
+                      }
+                      color2={
+                        animatedBackgroundByThreadId[selectedThreadId].type === "grainient"
+                          ? animatedBackgroundByThreadId[selectedThreadId].color2
+                          : "#e32400"
+                      }
+                      color3={
+                        animatedBackgroundByThreadId[selectedThreadId].type === "grainient"
+                          ? animatedBackgroundByThreadId[selectedThreadId].color3
+                          : "#B19EEF"
+                      }
+                      timeSpeed={0.25}
+                      warpStrength={1}
+                      warpFrequency={5}
+                      warpSpeed={2}
+                      warpAmplitude={50}
+                      zoom={1.25}
+                      className="messages-animated-bg"
+                    />
+                  )}
+                  {animatedBackgroundByThreadId[selectedThreadId]?.type === "gridscan" && (
+                    <GridScan
+                      sensitivity={0.55}
+                      lineThickness={1}
+                      linesColor="#392e4e"
+                      gridScale={0.1}
+                      scanColor="#FF9FFC"
+                      scanOpacity={0.4}
+                      enablePost
+                      bloomIntensity={0.6}
+                      chromaticAberration={0.002}
+                      noiseIntensity={0.01}
+                      className="messages-animated-bg"
+                    />
+                  )}
+                  {animatedBackgroundByThreadId[selectedThreadId]?.type === "lightning" && (
+                    <Lightning
+                      hue={hexToHue(
+                        animatedBackgroundByThreadId[selectedThreadId].type === "lightning"
+                          ? animatedBackgroundByThreadId[selectedThreadId].color
+                          : "#6366f1"
+                      )}
+                      xOffset={0}
+                      speed={1}
+                      intensity={1}
+                      size={1}
+                      className="messages-animated-bg"
+                    />
+                  )}
+                  {animatedBackgroundByThreadId[selectedThreadId]?.type === "particles" && (
+                    <Particles
+                      particleColors={
+                        animatedBackgroundByThreadId[selectedThreadId].type === "particles"
+                          ? animatedBackgroundByThreadId[selectedThreadId].colors.length > 0
+                            ? animatedBackgroundByThreadId[selectedThreadId].colors
+                            : ["#ffffff"]
+                          : ["#ffffff"]
+                      }
+                      particleCount={200}
+                      particleSpread={10}
+                      speed={0.1}
+                      particleBaseSize={100}
+                      moveParticlesOnHover
+                      alphaParticles={false}
+                      disableRotation={false}
+                      pixelRatio={1}
+                      className="messages-animated-bg"
+                    />
+                  )}
+                </>
+              )}
+              </Box>
+              <Box
+                ref={scrollerRef}
+                sx={{
+                  position: "relative",
+                  zIndex: 1,
+                  flex: 1,
+                  minHeight: 0,
+                  overflowY: "auto",
+                  overflowX: "hidden",
+                  px: 2.5,
+                  py: 2,
+                  ...scrollBarSx,
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => { e.preventDefault(); if (selectedThread) addFiles(e.dataTransfer.files); }}
+              >
               {!selectedThread || (!otherUser && !isGroupThread(selectedThread)) ? (
                 <Box sx={{ height: "100%", display: "grid", placeItems: "center", textAlign: "center" }}>
                   <Box>
@@ -645,7 +606,23 @@ export default function MessagesView(props: MessagesViewProps) {
                   </Box>
                 </Box>
               ) : (
-                <Box sx={{ ...(selectedThreadId && backgroundByThreadId[selectedThreadId] ? { bgcolor: "rgba(255,255,255,0.78)", backdropFilter: "blur(1px)", borderRadius: 2, px: 1.5, py: 1.25 } : {}) }}>
+                <Box
+                  sx={{
+                    position: "relative",
+                    zIndex: 1,
+                    ...(selectedThreadId &&
+                    (backgroundByThreadId[selectedThreadId] ||
+                      animatedBackgroundByThreadId[selectedThreadId])
+                      ? {
+                          bgcolor: "rgba(255,255,255,0.78)",
+                          backdropFilter: "blur(1px)",
+                          borderRadius: 2,
+                          px: 1.5,
+                          py: 1.25,
+                        }
+                      : {}),
+                  }}
+                >
                   {selectedThread.isRequest && (
                     <Box sx={{ mb: 2, p: 1.4, borderRadius: 2, bgcolor: "rgba(168,5,50,0.07)", border: "1px solid rgba(168,5,50,0.18)" }}>
                       <Typography sx={{ fontWeight: 1000 }}>Message request</Typography>
@@ -657,8 +634,8 @@ export default function MessagesView(props: MessagesViewProps) {
                       const mine = m.fromUserId === meId;
                       return (
                         <Box key={m.id} sx={{ display: "flex", justifyContent: mine ? "flex-end" : "flex-start" }}>
-                          <Box sx={{ maxWidth: "78%", px: 1.6, py: 1.1, borderRadius: 3, bgcolor: mine ? "rgba(168,5,50,0.10)" : "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.06)", whiteSpace: "pre-wrap", fontSize: 14 }}>
-                            {!!m.text && <Box>{m.text}</Box>}
+                          <Box sx={{ maxWidth: "78%", px: 1.6, py: 1.1, borderRadius: 3, bgcolor: mine ? "rgba(168,5,50,0.10)" : "rgba(0,0,0,0.04)", whiteSpace: "pre-wrap", fontSize: 14 }}>
+                            {!!m.text && m.text}
                             {!!m.attachments?.length && (
                               <Stack spacing={1} sx={{ mt: m.text ? 1 : 0 }}>
                                 {m.attachments.map((a, attachmentIndex) => {
@@ -682,7 +659,7 @@ export default function MessagesView(props: MessagesViewProps) {
                                     urlToDurationRef.current[voiceUrl] ?? urlToDurationRef.current[a.url];
 
                                   return (
-                                    <Box key={a.id}>
+                                    <React.Fragment key={a.id}>
                                       {isVoice ? (
                                         voiceUrl ? (
                                           <VoiceMessageBubble
@@ -705,8 +682,7 @@ export default function MessagesView(props: MessagesViewProps) {
                                           sx={{
                                             width: 220,
                                             maxWidth: "100%",
-                                            borderRadius: 2,
-                                            border: "1px solid rgba(0,0,0,0.10)",
+                                            display: "block",
                                             cursor: "zoom-in",
                                           }}
                                         />
@@ -723,7 +699,7 @@ export default function MessagesView(props: MessagesViewProps) {
                                           clickable
                                         />
                                       )}
-                                    </Box>
+                                    </React.Fragment>
                                   );
                                 })}
                               </Stack>
@@ -736,6 +712,7 @@ export default function MessagesView(props: MessagesViewProps) {
                   </Stack>
                 </Box>
               )}
+              </Box>
             </Box>
             <Box sx={{ borderTop: "1px solid rgba(0,0,0,0.08)", px: 2, py: 1.25, bgcolor: "white" }}>
               {(selectedDraft.files.length > 0 || selectedDraft.gifs.length > 0) && (
@@ -792,17 +769,32 @@ export default function MessagesView(props: MessagesViewProps) {
       />
 
       <Dialog open={settingsOpen} onClose={() => setSettingsOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: 1000 }}>Message settings</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 1000, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 1 }}>
+          Message settings
+          {onCreateGroup != null && (
+            <Button
+              variant="contained"
+              startIcon={<GroupAddIcon />}
+              onClick={() => { setSettingsOpen(false); setCreateGroupOpen(true); }}
+              sx={{ borderRadius: 999, fontWeight: 900, textTransform: "none", bgcolor: RED }}
+            >
+              Create group
+            </Button>
+          )}
+        </DialogTitle>
         <DialogContent sx={{ pt: 1 }}>
           <Tabs
             value={settingsTab}
             onChange={(_, v) => setSettingsTab(v)}
-            variant="fullWidth"
-            sx={{ "& .MuiTab-root": { textTransform: "none", fontWeight: 900 }, "& .MuiTabs-indicator": { bgcolor: RED, height: 3, borderRadius: 999 } }}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{ "& .MuiTab-root": { textTransform: "none", fontWeight: 900, minHeight: 44 }, "& .MuiTabs-indicator": { bgcolor: RED, height: 3, borderRadius: 999 } }}
           >
-            <Tab value="pins" label="Pins" />
             <Tab value="backgrounds" label="Backgrounds" />
+            <Tab value="pins" label="Pins" />
             <Tab value="blocked" label="Blocked" />
+            <Tab value="followers" label="Followers" />
+            <Tab value="notifications" label="Notifications" />
           </Tabs>
           <Divider sx={{ my: 1.5 }} />
 
@@ -863,7 +855,11 @@ export default function MessagesView(props: MessagesViewProps) {
                       disabled={disabled}
                     >
                       {isGroup ? (
-                        <GroupsIcon sx={{ mr: 1.5, color: "rgba(0,0,0,0.45)" }} />
+                        groupPictureByThreadId[t.id] ? (
+                          <Avatar src={groupPictureByThreadId[t.id]} sx={{ mr: 1.5, width: 34, height: 34, bgcolor: "white" }} />
+                        ) : (
+                          <GroupsIcon sx={{ mr: 1.5, color: "rgba(0,0,0,0.45)" }} />
+                        )
                       ) : (
                         <Avatar src={userById.get(t.participantIds.find((id) => id !== meId) ?? "")?.avatarUrl} sx={{ mr: 1.5, bgcolor: "white", width: 34, height: 34 }} />
                       )}
@@ -876,51 +872,371 @@ export default function MessagesView(props: MessagesViewProps) {
             </Box>
           )}
 
+          {settingsTab === "followers" && (
+            <Box>
+              <Typography sx={{ fontSize: 13, fontWeight: 900, color: "rgba(0,0,0,0.65)", mb: 1 }}>Your followers</Typography>
+              <Typography sx={{ fontSize: 12, color: "rgba(0,0,0,0.55)", mb: 1.5 }}>Start a conversation with anyone below.</Typography>
+              <TextField value={settingsFollowerQuery} onChange={(e) => setSettingsFollowerQuery(e.target.value)} placeholder="Search followers" fullWidth size="small" InputProps={{ sx: { bgcolor: "rgba(0,0,0,0.04)", borderRadius: 999 } }} sx={{ mb: 1.5 }} />
+              <List sx={{ p: 0, maxHeight: 360, overflow: "auto" }}>
+                {users
+                  .filter((u) => u.id !== meId && !blockedUserIds.has(u.id))
+                  .filter((u) => {
+                    const q = settingsFollowerQuery.trim().toLowerCase();
+                    return !q || u.displayName.toLowerCase().includes(q) || u.username.toLowerCase().includes(q);
+                  })
+                  .map((u) => (
+                    <ListItemButton key={u.id} onClick={() => { onPickUser(u.id); setSettingsOpen(false); }} sx={{ borderRadius: 2 }}>
+                      <Avatar src={u.avatarUrl} sx={{ mr: 1.5, bgcolor: "white" }} />
+                      <ListItemText primary={<Typography sx={{ fontWeight: 900 }}>{u.displayName}</Typography>} secondary={`@${u.username}`} />
+                      <Button variant="contained" size="small" startIcon={<ChatIcon />} sx={{ borderRadius: 999, fontWeight: 900, textTransform: "none", bgcolor: RED }}>DM</Button>
+                    </ListItemButton>
+                  ))}
+              </List>
+            </Box>
+          )}
+
+          {settingsTab === "notifications" && (
+            <Box>
+              <Typography sx={{ fontSize: 13, fontWeight: 900, color: "rgba(0,0,0,0.65)", mb: 1.5 }}>Notifications</Typography>
+              <Stack spacing={1.5}>
+                <FormControlLabel
+                  control={<Switch checked={muteNotifications} onChange={(e) => setMuteNotifications(e.target.checked)} color="primary" />}
+                  label={<Typography sx={{ fontWeight: 800 }}>Mute notifications</Typography>}
+                />
+                <FormControlLabel
+                  control={<Switch checked={doNotDisturb} onChange={(e) => setDoNotDisturb(e.target.checked)} color="primary" />}
+                  label={<Typography sx={{ fontWeight: 800 }}>Do not disturb</Typography>}
+                />
+              </Stack>
+              <Typography sx={{ fontSize: 12, color: "rgba(0,0,0,0.55)", mt: 1.5 }}>When enabled, you won’t get sound or badges for new messages.</Typography>
+            </Box>
+          )}
+
           {settingsTab === "backgrounds" && (
             <Box>
-              <Typography sx={{ fontSize: 13, fontWeight: 900, color: "rgba(0,0,0,0.65)", mb: 1 }}>Chat backgrounds</Typography>
-              {!selectedThreadId ? (
-                <Typography sx={{ color: "rgba(0,0,0,0.6)" }}>Select a conversation to set its background.</Typography>
-              ) : (
-                <>
-                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                    <WallpaperIcon sx={{ color: "rgba(0,0,0,0.45)" }} />
-                    <Typography sx={{ fontWeight: 900 }} noWrap>
-                      {selectedThread?.name ?? otherUser?.displayName ?? "Chat"}
-                    </Typography>
-                    <Box sx={{ flex: 1 }} />
+              <Typography sx={{ fontSize: 13, fontWeight: 900, color: "rgba(0,0,0,0.65)", mb: 0.5 }}>Chat backgrounds</Typography>
+              <Typography sx={{ fontSize: 12, color: "rgba(0,0,0,0.55)", mb: 1.5 }}>Choose a style below, then select which conversations to apply it to. Use the color pickers to customize animated backgrounds.</Typography>
+              <Typography sx={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.6)", mb: 1 }}>Apply to these conversations</Typography>
+              <List sx={{ p: 0, maxHeight: 140, overflow: "auto", mb: 2, border: "1px solid rgba(0,0,0,0.10)", borderRadius: 2 }}>
+                {threads.filter((t) => t.participantIds.includes(meId) && !leftGroupThreadIds.has(t.id)).map((t) => {
+                  const isGroup = isGroupThread(t);
+                  const title = isGroup ? (t.name ?? "Group chat") : (userById.get(t.participantIds.find((id) => id !== meId) ?? "")?.displayName ?? "Chat");
+                  return (
+                    <ListItemButton key={t.id} onClick={() => setBackgroundApplyToThreadIds((prev) => { const n = new Set(prev); if (n.has(t.id)) n.delete(t.id); else n.add(t.id); return n; })} sx={{ py: 0.5 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <Checkbox edge="start" checked={backgroundApplyToThreadIds.has(t.id)} disableRipple size="small" />
+                      </ListItemIcon>
+                      {isGroup ? <GroupsIcon sx={{ mr: 1, color: "rgba(0,0,0,0.45)", fontSize: 20 }} /> : <Avatar src={userById.get(t.participantIds.find((id) => id !== meId) ?? "")?.avatarUrl} sx={{ mr: 1, width: 28, height: 28, bgcolor: "white" }} />}
+                      <ListItemText primary={<Typography sx={{ fontSize: 13, fontWeight: 800 }}>{title}</Typography>} />
+                    </ListItemButton>
+                  );
+                })}
+              </List>
+              <Typography sx={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.6)", mb: 1 }}>Premier — Animated backgrounds</Typography>
+              <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: "wrap", gap: 1 }}>
+                {[
+                  { type: null as AnimatedBg, label: "None" },
+                  { type: { type: "grainient" as const, color1: "#ebebeb", color2: "#e32400", color3: "#B19EEF" } as AnimatedBg, label: "Gradient" },
+                  { type: { type: "gridscan" as const } as AnimatedBg, label: "Grid scan" },
+                  { type: { type: "lightning" as const, color: "#6366f1" } as AnimatedBg, label: "Lightning" },
+                  { type: { type: "particles" as const, colors: ["#ffffff", "#c7d2fe", "#a78bfa"] } as AnimatedBg, label: "Particles" },
+                ].map(({ type, label }) => {
+                  const targetId = backgroundApplyToThreadIds.size > 0 ? Array.from(backgroundApplyToThreadIds)[0] : selectedThreadId;
+                  const isSelected = type === null ? !targetId || !animatedBackgroundByThreadId[targetId!] : targetId && JSON.stringify(animatedBackgroundByThreadId[targetId]) === JSON.stringify(type);
+                  return (
                     <Button
-                      variant="outlined"
-                      onClick={() => setBackgroundByThreadId((prev) => ({ ...prev, [selectedThreadId]: null }))}
-                      sx={{ borderRadius: 999, fontWeight: 900, textTransform: "none" }}
+                      key={label}
+                      variant={isSelected ? "contained" : "outlined"}
+                      size="small"
+                      onClick={() => {
+                        const ids = backgroundApplyToThreadIds.size > 0 ? Array.from(backgroundApplyToThreadIds) : selectedThreadId ? [selectedThreadId] : [];
+                        ids.forEach((tid) => {
+                          setBackgroundByThreadId((p) => ({ ...p, [tid]: null }));
+                          setCustomBackgroundByThreadId((p) => { const n = { ...p }; ids.forEach((id) => delete n[id]); return n; });
+                          const value: AnimatedBg = type && type.type === "particles" ? { ...type, colors: [...type.colors] } : type;
+                          setAnimatedBackgroundByThreadId((p) => ({ ...p, [tid]: value }));
+                        });
+                      }}
+                      sx={{ borderRadius: 999, fontWeight: 900, textTransform: "none", bgcolor: isSelected ? RED : undefined }}
                     >
-                      Clear
+                      {label}
                     </Button>
-                  </Stack>
-                  <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1.25 }}>
-                    {BACKGROUNDS.map((b) => {
-                      const selected = backgroundByThreadId[selectedThreadId] === b.id;
-                      return (
-                        <Box
-                          key={b.id}
-                          onClick={() => setBackgroundByThreadId((prev) => ({ ...prev, [selectedThreadId]: b.id }))}
-                          sx={{
-                            cursor: "pointer",
-                            borderRadius: 2,
-                            overflow: "hidden",
-                            border: selected ? `2px solid ${RED}` : "1px solid rgba(0,0,0,0.12)",
-                            bgcolor: "rgba(0,0,0,0.02)",
-                          }}
-                        >
-                          <Box component="img" src={b.src} alt={b.label} sx={{ width: "100%", height: 90, objectFit: "cover", display: "block" }} />
-                          <Box sx={{ px: 1, py: 0.8, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                            <Typography sx={{ fontSize: 12, fontWeight: 900 }}>{b.label}</Typography>
-                            {selected ? <CheckCircleIcon sx={{ fontSize: 18, color: RED }} /> : null}
-                          </Box>
-                        </Box>
-                      );
-                    })}
-                  </Box>
+                  );
+                })}
+              </Stack>
+              <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1.25, mb: 2 }}>
+                {BACKGROUNDS.map((b) => {
+                  const ids = backgroundApplyToThreadIds.size > 0 ? Array.from(backgroundApplyToThreadIds) : selectedThreadId ? [selectedThreadId] : [];
+                  const selected = ids.length > 0 && backgroundByThreadId[ids[0]] === b.id;
+                  return (
+                    <Box
+                      key={b.id}
+                      onClick={() => {
+                        ids.forEach((tid) => {
+                          setBackgroundByThreadId((p) => ({ ...p, [tid]: b.id }));
+                          setAnimatedBackgroundByThreadId((p) => ({ ...p, [tid]: null }));
+                          setCustomBackgroundByThreadId((p) => { const n = { ...p }; ids.forEach((id) => delete n[id]); return n; });
+                        });
+                      }}
+                      sx={{
+                        cursor: "pointer",
+                        borderRadius: 2,
+                        overflow: "hidden",
+                        border: selected ? `2px solid ${RED}` : "1px solid rgba(0,0,0,0.12)",
+                        bgcolor: "rgba(0,0,0,0.02)",
+                      }}
+                    >
+                      <Box component="img" src={b.src} alt={b.label} sx={{ width: "100%", height: 90, objectFit: "cover", display: "block" }} />
+                      <Box sx={{ px: 1, py: 0.8, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <Typography sx={{ fontSize: 12, fontWeight: 900 }}>{b.label}</Typography>
+                        {selected ? <CheckCircleIcon sx={{ fontSize: 18, color: RED }} /> : null}
+                      </Box>
+                    </Box>
+                  );
+                })}
+              </Box>
+              <Typography sx={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.6)", mb: 1 }}>Upload your own image</Typography>
+              <Typography sx={{ fontSize: 11, color: RED, fontWeight: 700, mb: 1 }}>Make sure your image is appropriate. Inappropriate content may result in a ban from our website.</Typography>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                <Button variant="outlined" component="label" sx={{ borderRadius: 999, fontWeight: 900, textTransform: "none" }}>
+                  Choose image
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const ids = backgroundApplyToThreadIds.size > 0 ? Array.from(backgroundApplyToThreadIds) : selectedThreadId ? [selectedThreadId] : [];
+                      if (ids.length === 0) return;
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        const dataUrl = reader.result as string;
+                        setCustomBackgroundByThreadId((prev) => ({ ...prev, ...Object.fromEntries(ids.map((tid) => [tid, dataUrl])) }));
+                        ids.forEach((tid) => { setBackgroundByThreadId((p) => ({ ...p, [tid]: null })); setAnimatedBackgroundByThreadId((p) => ({ ...p, [tid]: null })); });
+                      };
+                      reader.readAsDataURL(file);
+                      e.target.value = "";
+                    }}
+                  />
+                </Button>
+                {(backgroundApplyToThreadIds.size > 0 ? Array.from(backgroundApplyToThreadIds)[0] : selectedThreadId) && customBackgroundByThreadId[backgroundApplyToThreadIds.size > 0 ? Array.from(backgroundApplyToThreadIds)[0]! : selectedThreadId!] && (
+                  <Box component="img" src={customBackgroundByThreadId[backgroundApplyToThreadIds.size > 0 ? Array.from(backgroundApplyToThreadIds)[0]! : selectedThreadId!]} alt="Custom" sx={{ width: 56, height: 56, objectFit: "cover", borderRadius: 2, border: `2px solid ${RED}` }} />
+                )}
+              </Stack>
+              {backgroundPreviewTid && (
+                <>
+                  <Typography sx={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.6)", mb: 1 }}>Customize colors (animated)</Typography>
+                  {animatedBackgroundByThreadId[backgroundPreviewTid]?.type === "grainient" && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography sx={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.6)", mb: 1 }}>
+                        Choose 3 colors
+                      </Typography>
+                      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5, flexWrap: "wrap" }}>
+                        <Stack alignItems="center" spacing={0.5}>
+                          <Box
+                            component="input"
+                            type="color"
+                            value={
+                              animatedBackgroundByThreadId[backgroundPreviewTid].type === "grainient"
+                                ? animatedBackgroundByThreadId[backgroundPreviewTid].color1
+                                : "#ebebeb"
+                            }
+                            onChange={(e) =>
+                              setAnimatedBackgroundByThreadId((prev) =>
+                                prev[backgroundPreviewTid]?.type === "grainient"
+                                  ? { ...prev, [backgroundPreviewTid]: { ...prev[backgroundPreviewTid], color1: e.target.value } }
+                                  : prev
+                              )
+                            }
+                            sx={{ width: 40, height: 40, border: "none", borderRadius: 2, cursor: "pointer", p: 0 }}
+                          />
+                          <Typography sx={{ fontSize: 11, fontWeight: 700 }}>Color 1</Typography>
+                        </Stack>
+                        <Stack alignItems="center" spacing={0.5}>
+                          <Box
+                            component="input"
+                            type="color"
+                            value={
+                              animatedBackgroundByThreadId[backgroundPreviewTid].type === "grainient"
+                                ? animatedBackgroundByThreadId[backgroundPreviewTid].color2
+                                : "#e32400"
+                            }
+                            onChange={(e) =>
+                              setAnimatedBackgroundByThreadId((prev) =>
+                                prev[backgroundPreviewTid]?.type === "grainient"
+                                  ? { ...prev, [backgroundPreviewTid]: { ...prev[backgroundPreviewTid], color2: e.target.value } }
+                                  : prev
+                              )
+                            }
+                            sx={{ width: 40, height: 40, border: "none", borderRadius: 2, cursor: "pointer", p: 0 }}
+                          />
+                          <Typography sx={{ fontSize: 11, fontWeight: 700 }}>Color 2</Typography>
+                        </Stack>
+                        <Stack alignItems="center" spacing={0.5}>
+                          <Box
+                            component="input"
+                            type="color"
+                            value={
+                              animatedBackgroundByThreadId[backgroundPreviewTid].type === "grainient"
+                                ? animatedBackgroundByThreadId[backgroundPreviewTid].color3
+                                : "#B19EEF"
+                            }
+                            onChange={(e) =>
+                              setAnimatedBackgroundByThreadId((prev) =>
+                                prev[backgroundPreviewTid]?.type === "grainient"
+                                  ? { ...prev, [backgroundPreviewTid]: { ...prev[backgroundPreviewTid], color3: e.target.value } }
+                                  : prev
+                              )
+                            }
+                            sx={{ width: 40, height: 40, border: "none", borderRadius: 2, cursor: "pointer", p: 0 }}
+                          />
+                          <Typography sx={{ fontSize: 11, fontWeight: 700 }}>Color 3</Typography>
+                        </Stack>
+                      </Stack>
+                      <Box sx={{ width: "100%", height: 100, borderRadius: 2, overflow: "hidden", border: "1px solid rgba(0,0,0,0.12)" }}>
+                        <Grainient
+                          color1={
+                            animatedBackgroundByThreadId[backgroundPreviewTid].type === "grainient"
+                              ? animatedBackgroundByThreadId[backgroundPreviewTid].color1
+                              : "#ebebeb"
+                          }
+                          color2={
+                            animatedBackgroundByThreadId[backgroundPreviewTid].type === "grainient"
+                              ? animatedBackgroundByThreadId[backgroundPreviewTid].color2
+                              : "#e32400"
+                          }
+                          color3={
+                            animatedBackgroundByThreadId[backgroundPreviewTid].type === "grainient"
+                              ? animatedBackgroundByThreadId[backgroundPreviewTid].color3
+                              : "#B19EEF"
+                          }
+                          timeSpeed={0.25}
+                          warpStrength={1}
+                          warpFrequency={5}
+                          warpSpeed={2}
+                          warpAmplitude={50}
+                          zoom={1.25}
+                        />
+                      </Box>
+                    </Box>
+                  )}
+
+                  {animatedBackgroundByThreadId[backgroundPreviewTid]?.type === "gridscan" && (
+                    <Box sx={{ width: "100%", height: 100, borderRadius: 2, overflow: "hidden", border: "1px solid rgba(0,0,0,0.12)" }}>
+                      <GridScan
+                        sensitivity={0.55}
+                        lineThickness={1}
+                        linesColor="#392e4e"
+                        gridScale={0.1}
+                        scanColor="#FF9FFC"
+                        scanOpacity={0.4}
+                        enablePost
+                        bloomIntensity={0.6}
+                        chromaticAberration={0.002}
+                        noiseIntensity={0.01}
+                      />
+                    </Box>
+                  )}
+
+                  {animatedBackgroundByThreadId[backgroundPreviewTid]?.type === "lightning" && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography sx={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.6)", mb: 1 }}>
+                        Choose color
+                      </Typography>
+                      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5, flexWrap: "wrap" }}>
+                        <Stack alignItems="center" spacing={0.5}>
+                          <Box
+                            component="input"
+                            type="color"
+                            value={
+                              animatedBackgroundByThreadId[backgroundPreviewTid].type === "lightning"
+                                ? animatedBackgroundByThreadId[backgroundPreviewTid].color
+                                : "#6366f1"
+                            }
+                            onChange={(e) =>
+                              setAnimatedBackgroundByThreadId((prev) =>
+                                prev[backgroundPreviewTid]?.type === "lightning"
+                                  ? { ...prev, [backgroundPreviewTid]: { ...prev[backgroundPreviewTid], color: e.target.value } }
+                                  : prev
+                              )
+                            }
+                            sx={{ width: 40, height: 40, border: "none", borderRadius: 2, cursor: "pointer", p: 0 }}
+                          />
+                          <Typography sx={{ fontSize: 11, fontWeight: 700 }}>Lightning</Typography>
+                        </Stack>
+                      </Stack>
+                      <Box sx={{ width: "100%", height: 100, borderRadius: 2, overflow: "hidden", border: "1px solid rgba(0,0,0,0.12)" }}>
+                        <Lightning
+                          hue={hexToHue(
+                            animatedBackgroundByThreadId[backgroundPreviewTid].type === "lightning"
+                              ? animatedBackgroundByThreadId[backgroundPreviewTid].color
+                              : "#6366f1"
+                          )}
+                          xOffset={0}
+                          speed={1}
+                          intensity={1}
+                          size={1}
+                        />
+                      </Box>
+                    </Box>
+                  )}
+
+                  {animatedBackgroundByThreadId[backgroundPreviewTid]?.type === "particles" && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography sx={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.6)", mb: 1 }}>
+                        Choose colors (up to 3)
+                      </Typography>
+                      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5, flexWrap: "wrap" }}>
+                        {[0, 1, 2].map((i) => {
+                          const colors =
+                            animatedBackgroundByThreadId[backgroundPreviewTid].type === "particles"
+                              ? animatedBackgroundByThreadId[backgroundPreviewTid].colors
+                              : ["#ffffff", "#c7d2fe", "#a78bfa"];
+                          const color = colors[i] ?? (i === 0 ? "#ffffff" : i === 1 ? "#c7d2fe" : "#a78bfa");
+                          return (
+                            <Stack key={i} alignItems="center" spacing={0.5}>
+                              <Box
+                                component="input"
+                                type="color"
+                                value={color}
+                                onChange={(e) => {
+                                  const next = [...colors];
+                                  while (next.length <= i) next.push(next[next.length - 1] ?? "#ffffff");
+                                  next[i] = e.target.value;
+                                  setAnimatedBackgroundByThreadId((prev) =>
+                                    prev[backgroundPreviewTid]?.type === "particles"
+                                      ? { ...prev, [backgroundPreviewTid]: { ...prev[backgroundPreviewTid], colors: next } }
+                                      : prev
+                                  );
+                                }}
+                                sx={{ width: 40, height: 40, border: "none", borderRadius: 2, cursor: "pointer", p: 0 }}
+                              />
+                              <Typography sx={{ fontSize: 11, fontWeight: 700 }}>Color {i + 1}</Typography>
+                            </Stack>
+                          );
+                        })}
+                      </Stack>
+                      <Box sx={{ width: "100%", height: 100, borderRadius: 2, overflow: "hidden", border: "1px solid rgba(0,0,0,0.12)", bgcolor: "rgba(0,0,0,0.4)" }}>
+                        <Particles
+                          particleColors={
+                            animatedBackgroundByThreadId[backgroundPreviewTid].type === "particles" &&
+                            animatedBackgroundByThreadId[backgroundPreviewTid].colors.length > 0
+                              ? animatedBackgroundByThreadId[backgroundPreviewTid].colors
+                              : ["#ffffff", "#c7d2fe", "#a78bfa"]
+                          }
+                          particleCount={200}
+                          particleSpread={10}
+                          speed={0.1}
+                          particleBaseSize={100}
+                          moveParticlesOnHover
+                          alphaParticles={false}
+                          disableRotation={false}
+                          pixelRatio={1}
+                        />
+                      </Box>
+                    </Box>
+                  )}
                 </>
               )}
             </Box>
