@@ -15,12 +15,12 @@ import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
 
-import CourseCard from "./CourseCard/CourseCard";
-import CourseInfoModal from "./CourseCard/CourseInfoModal";
-import DueDateElement from "./DueDateElement/DueDateElement";
+import CourseCard from "@/components/academics/CourseCard/CourseCard";
+import CourseInfoModal from "@/components/academics/CourseCard/CourseInfoModal";
+import DueDateElement from "@/components/academics/DueDateElement/DueDateElement";
 
-import { useAcademicsData } from "./useAcademicsData";
-import { BG, btnGhost, btnPrimary, btnOutlineGray, fieldSx, selectSx } from "./shared/constants";
+import { useAcademicsData } from "@/components/academics/useAcademicsData";
+import { BG, btnGhost, btnPrimary, btnOutlineGray, fieldSx, selectSx } from "@/components/academics/shared/constants";
 
 // not yet hooked up to prototype degree planner backend - just a static placeholder for now to demonstrate the UI and visualize the data structures. Will be fully wired up once the backend routes are ready.
 function DonutChart({
