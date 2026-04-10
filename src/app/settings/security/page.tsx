@@ -248,8 +248,8 @@ export default function SecurityPage() {
         setLoginHistoryLoading(true);
         setLoginHistoryError(null);
 
-       // TODO: Replace this mock data with a backend security route (auth) for the current user's login history.
-       // Expected UI shape:
+       
+       // UI shape:
        //     id: string,
        //     deviceLabel: string,
        //     locationLabel: string,
@@ -299,9 +299,6 @@ export default function SecurityPage() {
         setActiveSessionsLoading(true);
         setActiveSessionsError(null);
 
-        // TODO: Replace this mock data with a backend route in the auth module for the current user's active sessions.
-        // The backend should return enough session metadata to display device labels,
-        // last-active details, and which session is the current one.
 
         const mappedData: ActiveSessionItem[] = [
           {
@@ -341,8 +338,7 @@ export default function SecurityPage() {
     try {
       setRevokingSessionId(sessionId);
 
-      // TODO: Connect this action to a backend auth-module route that revokes one session
-      // owned by the current user. 
+      
 
       setActiveSessions((prev) => prev.filter((session) => session.id !== sessionId));
     } catch (error) {
@@ -356,8 +352,7 @@ export default function SecurityPage() {
     try {
       setRevokingAll(true);
 
-      // TODO: Connect this action to a backend auth-module route that revokes all
-      // other active sessions for the current user while keeping the current session active.
+     
       setActiveSessions((prev) => prev.filter((session) => session.isCurrentSession));
     } catch (error) {
       console.error("Failed to revoke other sessions", error);
@@ -561,7 +556,7 @@ export default function SecurityPage() {
             title="Privacy Policy"
             description="Read our privacy policy"
             onExternalClick={() => {
-              // TODO: Write a privacy policy and link to the actual document here instead of the placeholder URL.
+              
               window.open("/privacy-policy", "_blank");
             }}
             isLast

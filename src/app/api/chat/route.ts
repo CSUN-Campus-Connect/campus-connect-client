@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { chatbotEmailAgentReply, parseSiteLang } from "@/lib/chatbotI18n";
+import type { SiteLangCode } from "@/lib/siteLanguage";
 
 export const runtime = "nodejs";
 
@@ -18,20 +20,12 @@ const RATE_MAX_REQUESTS = 15;
 type RateBucket = { count: number; resetAt: number };
 const rateBuckets = new Map<string, RateBucket>();
 
-const EMAIL_AGENT_REPLY =
-  "For help from a real person, use the **Email Agent** link in this chat. " +
-  "A team member will reply within 24 hours. Not official CSUN advice—verify with CSUN sources when needed.";
-
-
 const HUMAN_AGENT_TRIGGERS = [
   "human",
   "real person",
   "real people",
   "agent",
   "representative",
-  
-  
-  
   "talk to someone",
   "speak to someone",
   "connect me to",
@@ -40,7 +34,6 @@ const HUMAN_AGENT_TRIGGERS = [
   "live chat",
   "customer service",
   "staff",
-  
   "actual person",
 ];
 
@@ -75,31 +68,67 @@ function wantsHumanOrAgent(message: string): boolean {
   return HUMAN_AGENT_TRIGGERS.some((phrase) => lower.includes(phrase));
 }
 
-function systemInstruction(): string {
-  return [
+function languageLabelForModel(code: SiteLangCode): string {
+  if (code === "en") return "English";
+  try {
+    const dn = new Intl.DisplayNames(["en"], { type: "language" });
+    return dn.of(code.replace(/_/g, "-")) || code;
+  } catch {
+    return code;
+  }
+}
+
+function systemInstruction(lang: SiteLangCode): string {
+  const lines = [
     "You are a helpful campus assistant for general CSUN guidance.",
     "Be honest: if you are unsure, say you are unsure.",
     "Do not invent exact dates, deadlines, office hours, fees, or policies.",
     "Encourage users to verify details on official CSUN sources and with the relevant office.",
     "Keep answers concise and user-friendly.",
-    "Include a short disclaimer: Not official CSUN advice.",
+    "Include a short disclaimer that your answer is not official CSUN advice (phrase it naturally in the reply language).",
+  ];
+  if (lang !== "en") {
+    const label = languageLabelForModel(lang);
+    lines.push(
+      "",
+      `The user's chosen site language is ${label} (locale ${lang}). Write your entire response in ${label}, including the disclaimer.`
+    );
+  } else {
+    lines.push("", "Write your entire response in English.");
+  }
+  lines.push(
     "",
-    "If the user asks to speak to a human, agent, representative, real person, or for more help from staff, tell them: Use the \"Email Agent\" link in this chat—a team member will reply within 24 hours.",
-  ].join("\n");
+    'If the user asks to speak to a human, agent, representative, real person, or for more help from staff, tell them to use the "Open email" link in this chat—a team member will reply within 24 hours. Say this in the same language as your other replies.'
+  );
+  return lines.join("\n");
+}
+
+function extractGeminiErrorMessage(json: Record<string, unknown> | null, httpStatus: number): string {
+  const err =
+    json && typeof json === "object" && json.error && typeof json.error === "object"
+      ? (json.error as { message?: string })
+      : null;
+  return (
+    safeString(err?.message) ||
+    safeString(json && typeof json.message === "string" ? json.message : null) ||
+    `Gemini request failed (HTTP ${httpStatus}).`
+  );
 }
 
 async function callGemini(args: {
   apiKey: string;
   message: string;
   history: HistoryItem[];
+  lang: SiteLangCode;
 }): Promise<string> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(
-    args.apiKey
-  )}`;
+  const modelId = (process.env.GEMINI_MODEL || "gemini-2.5-flash").trim();
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
+    modelId
+  )}:generateContent?key=${encodeURIComponent(args.apiKey)}`;
 
   const contents = [
     ...args.history.map((h) => ({
-      role: h.role === "assistant" ? "model" as const : "user" as const,
+      role: h.role === "assistant" ? ("model" as const) : ("user" as const),
       parts: [{ text: h.content }],
     })),
     { role: "user" as const, parts: [{ text: args.message }] },
@@ -109,7 +138,7 @@ async function callGemini(args: {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
-      systemInstruction: { parts: [{ text: systemInstruction() }] },
+      systemInstruction: { parts: [{ text: systemInstruction(args.lang) }] },
       contents,
       generationConfig: {
         temperature: 0.3,
@@ -120,13 +149,7 @@ async function callGemini(args: {
 
   const json = (await res.json().catch(() => null)) as Record<string, unknown> | null;
   if (!res.ok) {
-    const msg =
-      safeString(json && typeof json === "object" && json.error && typeof (json.error as any).message === "string"
-        ? (json.error as { message: string }).message
-        : null) ||
-      safeString(json && typeof json === "object" && typeof json.message === "string" ? json.message : null) ||
-      `Gemini request failed (HTTP ${res.status}).`;
-    throw new Error(msg);
+    throw new Error(extractGeminiErrorMessage(json, res.status));
   }
 
   const candidates = json && typeof json === "object" && Array.isArray(json.candidates) ? json.candidates : [];
@@ -136,7 +159,7 @@ async function callGemini(args: {
     typeof first === "object" &&
     first.content &&
     typeof first.content === "object" &&
-    Array.isArray((first.content as any).parts)
+    Array.isArray((first.content as { parts?: unknown }).parts)
       ? (first.content as { parts: Array<{ text?: string }> }).parts
       : [];
 
@@ -171,6 +194,7 @@ export async function POST(req: Request) {
 
   const message = safeString(body?.message).trim();
   const history = Array.isArray(body?.history) ? (body.history as unknown[]) : [];
+  const lang = parseSiteLang(body?.language ?? body?.locale);
 
   if (!message) {
     return NextResponse.json({ error: "Message is required." }, { status: 400 });
@@ -183,7 +207,7 @@ export async function POST(req: Request) {
   }
 
   if (wantsHumanOrAgent(message)) {
-    return NextResponse.json({ reply: EMAIL_AGENT_REPLY });
+    return NextResponse.json({ reply: chatbotEmailAgentReply(lang) });
   }
 
   const parsedHistory: HistoryItem[] = history
@@ -199,9 +223,9 @@ export async function POST(req: Request) {
   let apiKey = (process.env.GEMINI_API_KEY || "").trim();
   if (!apiKey) {
     try {
-      // @ts-expect-error 
+      // @ts-expect-error dynamic import for optional env file
       const { readFile } = await import("fs/promises");
-      // @ts-expect-error 
+      // @ts-expect-error dynamic import for optional env file
       const { join } = await import("path");
       const chatbotEnvPath = join(process.cwd(), ".env.chatbot");
       const envRaw = await readFile(chatbotEnvPath, "utf-8");
@@ -220,7 +244,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const reply = await callGemini({ apiKey, message, history: parsedHistory });
+    const reply = await callGemini({ apiKey, message, history: parsedHistory, lang });
     return NextResponse.json({ reply });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Chat service error. Please try again later.";

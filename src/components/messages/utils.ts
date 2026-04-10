@@ -1,4 +1,4 @@
-import type { Attachment, ID, Message } from "@/types/messages";
+import type { Attachment, ID, Message, Thread } from "@/types/messages";
 
 export const scrollBarSx = {
   "&::-webkit-scrollbar": { width: 10, height: 10 },
@@ -41,6 +41,10 @@ export function activityText(nowMs: number, lastActiveAt: number): string {
   const diffH = Math.floor(diffM / 60);
   if (diffH < 24) return `Active ${diffH}h ago`;
   return `Active ${Math.floor(diffH / 24)}d ago`;
+}
+
+export function isGroupThread(t: Pick<Thread, "participantIds">): boolean {
+  return t.participantIds.length > 2;
 }
 
 export function getLastMessage(all: Message[], threadId: ID): Message | null {

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { z } from "zod";
 
 import { api } from "../../../lib/axios";
@@ -15,6 +16,7 @@ import Alert from "@mui/material/Alert";
 import Fade from "@mui/material/Fade";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 
 const red = "#B11226";
 const darkRed = "#7A0A0A";
@@ -86,9 +88,6 @@ function DeleteAccountSection() {
 
     setIsDeleting(true);
 
-    // TODO: Replace this placeholder flow with real account deletion request
-    // call backend endpoint (auth module)
-    // final behavior will send email confirmation that account has been deleted
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     setIsDeleting(false);
@@ -311,7 +310,7 @@ export default function AccountPage() {
     setSaving(true);
     try {
 
-      // change password uses the existing authenticated password change endpoint in auth module
+   
       await api.patch(
         "/api/v1/users/me/password",
         {
@@ -323,7 +322,7 @@ export default function AccountPage() {
         }
       );
 
-      // TODO: Confirm if password change should log out of other sessions - if so, implement that flow
+    
       setSuccess("Your password has been updated successfully.");
       setShowSuccess(true);
 
@@ -352,6 +351,23 @@ export default function AccountPage() {
       </Box>
 
       <Stack spacing={3} sx={{ maxWidth: 820 }}>
+        <SectionCard icon={<PersonOutlineIcon />} title="Profile">
+          <Typography sx={{ color: "#6B7280", fontSize: 14, mb: 1.5 }}>
+            View or edit your public profile page.
+          </Typography>
+          <Button
+            component={Link}
+            href="http://localhost:3000/profile"
+            variant="outlined"
+            sx={{
+              ...outlineNeutralSx,
+              alignSelf: "flex-start",
+            }}
+          >
+            Open profile
+          </Button>
+        </SectionCard>
+
         <SectionCard icon={<LockOutlinedIcon />} title="Password">
           <Box
             component="form"

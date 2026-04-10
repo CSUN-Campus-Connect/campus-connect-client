@@ -7,6 +7,7 @@ import IconButton from "@mui/material/IconButton";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Typography from "@mui/material/Typography";
 import SettingsMenu from "./SettingsMenu";
+import { settingsPageBg } from "@/components/settings";
 
 const red = "#B11226";
 const darkRed = "#7A0A0A";
@@ -19,7 +20,7 @@ export default function SettingsLayout({
   const router = useRouter();
 
   return (
-    <Box sx={{ minHeight: "100vh", background: "#ffffff" }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       {/* Shared settings header / back navigation for all settings subpages */}
       <Box
         sx={{
@@ -30,7 +31,7 @@ export default function SettingsLayout({
           display: "flex",
           alignItems: "center",
           background: darkRed,
-          borderBottom: "1px solid #E5E7EB",
+          borderBottom: (t) => `1px solid ${t.palette.divider}`,
         }}
       >
         <Box
@@ -86,9 +87,9 @@ export default function SettingsLayout({
         {/* Persistent settings navigation for desktop layouts; stacked section on mobile */}
         <Box
           sx={{
-            background: "#FFFFFF",
-            borderRight: { xs: "none", md: "1px solid #E5E7EB" },
-            borderBottom: { xs: "1px solid #E5E7EB", md: "none" },
+            bgcolor: "background.paper",
+            borderRight: { xs: "none", md: (t) => `1px solid ${t.palette.divider}` },
+            borderBottom: { xs: (t) => `1px solid ${t.palette.divider}`, md: "none" },
             px: { xs: 2, sm: 2.5, md: 2.5 },
             py: { xs: 2, md: 2.5 },
             position: { md: "sticky" },
@@ -103,7 +104,7 @@ export default function SettingsLayout({
               display: { xs: "none", md: "block" },
               fontSize: 24,
               fontWeight: 700,
-              color: "#111827",
+              color: "text.primary",
               mb: 2,
               px: 0.5,
               lineHeight: 1.2,
@@ -120,6 +121,9 @@ export default function SettingsLayout({
           sx={{
             px: { xs: 2, sm: 2.5, md: 4 },
             py: { xs: 2.5, md: 3.5 },
+            backgroundColor: (t) =>
+              t.palette.mode === "dark" ? "#13151c" : settingsPageBg,
+            minHeight: { md: "calc(100vh - 56px)" },
           }}
         >
           <Box sx={{ maxWidth: 1100, width: "100%" }}>{children}</Box>

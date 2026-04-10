@@ -59,9 +59,18 @@ import {
   activityText,
   getLastMessage,
   isThreadUnread,
+  isGroupThread,
   emptyDraft,
   type DraftState,
 } from "../utils";
+import {
+  loadMessageChatPreferences,
+  saveMessageChatPreferences,
+  notifyMessageChatPreferencesChanged,
+  serializeMessageChatPreferences,
+  MESSAGE_PREFS_CHANGED_EVENT,
+  type MessageChatPreferences,
+} from "@/lib/messageChatPreferences";
 import MessagesDialogs from "../MessagesDialogs";
 import VoiceMessageButton from "../VoiceMessageButton";
 import { useToast, Toast } from "../Toast";
@@ -159,6 +168,53 @@ export default function MessagesView(props: MessagesViewProps) {
   const [animatedBackgroundByThreadId, setAnimatedBackgroundByThreadId] = React.useState<Record<ID, AnimatedBg>>({});
   const [customBackgroundByThreadId, setCustomBackgroundByThreadId] = React.useState<Record<ID, string>>({});
   const [leftGroupThreadIds, setLeftGroupThreadIds] = React.useState<Set<ID>>(new Set());
+
+  const prefsHydratedRef = React.useRef(false);
+  const prefsSerializedRef = React.useRef("");
+
+  React.useLayoutEffect(() => {
+    const p = loadMessageChatPreferences();
+    prefsSerializedRef.current = serializeMessageChatPreferences(p);
+    setBlockedUserIds(new Set(p.blockedUserIds));
+    setBackgroundByThreadId(p.backgroundByThreadId as Record<ID, number | null>);
+    setAnimatedBackgroundByThreadId(p.animatedBackgroundByThreadId as Record<ID, AnimatedBg>);
+    setCustomBackgroundByThreadId({ ...p.customBackgroundByThreadId });
+    prefsHydratedRef.current = true;
+  }, []);
+
+  React.useEffect(() => {
+    if (!prefsHydratedRef.current) return;
+    const prefs: MessageChatPreferences = {
+      blockedUserIds: Array.from(blockedUserIds),
+      backgroundByThreadId: { ...backgroundByThreadId },
+      animatedBackgroundByThreadId: { ...animatedBackgroundByThreadId },
+      customBackgroundByThreadId: { ...customBackgroundByThreadId },
+    };
+    const next = serializeMessageChatPreferences(prefs);
+    if (next === prefsSerializedRef.current) return;
+    prefsSerializedRef.current = next;
+    saveMessageChatPreferences(prefs);
+    notifyMessageChatPreferencesChanged();
+  }, [blockedUserIds, backgroundByThreadId, animatedBackgroundByThreadId, customBackgroundByThreadId]);
+
+  React.useEffect(() => {
+    const sync = () => {
+      const p = loadMessageChatPreferences();
+      const next = serializeMessageChatPreferences(p);
+      if (next === prefsSerializedRef.current) return;
+      prefsSerializedRef.current = next;
+      setBlockedUserIds(new Set(p.blockedUserIds));
+      setBackgroundByThreadId({ ...p.backgroundByThreadId } as Record<ID, number | null>);
+      setAnimatedBackgroundByThreadId({ ...p.animatedBackgroundByThreadId } as Record<ID, AnimatedBg>);
+      setCustomBackgroundByThreadId({ ...p.customBackgroundByThreadId });
+    };
+    window.addEventListener(MESSAGE_PREFS_CHANGED_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(MESSAGE_PREFS_CHANGED_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
   const [noteOpen, setNoteOpen] = React.useState(false);
   const [gifOpen, setGifOpen] = React.useState(false);
   const [imgView, setImgView] = React.useState({ open: false, url: "", name: "" });
@@ -274,7 +330,6 @@ export default function MessagesView(props: MessagesViewProps) {
   }, [users, meId, me]);
 
   const selectedThread = React.useMemo(() => (selectedThreadId ? threads.find((t) => t.id === selectedThreadId) ?? null : null), [threads, selectedThreadId]);
-  const isGroupThread = (t: Thread) => t.participantIds.length > 2;
   const otherUser = React.useMemo(() => {
     if (!selectedThread) return null;
     if (isGroupThread(selectedThread)) return null;

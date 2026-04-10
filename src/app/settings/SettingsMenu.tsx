@@ -12,6 +12,13 @@ import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import PaletteOutlinedIcon from "@mui/icons-material/PaletteOutlined";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import LanguageOutlinedIcon from "@mui/icons-material/LanguageOutlined";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
+import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
+import EventOutlinedIcon from "@mui/icons-material/EventOutlined";
+import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
 
 const red = "#B11226";
 
@@ -170,6 +177,83 @@ export default function SettingsMenu({ variant = "sidebar" }: Props) {
             href: "/settings/appearance",
             label: "Appearance",
             icon: <PaletteOutlinedIcon fontSize="small" />,
+          },
+          {
+            href: "/settings/language",
+            label: "Website language",
+            icon: <LanguageOutlinedIcon fontSize="small" />,
+          },
+        ]}
+      />
+
+      <Section
+        title="Messaging"
+        variant={variant}
+        items={[
+          {
+            href: "/settings/messaging",
+            label: "Messaging settings",
+            icon: <ChatBubbleOutlineIcon fontSize="small" />,
+          },
+        ]}
+      />
+
+      <Section
+        title="Social"
+        variant={variant}
+        items={[
+          {
+            href: "/settings/social",
+            label: "Social settings",
+            icon: <ArticleOutlinedIcon fontSize="small" />,
+          },
+        ]}
+      />
+
+      <Section
+        title="Marketplace"
+        variant={variant}
+        items={[
+          {
+            href: "/settings/marketplace",
+            label: "Marketplace settings",
+            icon: <StorefrontOutlinedIcon fontSize="small" />,
+          },
+        ]}
+      />
+
+      <Section
+        title="Clubs"
+        variant={variant}
+        items={[
+          {
+            href: "/settings/clubs",
+            label: "Club settings",
+            icon: <GroupsOutlinedIcon fontSize="small" />,
+          },
+        ]}
+      />
+
+      <Section
+        title="Events"
+        variant={variant}
+        items={[
+          {
+            href: "/settings/events",
+            label: "Event settings",
+            icon: <EventOutlinedIcon fontSize="small" />,
+          },
+        ]}
+      />
+
+      <Section
+        title="Academics"
+        variant={variant}
+        items={[
+          {
+            href: "/settings/academics",
+            label: "Academic settings",
+            icon: <MenuBookOutlinedIcon fontSize="small" />,
           },
         ]}
       />
