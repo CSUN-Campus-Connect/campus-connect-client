@@ -1,44 +1,27 @@
 "use client";
-
-import { useEffect, useState } from "react";
+// src/app/admin/moderation/page.tsx
+import { useEffect, useState, Suspense } from "react";
 import { api } from "@/lib/axios";
 import { useAdminAuth, hasPermission } from "@/lib/useAdminAuth";
+import { adminTheme as t } from "../theme";
+import { useAdminSelection } from "../useAdminSelection";
 
-interface Report {
-  id: string;
-  targetType: string;
-  targetId: string;
-  reason: string;
-  description: string | null;
-  status: string;
-  priority: string;
-  createdAt: string;
-  reporter: { id: string; firstName: string; lastName: string; email: string };
-  assignedTo: { id: string; firstName: string; lastName: string } | null;
-}
+interface Report { id: string; targetType: string; targetId: string; reason: string; description: string | null; status: string; priority: string; createdAt: string; reporter: { id: string; firstName: string; lastName: string; email: string }; assignedTo: { id: string; firstName: string; lastName: string } | null; }
+interface Stats { byStatus: { pending: number; inReview: number; resolved: number; dismissed: number; escalated: number }; total: number; }
 
-interface Stats {
-  byStatus: { pending: number; inReview: number; resolved: number; dismissed: number; escalated: number };
-  total: number;
-}
-
-const STATUS_COLORS: Record<string, string> = {
-  PENDING: "#b08800",
-  IN_REVIEW: "#2d6da3",
-  RESOLVED: "#2d8a4e",
-  DISMISSED: "#555",
-  ESCALATED: "#cc0000",
+const STATUS_MAP: Record<string, { color: string; bg: string; border: string }> = {
+  PENDING: { color: "#b08800", bg: "#fef9ec", border: "#f0dca0" }, IN_REVIEW: { color: "#3b7dd8", bg: "#f0f5ff", border: "#b3d1ff" },
+  RESOLVED: { color: "#2d8a4e", bg: "#f0faf4", border: "#c3e6cb" }, DISMISSED: { color: "#888", bg: "#f5f5f5", border: "#e0e0e0" },
+  ESCALATED: { color: "#c94150", bg: "#fef2f3", border: "#f5c6cb" },
+};
+const PRIORITY_MAP: Record<string, { color: string; bg: string; border: string }> = {
+  LOW: { color: "#888", bg: "#f5f5f5", border: "#e0e0e0" }, NORMAL: { color: "#666", bg: "#f5f5f5", border: "#e0e0e0" },
+  HIGH: { color: "#b08800", bg: "#fef9ec", border: "#f0dca0" }, URGENT: { color: "#c94150", bg: "#fef2f3", border: "#f5c6cb" },
 };
 
-const PRIORITY_COLORS: Record<string, string> = {
-  LOW: "#444",
-  NORMAL: "#666",
-  HIGH: "#b08800",
-  URGENT: "#cc0000",
-};
-
-export default function ModerationPage() {
+function ModerationContent() {
   const { permissions } = useAdminAuth();
+  const { selectedId, select } = useAdminSelection();
   const [reports, setReports] = useState<Report[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,319 +36,148 @@ export default function ModerationPage() {
   const fetchQueue = async (status?: string) => {
     setLoading(true);
     try {
-      const params: any = { limit: 50 };
-      if (status) params.status = status;
-      const [queueRes, statsRes] = await Promise.all([
-        api.get("/api/v1/moderation/queue", { headers, params }),
-        api.get("/api/v1/moderation/stats", { headers }),
-      ]);
-      setReports(queueRes.data.reports);
-      setStats(statsRes.data);
-    } catch {}
-    setLoading(false);
-  };
-
-  useEffect(() => { fetchQueue(); }, []);
-
-  const handleFilter = (status: string) => {
-    const newFilter = filter === status ? "" : status;
-    setFilter(newFilter);
-    fetchQueue(newFilter || undefined);
+      const params: any = { limit: 50 }; if (status) params.status = status;
+      const [queueRes, statsRes] = await Promise.all([api.get("/api/v1/moderation/queue", { headers, params }), api.get("/api/v1/moderation/stats", { headers })]);
+      setReports(queueRes.data.reports); setStats(statsRes.data);
+    } catch {} setLoading(false);
   };
 
   const openDetail = async (id: string) => {
     setDetailLoading(true);
-    try {
-      const res = await api.get(`/api/v1/moderation/reports/${id}`, { headers });
-      setSelectedReport(res.data);
-    } catch {}
+    try { const res = await api.get(`/api/v1/moderation/reports/${id}`, { headers }); setSelectedReport(res.data); } catch {}
     setDetailLoading(false);
   };
 
-  const claimReport = async (id: string) => {
-    try {
-      await api.patch(`/api/v1/moderation/reports/${id}/claim`, {}, { headers });
-      openDetail(id);
-      fetchQueue(filter || undefined);
-    } catch {}
-  };
+  useEffect(() => { fetchQueue(); }, []);
+  useEffect(() => { if (selectedId) openDetail(selectedId); else setSelectedReport(null); }, [selectedId]);
 
+  const handleFilter = (status: string) => { const f = filter === status ? "" : status; setFilter(f); fetchQueue(f || undefined); };
+  const claimReport = async (id: string) => { try { await api.patch(`/api/v1/moderation/reports/${id}/claim`, {}, { headers }); openDetail(id); fetchQueue(filter || undefined); } catch {} };
   const takeAction = async (id: string, action: string) => {
-    try {
-      await api.post(`/api/v1/moderation/reports/${id}/action`, { action, note: actionNote }, { headers });
-      setActionNote("");
-      openDetail(id);
-      fetchQueue(filter || undefined);
-    } catch {}
-  };
-
-  const updateStatus = async (id: string, status: string) => {
-    try {
-      await api.patch(`/api/v1/moderation/reports/${id}/status`, { status }, { headers });
-      openDetail(id);
-      fetchQueue(filter || undefined);
-    } catch {}
+    if (!actionNote && action !== "REPORT_DISMISSED" && action !== "NOTE_ADDED") { if (!confirm(`Take action "${action.replace(/_/g, " ").toLowerCase()}" without a note?`)) return; }
+    try { await api.post(`/api/v1/moderation/reports/${id}/action`, { action, note: actionNote }, { headers }); setActionNote(""); openDetail(id); fetchQueue(filter || undefined); } catch {}
   };
 
   return (
     <div>
-      <h1 style={{ fontSize: "20px", fontWeight: 600, marginBottom: "4px" }}>moderation</h1>
-      <p style={{ fontSize: "13px", color: "#666", marginBottom: "32px" }}>content report queue</p>
+      <h1 style={{ fontSize: "22px", fontWeight: 600, color: t.textPrimary, marginBottom: "4px" }}>Moderation</h1>
+      <p style={{ fontSize: "13px", color: t.textMuted, marginBottom: "24px" }}>content report queue</p>
 
-      {/* Stats bar */}
       {stats && (
-        <div style={{ display: "flex", gap: "12px", marginBottom: "28px" }}>
-          {Object.entries(stats.byStatus).map(([key, count]) => (
-            <button
-              key={key}
-              onClick={() => handleFilter(key.toUpperCase().replace("INREVIEW", "IN_REVIEW"))}
-              style={{
-                padding: "8px 16px",
-                background: filter === key.toUpperCase().replace("INREVIEW", "IN_REVIEW") ? "#1a1a1a" : "transparent",
-                border: "1px solid #1a1a1a",
-                color: STATUS_COLORS[key.toUpperCase().replace("INREVIEW", "IN_REVIEW")] || "#666",
-                fontFamily: "inherit",
-                fontSize: "12px",
-                cursor: "pointer",
-                display: "flex",
-                gap: "8px",
-                alignItems: "center",
-              }}
-            >
-              <span style={{ fontSize: "16px", fontWeight: 600 }}>{count}</span>
-              {key.replace(/([A-Z])/g, " $1").toLowerCase().trim()}
-            </button>
-          ))}
+        <div style={{ display: "flex", gap: "10px", marginBottom: "24px", flexWrap: "wrap" }}>
+          {Object.entries(stats.byStatus).map(([key, count]) => {
+            const statusKey = key.toUpperCase().replace("INREVIEW", "IN_REVIEW");
+            const sm = STATUS_MAP[statusKey] || STATUS_MAP.PENDING;
+            return (
+              <button key={key} onClick={() => handleFilter(statusKey)} style={{
+                padding: "8px 16px", fontSize: "12px", fontFamily: t.font, cursor: "pointer", borderRadius: "6px",
+                display: "flex", gap: "8px", alignItems: "center",
+                background: filter === statusKey ? sm.bg : t.bgCard, border: `1px solid ${filter === statusKey ? sm.border : t.border}`, color: sm.color,
+              }}><span style={{ fontSize: "16px", fontWeight: 600 }}>{count}</span>{key.replace(/([A-Z])/g, " $1").toLowerCase().trim()}</button>
+            );
+          })}
         </div>
       )}
 
-      <div style={{ display: "flex", gap: "24px" }}>
-        {/* Queue list */}
+      <div style={{ display: "flex", gap: "20px" }}>
         <div style={{ flex: selectedReport ? "0 0 50%" : "1" }}>
-          {loading ? (
-            <div style={{ color: "#444", fontSize: "13px" }}>loading...</div>
-          ) : reports.length === 0 ? (
-            <div style={{ color: "#444", fontSize: "13px", padding: "40px 0", textAlign: "center" }}>
-              {filter ? `no ${filter.toLowerCase()} reports` : "no reports in queue"}
-            </div>
+          {loading ? <div style={{ color: t.textLight, fontSize: "13px" }}>loading...</div> : reports.length === 0 ? (
+            <div style={{ color: t.textLight, fontSize: "13px", padding: "40px 0", textAlign: "center" }}>{filter ? `no ${filter.toLowerCase().replace("_", " ")} reports` : "no reports in queue"}</div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-              {reports.map((r) => (
-                <div
-                  key={r.id}
-                  onClick={() => openDetail(r.id)}
-                  style={{
-                    padding: "12px 16px",
-                    border: "1px solid #1a1a1a",
-                    background: selectedReport?.id === r.id ? "#111" : "transparent",
-                    cursor: "pointer",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>
-                    <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "4px" }}>
-                      <span style={{
-                        fontSize: "10px",
-                        padding: "2px 6px",
-                        border: `1px solid ${PRIORITY_COLORS[r.priority] || "#333"}`,
-                        color: PRIORITY_COLORS[r.priority] || "#666",
-                      }}>
-                        {r.priority}
-                      </span>
-                      <span style={{
-                        fontSize: "10px",
-                        padding: "2px 6px",
-                        border: `1px solid ${STATUS_COLORS[r.status] || "#333"}`,
-                        color: STATUS_COLORS[r.status] || "#666",
-                      }}>
-                        {r.status.replace("_", " ")}
-                      </span>
-                      <span style={{ fontSize: "12px", color: "#888" }}>
-                        {r.targetType.toLowerCase().replace("_", " ")}
-                      </span>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {reports.map((r) => {
+                const sm = STATUS_MAP[r.status] || STATUS_MAP.PENDING;
+                const pm = PRIORITY_MAP[r.priority] || PRIORITY_MAP.NORMAL;
+                return (
+                  <div key={r.id} onClick={() => select(r.id)} style={{
+                    padding: "12px 16px", background: selectedReport?.id === r.id ? t.bgAccent : t.bgCard,
+                    border: `1px solid ${selectedReport?.id === r.id ? t.accentBorder : t.border}`, borderRadius: "6px", cursor: "pointer",
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                  }}>
+                    <div>
+                      <div style={{ display: "flex", gap: "6px", alignItems: "center", marginBottom: "4px" }}>
+                        <span style={t.badge(pm.color, pm.bg, pm.border)}>{r.priority}</span>
+                        <span style={t.badge(sm.color, sm.bg, sm.border)}>{r.status.replace("_", " ")}</span>
+                        <span style={{ fontSize: "12px", color: t.textMuted }}>{r.targetType.toLowerCase().replace("_", " ")}</span>
+                      </div>
+                      <div style={{ fontSize: "13px", color: t.textPrimary, fontWeight: 500 }}>
+                        {r.reason.replace(/_/g, " ").toLowerCase()}
+                        {r.description && <span style={{ color: t.textMuted, fontWeight: 400 }}> — {r.description.slice(0, 60)}{r.description.length > 60 ? "..." : ""}</span>}
+                      </div>
                     </div>
-                    <div style={{ fontSize: "13px", color: "#ccc" }}>
-                      {r.reason.replace(/_/g, " ").toLowerCase()}
-                      {r.description && (
-                        <span style={{ color: "#555" }}> — {r.description.slice(0, 60)}{r.description.length > 60 ? "..." : ""}</span>
-                      )}
+                    <div style={{ fontSize: "11px", color: t.textLight, textAlign: "right", whiteSpace: "nowrap" }}>
+                      <div>{r.reporter.firstName} {r.reporter.lastName}</div>
+                      <div>{new Date(r.createdAt).toLocaleDateString()}</div>
                     </div>
                   </div>
-                  <div style={{ fontSize: "11px", color: "#444", textAlign: "right", whiteSpace: "nowrap" }}>
-                    <div>{r.reporter.firstName} {r.reporter.lastName}</div>
-                    <div>{new Date(r.createdAt).toLocaleDateString()}</div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
 
-        {/* Detail panel */}
         {selectedReport && (
-          <div style={{
-            flex: "0 0 48%",
-            border: "1px solid #1a1a1a",
-            padding: "20px",
-            maxHeight: "80vh",
-            overflow: "auto",
-          }}>
-            {detailLoading ? (
-              <div style={{ color: "#444", fontSize: "13px" }}>loading...</div>
-            ) : (
+          <div style={{ flex: "0 0 48%", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "8px", padding: "20px", maxHeight: "80vh", overflow: "auto" }}>
+            {detailLoading ? <div style={{ color: t.textLight, fontSize: "13px" }}>loading...</div> : (
               <>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
                   <div>
-                    <div style={{ fontSize: "11px", color: "#555", letterSpacing: "1px", marginBottom: "4px" }}>
-                      REPORT DETAIL
-                    </div>
-                    <div style={{ fontSize: "10px", color: "#333" }}>{selectedReport.id}</div>
+                    <div style={{ fontSize: "11px", color: t.textLight, fontWeight: 500, letterSpacing: "0.5px", marginBottom: "4px" }}>REPORT DETAIL</div>
+                    <div style={{ fontSize: "10px", color: t.textLight }}>{selectedReport.id}</div>
                   </div>
-                  <button
-                    onClick={() => setSelectedReport(null)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#555",
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                      fontSize: "16px",
-                    }}
-                  >
-                    ✕
-                  </button>
+                  <button onClick={() => select(null)} style={{ background: "none", border: "none", color: t.textLight, cursor: "pointer", fontFamily: t.font, fontSize: "16px" }}>✕</button>
                 </div>
 
-                {/* Status & priority */}
-                <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-                  <span style={{
-                    fontSize: "11px",
-                    padding: "3px 8px",
-                    border: `1px solid ${STATUS_COLORS[selectedReport.status]}`,
-                    color: STATUS_COLORS[selectedReport.status],
-                  }}>
-                    {selectedReport.status.replace("_", " ")}
-                  </span>
-                  <span style={{
-                    fontSize: "11px",
-                    padding: "3px 8px",
-                    border: `1px solid ${PRIORITY_COLORS[selectedReport.priority]}`,
-                    color: PRIORITY_COLORS[selectedReport.priority],
-                  }}>
-                    {selectedReport.priority}
-                  </span>
-                  {selectedReport.otherReportsOnTarget > 0 && (
-                    <span style={{
-                      fontSize: "11px",
-                      padding: "3px 8px",
-                      border: "1px solid #663333",
-                      color: "#cc0000",
-                    }}>
-                      {selectedReport.otherReportsOnTarget} other report{selectedReport.otherReportsOnTarget > 1 ? "s" : ""} on this content
-                    </span>
-                  )}
+                <div style={{ display: "flex", gap: "6px", marginBottom: "16px", flexWrap: "wrap" }}>
+                  <span style={t.badge((STATUS_MAP[selectedReport.status] || STATUS_MAP.PENDING).color, (STATUS_MAP[selectedReport.status] || STATUS_MAP.PENDING).bg, (STATUS_MAP[selectedReport.status] || STATUS_MAP.PENDING).border)}>{selectedReport.status.replace("_", " ")}</span>
+                  <span style={t.badge((PRIORITY_MAP[selectedReport.priority] || PRIORITY_MAP.NORMAL).color, (PRIORITY_MAP[selectedReport.priority] || PRIORITY_MAP.NORMAL).bg, (PRIORITY_MAP[selectedReport.priority] || PRIORITY_MAP.NORMAL).border)}>{selectedReport.priority}</span>
+                  {selectedReport.otherReportsOnTarget > 0 && <span style={t.badge(t.error, t.errorBg, t.errorBorder)}>{selectedReport.otherReportsOnTarget} other report{selectedReport.otherReportsOnTarget > 1 ? "s" : ""}</span>}
                 </div>
 
-                {/* Report info */}
                 <div style={{ marginBottom: "20px" }}>
                   <InfoRow label="type" value={selectedReport.targetType.toLowerCase().replace("_", " ")} />
                   <InfoRow label="reason" value={selectedReport.reason.replace(/_/g, " ").toLowerCase()} />
                   <InfoRow label="reported by" value={`${selectedReport.reporter.firstName} ${selectedReport.reporter.lastName}`} />
                   <InfoRow label="date" value={new Date(selectedReport.createdAt).toLocaleString()} />
-                  {selectedReport.assignedTo && (
-                    <InfoRow label="assigned to" value={`${selectedReport.assignedTo.firstName} ${selectedReport.assignedTo.lastName}`} />
-                  )}
-                  {selectedReport.description && (
-                    <div style={{ marginTop: "12px", padding: "10px", background: "#0d0d0d", border: "1px solid #1a1a1a", fontSize: "13px", color: "#999" }}>
-                      {selectedReport.description}
-                    </div>
-                  )}
+                  {selectedReport.assignedTo && <InfoRow label="assigned to" value={`${selectedReport.assignedTo.firstName} ${selectedReport.assignedTo.lastName}`} />}
+                  {selectedReport.description && <div style={{ marginTop: "12px", padding: "10px 12px", background: t.bgInput, border: `1px solid ${t.border}`, borderRadius: "6px", fontSize: "13px", color: t.textSecondary }}>{selectedReport.description}</div>}
                 </div>
 
-                {/* Reported content */}
                 {selectedReport.targetContent && (
                   <div style={{ marginBottom: "20px" }}>
-                    <div style={{ fontSize: "11px", color: "#555", letterSpacing: "1px", marginBottom: "8px" }}>
-                      REPORTED CONTENT
-                    </div>
-                    <div style={{ padding: "12px", background: "#0d0d0d", border: "1px solid #1a1a1a", fontSize: "13px" }}>
-                      <pre style={{ whiteSpace: "pre-wrap", color: "#ccc", fontFamily: "inherit", margin: 0 }}>
-                        {JSON.stringify(selectedReport.targetContent, null, 2)}
-                      </pre>
+                    <div style={{ fontSize: "11px", color: t.textLight, fontWeight: 500, letterSpacing: "0.5px", marginBottom: "8px" }}>REPORTED CONTENT</div>
+                    <div style={{ padding: "12px", background: t.bgInput, border: `1px solid ${t.border}`, borderRadius: "6px", fontSize: "13px" }}>
+                      <pre style={{ whiteSpace: "pre-wrap", color: t.textSecondary, fontFamily: t.font, margin: 0 }}>{JSON.stringify(selectedReport.targetContent, null, 2)}</pre>
                     </div>
                   </div>
                 )}
 
-                {/* Action history */}
                 {selectedReport.actions?.length > 0 && (
                   <div style={{ marginBottom: "20px" }}>
-                    <div style={{ fontSize: "11px", color: "#555", letterSpacing: "1px", marginBottom: "8px" }}>
-                      ACTION HISTORY
-                    </div>
+                    <div style={{ fontSize: "11px", color: t.textLight, fontWeight: 500, letterSpacing: "0.5px", marginBottom: "8px" }}>ACTION HISTORY</div>
                     {selectedReport.actions.map((a: any) => (
-                      <div key={a.id} style={{ padding: "8px 12px", borderLeft: "2px solid #333", marginBottom: "6px", fontSize: "12px" }}>
-                        <span style={{ color: "#cc0000" }}>{a.action.replace(/_/g, " ").toLowerCase()}</span>
-                        <span style={{ color: "#444" }}> by {a.moderator.firstName} {a.moderator.lastName}</span>
-                        <span style={{ color: "#333" }}> — {new Date(a.createdAt).toLocaleString()}</span>
-                        {a.note && <div style={{ color: "#666", marginTop: "4px" }}>{a.note}</div>}
+                      <div key={a.id} style={{ padding: "8px 12px", borderLeft: `2px solid ${t.accentBorder}`, marginBottom: "6px", fontSize: "12px" }}>
+                        <span style={{ color: t.accent, fontWeight: 500 }}>{a.action.replace(/_/g, " ").toLowerCase()}</span>
+                        <span style={{ color: t.textMuted }}> by {a.moderator.firstName} {a.moderator.lastName}</span>
+                        <span style={{ color: t.textLight }}> — {new Date(a.createdAt).toLocaleString()}</span>
+                        {a.note && <div style={{ color: t.textSecondary, marginTop: "4px" }}>{a.note}</div>}
                       </div>
                     ))}
                   </div>
                 )}
 
-                {/* Actions */}
                 {hasPermission(permissions, "moderation:action") && selectedReport.status !== "RESOLVED" && selectedReport.status !== "DISMISSED" && (
-                  <div>
-                    <div style={{ fontSize: "11px", color: "#555", letterSpacing: "1px", marginBottom: "8px" }}>
-                      TAKE ACTION
-                    </div>
-
-                    {!selectedReport.assignedTo && (
-                      <button onClick={() => claimReport(selectedReport.id)} style={actionBtnStyle("#2d6da3")}>
-                        claim report
-                      </button>
-                    )}
-
-                    <textarea
-                      value={actionNote}
-                      onChange={(e) => setActionNote(e.target.value)}
-                      placeholder="add a note (optional)..."
-                      style={{
-                        width: "100%",
-                        padding: "8px 12px",
-                        background: "#0d0d0d",
-                        border: "1px solid #1a1a1a",
-                        color: "#ccc",
-                        fontFamily: "inherit",
-                        fontSize: "12px",
-                        resize: "vertical",
-                        minHeight: "60px",
-                        marginBottom: "8px",
-                        outline: "none",
-                      }}
-                    />
-
+                  <div style={{ borderTop: `1px solid ${t.border}`, paddingTop: "16px" }}>
+                    <div style={{ fontSize: "11px", color: t.textLight, fontWeight: 500, letterSpacing: "0.5px", marginBottom: "10px" }}>TAKE ACTION</div>
+                    {!selectedReport.assignedTo && <button onClick={() => claimReport(selectedReport.id)} style={{ ...t.btnPrimary, fontFamily: t.font, marginBottom: "12px", background: t.info }}>claim report</button>}
+                    <textarea value={actionNote} onChange={(e) => setActionNote(e.target.value)} placeholder="add a note explaining the action taken..." style={{ ...t.input, width: "100%", resize: "vertical" as const, minHeight: "70px", fontFamily: t.font, marginBottom: "10px" }} />
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                      <button onClick={() => takeAction(selectedReport.id, "CONTENT_REMOVED")} style={actionBtnStyle("#cc0000")}>
-                        remove content
-                      </button>
-                      <button onClick={() => takeAction(selectedReport.id, "USER_WARNED")} style={actionBtnStyle("#b08800")}>
-                        warn user
-                      </button>
-                      <button onClick={() => takeAction(selectedReport.id, "USER_SUSPENDED")} style={actionBtnStyle("#cc0000")}>
-                        suspend user
-                      </button>
-                      <button onClick={() => takeAction(selectedReport.id, "REPORT_DISMISSED")} style={actionBtnStyle("#555")}>
-                        dismiss
-                      </button>
-                      <button onClick={() => takeAction(selectedReport.id, "REPORT_ESCALATED")} style={actionBtnStyle("#663333")}>
-                        escalate
-                      </button>
-                      <button onClick={() => takeAction(selectedReport.id, "NOTE_ADDED")} style={actionBtnStyle("#444")}>
-                        add note only
-                      </button>
+                      <button onClick={() => takeAction(selectedReport.id, "CONTENT_REMOVED")} style={{ ...t.btnDanger, fontFamily: t.font }}>remove content</button>
+                      <button onClick={() => takeAction(selectedReport.id, "USER_WARNED")} style={{ ...t.btnWarning, fontFamily: t.font }}>warn user</button>
+                      <button onClick={() => takeAction(selectedReport.id, "USER_SUSPENDED")} style={{ ...t.btnDanger, fontFamily: t.font }}>suspend user</button>
+                      <button onClick={() => takeAction(selectedReport.id, "REPORT_DISMISSED")} style={{ ...t.btnSecondary, fontFamily: t.font }}>dismiss</button>
+                      <button onClick={() => takeAction(selectedReport.id, "REPORT_ESCALATED")} style={{ ...t.btnDanger, fontFamily: t.font, background: t.errorBg }}>escalate</button>
+                      <button onClick={() => takeAction(selectedReport.id, "NOTE_ADDED")} style={{ ...t.btnSecondary, fontFamily: t.font }}>add note only</button>
                     </div>
                   </div>
                 )}
@@ -379,20 +191,9 @@ export default function ModerationPage() {
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ display: "flex", gap: "12px", fontSize: "13px", marginBottom: "6px" }}>
-      <span style={{ color: "#555", minWidth: "100px" }}>{label}</span>
-      <span style={{ color: "#ccc" }}>{value}</span>
-    </div>
-  );
+  return (<div style={{ display: "flex", gap: "12px", fontSize: "13px", marginBottom: "6px" }}><span style={{ color: "#999", minWidth: "100px" }}>{label}</span><span style={{ color: "#1a1a1a" }}>{value}</span></div>);
 }
 
-const actionBtnStyle = (color: string): React.CSSProperties => ({
-  padding: "5px 12px",
-  background: "transparent",
-  border: `1px solid ${color}`,
-  color,
-  fontFamily: "inherit",
-  fontSize: "11px",
-  cursor: "pointer",
-});
+export default function ModerationPage() {
+  return <Suspense fallback={<div style={{ color: "#bbb", fontSize: "13px" }}>loading...</div>}><ModerationContent /></Suspense>;
+}

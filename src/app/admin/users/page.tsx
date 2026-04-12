@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/axios";
 import { useAdminAuth, hasPermission } from "@/lib/useAdminAuth";
 import Link from "next/link";
+import { adminTheme as t } from "../theme";
 
 interface UserRow {
   id: string;
@@ -18,12 +19,7 @@ interface UserRow {
   roles: { id: string; name: string; departmentScope: string | null }[];
 }
 
-interface Pagination {
-  page: number;
-  limit: number;
-  total: number;
-  pages: number;
-}
+interface Pagination { page: number; limit: number; total: number; pages: number; }
 
 export default function UsersPage() {
   const { permissions } = useAdminAuth();
@@ -42,10 +38,7 @@ export default function UsersPage() {
   const fetchUsers = async (page = 1, q = search) => {
     setLoading(true);
     try {
-      const res = await api.get("/api/v1/admin/users", {
-        headers,
-        params: { page, limit: 200, search: q },
-      });
+      const res = await api.get("/api/v1/admin/users", { headers, params: { page, limit: 200, search: q } });
       setAllUsers(res.data.users);
       applyFilters(res.data.users, typeFilter, verifiedFilter, roleFilter, page);
     } catch {}
@@ -54,202 +47,122 @@ export default function UsersPage() {
 
   const applyFilters = (source: UserRow[], type: string, verified: string, role: string, page = 1) => {
     let filtered = [...source];
-
-    if (type) {
-      filtered = filtered.filter((u) => u.userType === type);
-    }
-    if (verified === "yes") {
-      filtered = filtered.filter((u) => u.isVerified);
-    } else if (verified === "no") {
-      filtered = filtered.filter((u) => !u.isVerified);
-    }
-    if (role === "has_role") {
-      filtered = filtered.filter((u) => u.roles.length > 0);
-    } else if (role === "no_role") {
-      filtered = filtered.filter((u) => u.roles.length === 0);
-    } else if (role) {
-      filtered = filtered.filter((u) => u.roles.some((r) => r.name === role));
-    }
-
+    if (type) filtered = filtered.filter((u) => u.userType === type);
+    if (verified === "yes") filtered = filtered.filter((u) => u.isVerified);
+    else if (verified === "no") filtered = filtered.filter((u) => !u.isVerified);
+    if (role === "has_role") filtered = filtered.filter((u) => u.roles.length > 0);
+    else if (role === "no_role") filtered = filtered.filter((u) => u.roles.length === 0);
+    else if (role) filtered = filtered.filter((u) => u.roles.some((r) => r.name === role));
     const total = filtered.length;
     const pages = Math.ceil(total / 20);
     const start = (page - 1) * 20;
-    const paged = filtered.slice(start, start + 20);
-
-    setUsers(paged);
+    setUsers(filtered.slice(start, start + 20));
     setPagination({ page, limit: 20, total, pages });
   };
 
   useEffect(() => { fetchUsers(); }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    fetchUsers(1, search);
-  };
-
-  const handleTypeFilter = (val: string) => {
-    setTypeFilter(val);
-    applyFilters(allUsers, val, verifiedFilter, roleFilter, 1);
-  };
-
-  const handleVerifiedFilter = (val: string) => {
-    setVerifiedFilter(val);
-    applyFilters(allUsers, typeFilter, val, roleFilter, 1);
-  };
-
-  const handleRoleFilter = (val: string) => {
-    setRoleFilter(val);
-    applyFilters(allUsers, typeFilter, verifiedFilter, val, 1);
-  };
-
-  const clearFilters = () => {
-    setTypeFilter("");
-    setVerifiedFilter("");
-    setRoleFilter("");
-    applyFilters(allUsers, "", "", "", 1);
-  };
+  const handleSearch = (e: React.FormEvent) => { e.preventDefault(); fetchUsers(1, search); };
+  const handleTypeFilter = (val: string) => { setTypeFilter(val); applyFilters(allUsers, val, verifiedFilter, roleFilter, 1); };
+  const handleVerifiedFilter = (val: string) => { setVerifiedFilter(val); applyFilters(allUsers, typeFilter, val, roleFilter, 1); };
+  const handleRoleFilter = (val: string) => { setRoleFilter(val); applyFilters(allUsers, typeFilter, verifiedFilter, val, 1); };
+  const clearFilters = () => { setTypeFilter(""); setVerifiedFilter(""); setRoleFilter(""); applyFilters(allUsers, "", "", "", 1); };
 
   const hasActiveFilters = typeFilter || verifiedFilter || roleFilter;
-
   const uniqueRoles = Array.from(new Set(allUsers.flatMap((u) => u.roles.map((r) => r.name)))).sort();
 
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
         <div>
-          <h1 style={{ fontSize: "20px", fontWeight: 600, marginBottom: "4px" }}>users</h1>
-          <p style={{ fontSize: "13px", color: "#666" }}>{pagination.total} {hasActiveFilters ? "filtered" : "registered"}</p>
+          <h1 style={{ fontSize: "22px", fontWeight: 600, color: t.textPrimary, marginBottom: "4px" }}>Users</h1>
+          <p style={{ fontSize: "13px", color: t.textMuted }}>{pagination.total} {hasActiveFilters ? "filtered" : "registered"}</p>
         </div>
         <form onSubmit={handleSearch} style={{ display: "flex", gap: "8px" }}>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="search by name or email..."
-            style={{
-              padding: "6px 12px", background: "#111", border: "1px solid #222",
-              color: "#e5e5e5", fontFamily: "inherit", fontSize: "13px", width: "280px", outline: "none",
-            }}
-          />
-          <button type="submit" style={{
-            padding: "6px 16px", background: "#1a1a1a", border: "1px solid #333",
-            color: "#999", fontFamily: "inherit", fontSize: "13px", cursor: "pointer",
-          }}>
-            search
-          </button>
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="search by name or email..."
+            style={{ ...t.input, width: "260px", fontFamily: t.font }} />
+          <button type="submit" style={{ ...t.btnSecondary, fontFamily: t.font }}>search</button>
         </form>
       </div>
 
-      {/* Filters */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "20px", alignItems: "center", flexWrap: "wrap" }}>
-        <select value={typeFilter} onChange={(e) => handleTypeFilter(e.target.value)}
-          style={selectStyle}>
+      <div style={{ display: "flex", gap: "8px", marginBottom: "20px", alignItems: "center", flexWrap: "wrap" }}>
+        <select value={typeFilter} onChange={(e) => handleTypeFilter(e.target.value)} style={{ ...t.select, fontFamily: t.font }}>
           <option value="">all types</option>
           <option value="student">student</option>
           <option value="faculty">faculty</option>
           <option value="alumni">alumni</option>
         </select>
-
-        <select value={verifiedFilter} onChange={(e) => handleVerifiedFilter(e.target.value)}
-          style={selectStyle}>
+        <select value={verifiedFilter} onChange={(e) => handleVerifiedFilter(e.target.value)} style={{ ...t.select, fontFamily: t.font }}>
           <option value="">all status</option>
           <option value="yes">verified</option>
           <option value="no">unverified</option>
         </select>
-
-        <select value={roleFilter} onChange={(e) => handleRoleFilter(e.target.value)}
-          style={selectStyle}>
+        <select value={roleFilter} onChange={(e) => handleRoleFilter(e.target.value)} style={{ ...t.select, fontFamily: t.font }}>
           <option value="">all roles</option>
           <option value="has_role">has any role</option>
           <option value="no_role">no role</option>
-          {uniqueRoles.map((r) => (
-            <option key={r} value={r}>{r}</option>
-          ))}
+          {uniqueRoles.map((r) => (<option key={r} value={r}>{r}</option>))}
         </select>
-
         {hasActiveFilters && (
-          <button onClick={clearFilters} style={{
-            padding: "5px 12px", background: "transparent", border: "1px solid #222",
-            color: "#555", fontFamily: "inherit", fontSize: "12px", cursor: "pointer",
-          }}>
-            clear filters
-          </button>
+          <button onClick={clearFilters} style={{ ...t.btnSecondary, fontSize: "11px", fontFamily: t.font }}>clear</button>
         )}
       </div>
 
       {loading ? (
-        <div style={{ color: "#444", fontSize: "13px" }}>loading...</div>
+        <div style={{ color: t.textLight, fontSize: "13px" }}>loading...</div>
       ) : users.length === 0 ? (
-        <div style={{ color: "#444", fontSize: "13px", textAlign: "center", padding: "40px 0" }}>
-          no users found
-        </div>
+        <div style={{ color: t.textLight, fontSize: "13px", textAlign: "center", padding: "40px 0" }}>no users found</div>
       ) : (
         <>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid #1a1a1a" }}>
-                <th style={thStyle}>name</th>
-                <th style={thStyle}>email</th>
-                <th style={thStyle}>type</th>
-                <th style={thStyle}>roles</th>
-                <th style={thStyle}>verified</th>
-                <th style={thStyle}>joined</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id} style={{ borderBottom: "1px solid #111" }}>
-                  <td style={tdStyle}>
-                    <Link href={`/admin/users/${u.id}`} style={{ color: "#e5e5e5", textDecoration: "none" }}>
-                      {u.firstName} {u.lastName}
-                    </Link>
-                  </td>
-                  <td style={{ ...tdStyle, color: "#666" }}>{u.email}</td>
-                  <td style={tdStyle}>
-                    <span style={{
-                      fontSize: "11px", padding: "2px 8px",
-                      border: "1px solid #222", color: "#888",
-                    }}>
-                      {u.userType}
-                    </span>
-                  </td>
-                  <td style={tdStyle}>
-                    {u.roles.length > 0 ? u.roles.map((r) => (
-                      <span key={r.id} style={{
-                        fontSize: "11px", padding: "2px 8px",
-                        border: "1px solid #331111", color: "#cc0000", marginRight: "4px",
-                      }}>
-                        {r.name}
-                      </span>
-                    )) : <span style={{ color: "#333" }}>—</span>}
-                  </td>
-                  <td style={tdStyle}>
-                    <span style={{ color: u.isVerified ? "#2d8a4e" : "#663333" }}>
-                      {u.isVerified ? "yes" : "no"}
-                    </span>
-                  </td>
-                  <td style={{ ...tdStyle, color: "#555" }}>
-                    {new Date(u.createdAt).toLocaleDateString()}
-                  </td>
+          <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "8px", overflow: "hidden" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+              <thead>
+                <tr>
+                  <th style={t.thStyle}>name</th>
+                  <th style={t.thStyle}>email</th>
+                  <th style={t.thStyle}>type</th>
+                  <th style={t.thStyle}>roles</th>
+                  <th style={t.thStyle}>verified</th>
+                  <th style={t.thStyle}>joined</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u.id}>
+                    <td style={t.tdStyle}>
+                      <Link href={`/admin/users/${u.id}`} style={{ color: t.textPrimary, textDecoration: "none", fontWeight: 500 }}>
+                        {u.firstName} {u.lastName}
+                      </Link>
+                    </td>
+                    <td style={{ ...t.tdStyle, color: t.textMuted }}>{u.email}</td>
+                    <td style={t.tdStyle}>
+                      <span style={t.badge(t.textSecondary, t.bgCard, t.borderDark)}>{u.userType}</span>
+                    </td>
+                    <td style={t.tdStyle}>
+                      {u.roles.length > 0 ? u.roles.map((r) => (
+                        <span key={r.id} style={{ ...t.badge(t.accent, t.accentBg, t.accentBorder), marginRight: "4px" }}>{r.name}</span>
+                      )) : <span style={{ color: t.textLight }}>—</span>}
+                    </td>
+                    <td style={t.tdStyle}>
+                      <span style={{ color: u.isVerified ? t.success : t.accentLight }}>{u.isVerified ? "yes" : "no"}</span>
+                    </td>
+                    <td style={{ ...t.tdStyle, color: t.textMuted }}>{new Date(u.createdAt).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           {pagination.pages > 1 && (
-            <div style={{ display: "flex", gap: "8px", marginTop: "24px", justifyContent: "center" }}>
+            <div style={{ display: "flex", gap: "6px", marginTop: "20px", justifyContent: "center" }}>
               {Array.from({ length: Math.min(pagination.pages, 10) }, (_, i) => (
-                <button
-                  key={i}
-                  onClick={() => applyFilters(allUsers, typeFilter, verifiedFilter, roleFilter, i + 1)}
+                <button key={i} onClick={() => applyFilters(allUsers, typeFilter, verifiedFilter, roleFilter, i + 1)}
                   style={{
-                    padding: "4px 10px",
-                    background: pagination.page === i + 1 ? "#1a1a1a" : "transparent",
-                    border: "1px solid #222",
-                    color: pagination.page === i + 1 ? "#e5e5e5" : "#555",
-                    fontFamily: "inherit", fontSize: "12px", cursor: "pointer",
-                  }}
-                >
+                    padding: "4px 10px", borderRadius: "4px", fontSize: "12px", cursor: "pointer", fontFamily: t.font,
+                    background: pagination.page === i + 1 ? t.accent : t.bgCard,
+                    border: `1px solid ${pagination.page === i + 1 ? t.accent : t.borderDark}`,
+                    color: pagination.page === i + 1 ? "#fff" : t.textMuted,
+                  }}>
                   {i + 1}
                 </button>
               ))}
@@ -260,25 +173,3 @@ export default function UsersPage() {
     </div>
   );
 }
-
-const selectStyle: React.CSSProperties = {
-  padding: "5px 10px",
-  background: "#111",
-  border: "1px solid #222",
-  color: "#999",
-  fontFamily: "inherit",
-  fontSize: "12px",
-};
-
-const thStyle: React.CSSProperties = {
-  textAlign: "left",
-  padding: "8px 12px",
-  color: "#555",
-  fontWeight: 500,
-  fontSize: "11px",
-  letterSpacing: "0.5px",
-};
-
-const tdStyle: React.CSSProperties = {
-  padding: "10px 12px",
-};
