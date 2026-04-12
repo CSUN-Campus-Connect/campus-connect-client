@@ -84,7 +84,10 @@ export default function SecurityAdminPage() {
   const [messageText, setMessageText] = useState("");
   const [isInternal, setIsInternal] = useState(false);
   const [statusNote, setStatusNote] = useState("");
-  const [tab, setTab] = useState<"detail" | "messages" | "history" | "parties">("detail");
+  const [tab, setTab] = useState<"detail" | "evidence" | "messages" | "history" | "parties">("detail");
+  const [enlargedEvidence, setEnlargedEvidence] = useState<string | null>(null);
+
+
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
   const headers = { Authorization: `Bearer ${token}` };
@@ -239,7 +242,7 @@ export default function SecurityAdminPage() {
 
                 {/* Tabs */}
                 <div style={{ display: "flex", borderBottom: "1px solid #1a1a1a" }}>
-                  {(["detail", "messages", "history", "parties"] as const).map((t) => (
+                    {(["detail", "evidence", "messages", "history", "parties"] as const).map((t) => (
                     <button key={t} onClick={() => setTab(t)}
                       style={{
                         padding: "8px 16px", fontSize: "12px", fontFamily: "inherit", cursor: "pointer",
@@ -301,7 +304,66 @@ export default function SecurityAdminPage() {
                       )}
                     </>
                   )}
-
+                  {/* EVIDENCE TAB */}
+                  {tab === "evidence" && (
+                    <>
+                      {selected.evidence.length === 0 ? (
+                        <div style={{ color: "#444", fontSize: "13px", textAlign: "center", padding: "20px 0" }}>no evidence uploaded</div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                          {selected.evidence.map((e: any) => {
+                            const isImage = e.fileType.startsWith("image/");
+                            const isEnlarged = enlargedEvidence === e.id;
+                            return (
+                              <div key={e.id} style={{ border: "1px solid #1a1a1a", overflow: "hidden" }}>
+                                {isImage && (
+                                  <div
+                                    onClick={() => setEnlargedEvidence(isEnlarged ? null : e.id)}
+                                    style={{ cursor: "pointer", background: "#0a0a0a", display: "flex", justifyContent: "center", padding: "8px" }}
+                                  >
+                                    <img
+                                      src={e.fileUrl}
+                                      alt={e.fileName}
+                                      style={{
+                                        maxWidth: isEnlarged ? "100%" : "200px",
+                                        maxHeight: isEnlarged ? "none" : "140px",
+                                        objectFit: isEnlarged ? "contain" : "cover",
+                                        transition: "all 0.2s ease",
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                                {!isImage && (
+                                  <div style={{ padding: "16px", background: "#0a0a0a", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                    <a href={e.fileUrl} target="_blank" rel="noopener noreferrer"
+                                      style={{ fontSize: "12px", padding: "6px 16px", border: "1px solid #333", color: "#999", textDecoration: "none" }}>
+                                      open {e.fileType.split("/")[1]}
+                                    </a>
+                                  </div>
+                                )}
+                                <div style={{ padding: "10px 12px" }}>
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                    <div style={{ fontSize: "12px", color: "#ccc" }}>{e.fileName}</div>
+                                    <div style={{ fontSize: "10px", color: "#555" }}>{(e.fileSizeBytes / 1024).toFixed(1)} KB</div>
+                                  </div>
+                                  {e.description && (
+                                    <div style={{ fontSize: "12px", color: "#888", marginTop: "4px" }}>{e.description}</div>
+                                  )}
+                                  <div style={{ fontSize: "10px", color: "#333", marginTop: "6px", fontFamily: "inherit" }}>
+                                    sha256: {e.checksumSha256}
+                                  </div>
+                                  <div style={{ fontSize: "10px", color: "#444", marginTop: "2px" }}>
+                                    {new Date(e.uploadedAt).toLocaleString()}
+                                    {e.isRedacted && <span style={{ color: "#cc0000", marginLeft: "8px" }}>REDACTED</span>}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </>
+                  )}
                   {/* MESSAGES TAB */}
                   {tab === "messages" && (
                     <>
