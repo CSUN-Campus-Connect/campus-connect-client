@@ -285,13 +285,13 @@ export default function SecurityAdminPage() {
                       )}
 
                       {/* Status controls */}
-                      {hasPermission(permissions, "security:investigate") && selected.status !== "CLOSED" && (
+                      {hasPermission(permissions, "security:investigate") && (
                         <div style={{ marginTop: "20px", borderTop: "1px solid #1a1a1a", paddingTop: "16px" }}>
                           <div style={{ fontSize: "11px", color: "#555", letterSpacing: "1px", marginBottom: "8px" }}>UPDATE STATUS</div>
                           <input type="text" value={statusNote} onChange={(e) => setStatusNote(e.target.value)} placeholder="note (optional)..."
                             style={{ width: "100%", padding: "6px 12px", background: "#0d0d0d", border: "1px solid #1a1a1a", color: "#ccc", fontFamily: "inherit", fontSize: "12px", marginBottom: "8px", outline: "none" }} />
                           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                            {["ACKNOWLEDGED", "UNDER_REVIEW", "INVESTIGATION", "ESCALATED", "PENDING_RESOLUTION", "RESOLVED", "CLOSED"].map((s) => (
+                            {["ACKNOWLEDGED", "UNDER_REVIEW", "INVESTIGATION", "ESCALATED", "PENDING_RESOLUTION", "RESOLVED", "CLOSED", "REOPENED"].map((s) => (
                               s !== selected.status && (
                                 <button key={s} onClick={() => updateStatus(s)}
                                   style={{ padding: "4px 10px", background: "transparent", border: `1px solid ${STATUS_COLORS[s] || "#333"}`, color: STATUS_COLORS[s] || "#666", fontFamily: "inherit", fontSize: "10px", cursor: "pointer" }}>
