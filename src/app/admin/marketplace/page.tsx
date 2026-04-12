@@ -1,4 +1,5 @@
 "use client";
+// src/app/admin/marketplace/page.tsx
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/axios";
@@ -18,7 +19,7 @@ interface Listing {
 const STATUS_COLORS: Record<string, string> = {
   active: "#2d8a4e",
   sold: "#2d6da3",
-  inactive: "#555",
+  inactive: "#b08800",
   deleted: "#cc0000",
 };
 
@@ -52,10 +53,20 @@ export default function MarketplaceAdminPage() {
     fetchListings(search, statusFilter);
   };
 
-  const handleRemove = async (id: string, title: string) => {
-    if (!confirm(`Remove listing "${title}"?`)) return;
+  const handleDelist = async (id: string, title: string) => {
+    const reason = prompt(`Delist "${title}"?\n\nEnter a reason (the seller will be notified to fix and relist):`);
+    if (reason === null) return;
     try {
-      await api.delete(`/api/v1/admin/marketplace/${id}`, { headers });
+      await api.patch(`/api/v1/admin/marketplace/${id}/delist`, { reason }, { headers });
+      fetchListings();
+    } catch {}
+  };
+
+  const handleRemove = async (id: string, title: string) => {
+    const reason = prompt(`Remove "${title}"?\n\nEnter a reason (the seller will be notified):`);
+    if (reason === null) return;
+    try {
+      await api.delete(`/api/v1/admin/marketplace/${id}`, { headers, data: { reason } });
       fetchListings();
     } catch {}
   };
@@ -116,8 +127,14 @@ export default function MarketplaceAdminPage() {
                 <td style={{ ...tdStyle, color: "#555" }}>{l.views}</td>
                 <td style={{ ...tdStyle, color: "#666" }}>{l.seller.firstName} {l.seller.lastName}</td>
                 <td style={{ ...tdStyle, color: "#555" }}>{new Date(l.createdAt).toLocaleDateString()}</td>
-                <td style={tdStyle}>
-                  {l.status !== "deleted" && (
+                <td style={{ ...tdStyle, whiteSpace: "nowrap" }}>
+                  {l.status === "active" && (
+                    <>
+                      <button onClick={() => handleDelist(l.id, l.title)} style={{ background: "none", border: "1px solid #332200", color: "#b08800", fontFamily: "inherit", fontSize: "11px", padding: "3px 8px", cursor: "pointer", marginRight: "4px" }}>delist</button>
+                      <button onClick={() => handleRemove(l.id, l.title)} style={{ background: "none", border: "1px solid #331111", color: "#cc0000", fontFamily: "inherit", fontSize: "11px", padding: "3px 8px", cursor: "pointer" }}>remove</button>
+                    </>
+                  )}
+                  {l.status === "inactive" && (
                     <button onClick={() => handleRemove(l.id, l.title)} style={{ background: "none", border: "1px solid #331111", color: "#cc0000", fontFamily: "inherit", fontSize: "11px", padding: "3px 8px", cursor: "pointer" }}>remove</button>
                   )}
                 </td>

@@ -1,4 +1,5 @@
 "use client";
+// src/app/admin/events/page.tsx
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/axios";
@@ -45,10 +46,20 @@ export default function EventsAdminPage() {
     fetchEvents(search);
   };
 
-  const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Delete event "${title}"?`)) return;
+  const handleDelist = async (id: string, title: string) => {
+    const reason = prompt(`Delist "${title}"?\n\nEnter a reason (the creator will be notified):`);
+    if (reason === null) return;
     try {
-      await api.delete(`/api/v1/admin/events/${id}`, { headers });
+      await api.patch(`/api/v1/admin/events/${id}/delist`, { reason }, { headers });
+      fetchEvents();
+    } catch {}
+  };
+
+  const handleRemove = async (id: string, title: string) => {
+    const reason = prompt(`Remove "${title}"?\n\nEnter a reason (the creator will be notified):`);
+    if (reason === null) return;
+    try {
+      await api.delete(`/api/v1/admin/events/${id}`, { headers, data: { reason } });
       fetchEvents();
     } catch {}
   };
@@ -87,6 +98,7 @@ export default function EventsAdminPage() {
                     {e.source && <span style={{ fontSize: "10px", padding: "2px 6px", border: "1px solid #222", color: "#888" }}>{e.source}</span>}
                     {e.club && <span style={{ fontSize: "10px", padding: "2px 6px", border: "1px solid #222", color: "#666" }}>{e.club.name}</span>}
                     {isPast && <span style={{ fontSize: "10px", color: "#444" }}>past</span>}
+                    {!e.isPublic && <span style={{ fontSize: "10px", padding: "2px 6px", border: "1px solid #332200", color: "#b08800" }}>delisted</span>}
                   </div>
                   <div style={{ fontSize: "14px", color: "#e5e5e5", marginBottom: "2px" }}>{e.title}</div>
                   <div style={{ fontSize: "12px", color: "#555" }}>
@@ -94,7 +106,12 @@ export default function EventsAdminPage() {
                     {e.location && <span> · {e.location}</span>}
                   </div>
                 </div>
-                <button onClick={() => handleDelete(e.id, e.title)} style={{ background: "none", border: "1px solid #331111", color: "#cc0000", fontFamily: "inherit", fontSize: "11px", padding: "3px 8px", cursor: "pointer" }}>delete</button>
+                <div style={{ display: "flex", gap: "4px", whiteSpace: "nowrap" }}>
+                  {e.isPublic && !isPast && (
+                    <button onClick={() => handleDelist(e.id, e.title)} style={{ background: "none", border: "1px solid #332200", color: "#b08800", fontFamily: "inherit", fontSize: "11px", padding: "3px 8px", cursor: "pointer" }}>delist</button>
+                  )}
+                  <button onClick={() => handleRemove(e.id, e.title)} style={{ background: "none", border: "1px solid #331111", color: "#cc0000", fontFamily: "inherit", fontSize: "11px", padding: "3px 8px", cursor: "pointer" }}>remove</button>
+                </div>
               </div>
             );
           })}
