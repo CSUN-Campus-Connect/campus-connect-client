@@ -1,18 +1,19 @@
 'use client';
 
-/**
- * ============================================================================
- * MARKETPLACE PAGE - CampusConnect
- * ============================================================================
- * 
- * Main marketplace interface where CSUN students buy and sell items
- * Features: Search, filters, favorites, real-time API integration
- * Theme: CSUN Red (#A80532) with glassmorphism design
- */
+// ============================================================================
+// Matador Marketplace — Full Revamp
+//
+// Architecture:
+//  - All data logic lives in useMarketplace hook (no fetch code in this file)
+//  - Components: MarketplaceCard, AddListingModal, ContactSellerModal, States
+//  - Background: animated mesh gradient + drifting orbs (CSS only)
+//  - Filter bar: sticky, scrolls independently from the content
+//  - Fly-to-fav: heart bounces from card to "My Favorites" counter in the nav
+//  - No emojis anywhere
+// ============================================================================
 
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
 import { useAuthorize } from '@/lib/useAuthorize';
 import MarketplaceCard from '@/components/marketplace/MarketplaceCard';
 import AddListingModal from '@/components/marketplace/AddListingModal';
