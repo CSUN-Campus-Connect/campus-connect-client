@@ -77,7 +77,7 @@ export default function ContactSellerModal({ item, onClose }: Props) {
                 onChange={(e) => setMsg(e.target.value)}
                 rows={5}
                 placeholder={`Hi! I'm interested in your "${item.title}". Is it still available?`}
-                style={{ width: '100%', padding: '11px 14px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 14, resize: 'vertical', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', marginBottom: 14 }}
+                style={{ width: '100%', padding: '11px 14px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 14, resize: 'vertical', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', marginBottom: 14, color: '#374151' }}
                 onFocus={(e) => { (e.target as HTMLTextAreaElement).style.borderColor = '#A80532'; }}
                 onBlur={(e) => { (e.target as HTMLTextAreaElement).style.borderColor = '#e5e7eb'; }}
               />
