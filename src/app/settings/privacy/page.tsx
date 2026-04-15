@@ -8,8 +8,8 @@ import Divider from "@mui/material/Divider";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
-import Switch from "@mui/material/Switch";
 import Button from "@mui/material/Button";
+import { SettingsToggle } from "@/components/settings";
 import PersonOffOutlinedIcon from "@mui/icons-material/PersonOffOutlined";
 
 import { api } from "../../../lib/axios";
@@ -37,16 +37,6 @@ const defaultSettings: PrivacySettings = {
   accountVisibility: "everyone",
   whoCanMessage: "everyone",
   allowTagging: true,
-};
-
-const brandSwitchSx = {
-  ml: { xs: -1, sm: 0 },
-  "& .MuiSwitch-switchBase.Mui-checked": {
-    color: red,
-  },
-  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-    backgroundColor: red,
-  },
 };
 
 const selectSx = {
@@ -241,8 +231,7 @@ export default function PrivacyPage() {
         setHasLoaded(false);
         setSaveStatus("loading");
 
-        // TODO: Load the authenticated user's persisted privacy settings from the settings module.
-        // If the final route differs, update this request to match the backend settings endpoint contract.
+        
 
         const response = await api.get("/settings/privacy");
 
@@ -265,8 +254,7 @@ export default function PrivacyPage() {
       } catch (error) {
         if (!isMounted) return;
 
-        // If fetching saved settings fails, fall back to default values so the page
-        // remains usable. 
+       
         setAccountVisibility(defaultSettings.accountVisibility);
         setWhoCanMessage(defaultSettings.whoCanMessage);
         setAllowTagging(defaultSettings.allowTagging);
@@ -299,7 +287,7 @@ export default function PrivacyPage() {
   useEffect(() => {
     if (!hasLoaded || !initialSettings) return;
 
-    // Prevent auto-save right after initial values are loaded from the backend.
+    
     if (justLoadedRef.current) {
       justLoadedRef.current = false;
       return;
@@ -324,8 +312,7 @@ export default function PrivacyPage() {
       try {
         setSaveStatus("saving");
 
-        // TODO: This is a placeholder request path
-        // Will replace it with the real backend settings route once privacy settings are implemented server-side.
+        
         await api.patch("/settings/privacy", currentSettings);
 
         setInitialSettings(currentSettings);
@@ -440,10 +427,9 @@ export default function PrivacyPage() {
               description="Let other users tag you in posts and content."
               isLast
               right={
-                <Switch
+                <SettingsToggle
                   checked={allowTagging}
-                  onChange={(e) => setAllowTagging(e.target.checked)}
-                  sx={brandSwitchSx}
+                  onChange={setAllowTagging}
                   disabled={!hasLoaded}
                 />
               }
@@ -489,7 +475,7 @@ export default function PrivacyPage() {
                 variant="outlined"
                 startIcon={<PersonOffOutlinedIcon />}
                 sx={outlineButtonSx}
-                // TODO: Connect this button to the blocked-users management UI once that feature exists.
+                
               >
                 Manage Blocked
               </Button>

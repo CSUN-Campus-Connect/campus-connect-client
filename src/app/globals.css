@@ -153,6 +153,71 @@
   --radius-lg:       20px;
 }
 
+/* ── Site-wide text scale (Settings → Appearance) ── */
+html[data-text-size="small"] {
+  font-size: 87.5%;
+}
+html[data-text-size="medium"] {
+  font-size: 100%;
+}
+html[data-text-size="large"] {
+  font-size: 112.5%;
+}
+html[data-text-size="extra-large"] {
+  font-size: 125%;
+}
+
+/* ── Site-wide dark mode (Settings → Appearance) ── */
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --red-light:    rgba(210, 32, 48, 0.12);
+  --red-muted:    rgba(210, 32, 48, 0.12);
+  --bg:           #12141a;
+  --bg-card:      #1c1f28;
+  --bg-hover:     #242933;
+  --bg-input:     #242933;
+  --border:       #2d3340;
+  --border-hard:  #3d4554;
+  --text1:        #e8eaef;
+  --text2:        #a8b0c0;
+  --text3:        #7a8494;
+  --shadow-sm:    0 1px 3px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.28);
+  --shadow-md:    0 4px 18px rgba(0,0,0,0.45);
+  --shadow-lg:    0 14px 44px rgba(0,0,0,0.5);
+  --shadow-xl:    0 24px 64px rgba(0,0,0,0.55);
+  --bg-base:         #12141a;
+  --bg-surface:      #1c1f28;
+  --bg-elevated:     #22262f;
+  --bg-hover:        #2a2f3a;
+  --bg-input:        #242933;
+  --border-subtle:   #2d3340;
+  --border-medium:   #3d4554;
+  --text-primary:    #e8eaef;
+  --text-secondary:  #a8b0c0;
+  --text-muted:      #7a8494;
+}
+
+html[data-theme="dark"] body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+}
+
+html[data-theme="dark"] .login-container {
+  background: rgba(28, 31, 40, 0.92);
+  color: var(--text-primary);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+}
+
+html[data-theme="dark"] .login-form input {
+  background: var(--bg-input);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html,
@@ -415,4 +480,14 @@ body {
   font-weight: 500;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+}
+
+/* Google Translate: hide top iframe bar, avoid body offset */
+.goog-te-banner-frame,
+body > .skiptranslate {
+  display: none !important;
+}
+html,
+body {
+  top: 0 !important;
 }

@@ -10,24 +10,12 @@ import MenuItem from "@mui/material/MenuItem";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
 
-import { api } from "../../../lib/axios";
+import { useSiteAppearance } from "@/components/SiteAppearanceProvider";
+import type { TextSize, ThemeMode } from "@/lib/siteAppearance";
 
 const red = "#B11226";
 
-type ThemeMode = "light" | "dark";
-type TextSize = "small" | "medium" | "large" | "extra-large";
-
-type AppearanceSettings = {
-  theme: ThemeMode;
-  textSize: TextSize;
-};
-
-type SaveStatus = "idle" | "loading" | "saving" | "saved";
-
-const DEFAULT_APPEARANCE_SETTINGS: AppearanceSettings = {
-  theme: "light",
-  textSize: "medium",
-};
+type SaveStatus = "idle" | "saving" | "saved";
 
 function SettingsRow({
   label,
@@ -49,13 +37,15 @@ function SettingsRow({
         alignItems: "center",
         justifyContent: "space-between",
         gap: 2,
-        ...(isLast ? {} : { borderBottom: "1px solid #F1F5F9" }),
+        ...(isLast ? {} : { borderBottom: (t) => `1px solid ${t.palette.divider}` }),
       }}
     >
       <Box sx={{ minWidth: 0, flex: 1 }}>
-        <Typography sx={{ fontWeight: 800, color: "#111827" }}>{label}</Typography>
+        <Typography sx={{ fontWeight: 800 }} color="text.primary">
+          {label}
+        </Typography>
         {description && (
-          <Typography sx={{ fontSize: 13.5, color: "#6B7280", mt: 0.35 }}>
+          <Typography sx={{ fontSize: 13.5, mt: 0.35 }} color="text.secondary">
             {description}
           </Typography>
         )}
@@ -67,20 +57,6 @@ function SettingsRow({
 }
 
 function SaveStatusChip({ status }: { status: SaveStatus }) {
-  if (status === "loading") {
-    return (
-      <Chip
-        label="Loading..."
-        size="small"
-        sx={{
-          backgroundColor: "#F3F4F6",
-          color: "#6B7280",
-          fontWeight: 600,
-        }}
-      />
-    );
-  }
-
   if (status === "saving") {
     return (
       <Chip
@@ -88,7 +64,7 @@ function SaveStatusChip({ status }: { status: SaveStatus }) {
         label="Saving..."
         size="small"
         sx={{
-          backgroundColor: "#FEF2F2",
+          backgroundColor: "rgba(177, 18, 38, 0.12)",
           color: red,
           fontWeight: 700,
           "& .MuiChip-icon": {
@@ -98,28 +74,33 @@ function SaveStatusChip({ status }: { status: SaveStatus }) {
       />
     );
   }
+
+  if (status === "saved") {
+    return (
+      <Chip
+        label="Saved"
+        size="small"
+        color="success"
+        variant="outlined"
+        sx={{ fontWeight: 700 }}
+      />
+    );
+  }
+
+  return null;
 }
 
 export default function AppearancePage() {
-  const [theme, setTheme] = useState<ThemeMode>(DEFAULT_APPEARANCE_SETTINGS.theme);
-  const [textSize, setTextSize] = useState<TextSize>(
-    DEFAULT_APPEARANCE_SETTINGS.textSize
-  );
+  const { theme, textSize, setTheme, setTextSize } = useSiteAppearance();
 
-  const [initialSettings, setInitialSettings] =
-    useState<AppearanceSettings | null>(null);
-  const [hasLoaded, setHasLoaded] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>("loading");
-
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const clearSavedStatusRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const justLoadedRef = useRef(true);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [hasHydrated, setHasHydrated] = useState(false);
+  const appearanceInitRef = useRef(false);
+  const prevRef = useRef<{ theme: ThemeMode; textSize: TextSize } | null>(null);
+  const clearSavedRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const selectSx = {
     width: 150,
-    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
-    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#D1D5DB" },
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: red },
     "& .MuiSelect-select": { py: 1, fontWeight: 500 },
   };
 
@@ -128,113 +109,38 @@ export default function AppearancePage() {
     "& .MuiMenuItem-root.Mui-selected": { fontWeight: 700 },
   };
 
-  const currentSettings: AppearanceSettings = {
-    theme,
-    textSize,
-  };
-
   useEffect(() => {
-    let isMounted = true;
-
-    const fetchAppearanceSettings = async () => {
-      try {
-        setHasLoaded(false);
-        setSaveStatus("loading");
-
-        // TODO: Replace this placeholder data with a backend settings-module route
-        // for the current user's appearance preferences.
-
-        const data: AppearanceSettings = {
-          theme: "light",
-          textSize: "medium",
-        };
-
-        if (!isMounted) return;
-
-        setTheme(data.theme);
-        setTextSize(data.textSize);
-        setInitialSettings(data);
-        setSaveStatus("idle");
-      } catch (error) {
-        if (!isMounted) return;
-
-        // If loading saved appearance settings fails, fall back to defaults so the page
-        // remains usable while backend persistence is unavailable or still being implemented.
-        setTheme(DEFAULT_APPEARANCE_SETTINGS.theme);
-        setTextSize(DEFAULT_APPEARANCE_SETTINGS.textSize);
-        setInitialSettings(DEFAULT_APPEARANCE_SETTINGS);
-        setSaveStatus("idle");
-      } finally {
-        if (isMounted) {
-          setHasLoaded(true);
-          justLoadedRef.current = true;
-        }
-      }
-    };
-
-    fetchAppearanceSettings();
-
-    return () => {
-      isMounted = false;
-
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-
-      if (clearSavedStatusRef.current) {
-        clearTimeout(clearSavedStatusRef.current);
-      }
-    };
+    setHasHydrated(true);
   }, []);
 
   useEffect(() => {
-    if (!hasLoaded || !initialSettings) return;
+    if (!hasHydrated) return;
 
-    // Prevent auto-save from firing immediately after initial backend load.
-    if (justLoadedRef.current) {
-      justLoadedRef.current = false;
+    if (!appearanceInitRef.current) {
+      appearanceInitRef.current = true;
+      prevRef.current = { theme, textSize };
       return;
     }
 
-    const hasChanges =
-      currentSettings.theme !== initialSettings.theme ||
-      currentSettings.textSize !== initialSettings.textSize;
-
-    if (!hasChanges) return;
-
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
+    if (
+      !prevRef.current ||
+      (prevRef.current.theme === theme && prevRef.current.textSize === textSize)
+    ) {
+      return;
     }
 
-    if (clearSavedStatusRef.current) {
-      clearTimeout(clearSavedStatusRef.current);
-    }
+    prevRef.current = { theme, textSize };
 
-    saveTimeoutRef.current = setTimeout(async () => {
-      try {
-        setSaveStatus("saving");
+    if (clearSavedRef.current) clearTimeout(clearSavedRef.current);
 
-        // TODO: Persist these appearance preferences through the backend settings route.
+    setSaveStatus("saving");
+    const t = setTimeout(() => {
+      setSaveStatus("saved");
+      clearSavedRef.current = setTimeout(() => setSaveStatus("idle"), 1600);
+    }, 200);
 
-        setInitialSettings(currentSettings);
-        setSaveStatus("saved");
-
-        clearSavedStatusRef.current = setTimeout(() => {
-          setSaveStatus("idle");
-        }, 1800);
-      } catch (error) {
-        // TODO: Add user-visible save failure feedback if this page is wired to the backend.
-        // For now, we only clear the saving state.
-        setSaveStatus("idle");
-      }
-    }, 700);
-
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, [theme, textSize, hasLoaded, initialSettings]);
+    return () => clearTimeout(t);
+  }, [theme, textSize, hasHydrated]);
 
   return (
     <Box>
@@ -249,10 +155,10 @@ export default function AppearancePage() {
         }}
       >
         <Box>
-          <Typography sx={{ fontSize: 26, fontWeight: 900, color: "#111827" }}>
+          <Typography sx={{ fontSize: 26, fontWeight: 900 }} color="text.primary">
             Appearance
           </Typography>
-          <Typography sx={{ color: "#6B7280", mt: 0.5 }}>
+          <Typography color="text.secondary" sx={{ mt: 0.5 }}>
             Customize theme and readability
           </Typography>
         </Box>
@@ -262,15 +168,17 @@ export default function AppearancePage() {
 
       <Box
         sx={{
-          background: "#fff",
-          border: "1px solid #E5E7EB",
+          border: (t) => `1px solid ${t.palette.divider}`,
           borderRadius: 3,
           overflow: "hidden",
           maxWidth: 700,
-          boxShadow: "0 1px 0 rgba(17,24,39,0.03)",
+          boxShadow: (t) =>
+            t.palette.mode === "dark"
+              ? "0 1px 0 rgba(255,255,255,0.04)"
+              : "0 1px 0 rgba(17,24,39,0.03)",
         }}
       >
-        <Divider sx={{ borderColor: "#F1F5F9" }} />
+        <Divider />
 
         <SettingsRow
           label="Theme"
@@ -279,17 +187,10 @@ export default function AppearancePage() {
             <FormControl size="small">
               <Select
                 value={theme}
-                onChange={(e) => {
-                  const nextTheme = e.target.value as ThemeMode;
-
-                  // TODO: If the app later supports live theme switching,
-                  // apply the visual theme here in addition to persisting the preference.
-
-                  setTheme(nextTheme);
-                }}
+                onChange={(e) => setTheme(e.target.value as ThemeMode)}
                 sx={selectSx}
                 MenuProps={{ PaperProps: { sx: menuPaperSx } }}
-                disabled={!hasLoaded}
+                disabled={!hasHydrated}
               >
                 <MenuItem value="light">Light</MenuItem>
                 <MenuItem value="dark">Dark</MenuItem>
@@ -306,17 +207,10 @@ export default function AppearancePage() {
             <FormControl size="small">
               <Select
                 value={textSize}
-                onChange={(e) => {
-                  const nextTextSize = e.target.value as TextSize;
-
-                  // TODO: If the app later supports live text scaling,
-                  // apply the visual text-size preference here in addition to persisting it.
-
-                  setTextSize(nextTextSize);
-                }}
+                onChange={(e) => setTextSize(e.target.value as TextSize)}
                 sx={selectSx}
                 MenuProps={{ PaperProps: { sx: menuPaperSx } }}
-                disabled={!hasLoaded}
+                disabled={!hasHydrated}
               >
                 <MenuItem value="small">Small</MenuItem>
                 <MenuItem value="medium">Medium</MenuItem>
