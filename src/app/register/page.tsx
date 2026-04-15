@@ -1,46 +1,28 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { api } from "../../lib/axios";
-import type { PublicUser } from "../../types/profile";
-import DarkVeil from "@/components/Landingpage/DarkVeil";
-import PasswordField from "@/components/authTools/ViewFilter";
-import { registerSchema, RegisterInput } from "@/lib/validators/auth.validators";
-import { z } from "zod";
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
+import { api } from '../../lib/axios';
+import PasswordField from '@/components/authTools/ViewFilter';
+import { registerSchema, RegisterInput } from '@/lib/validators/auth.validators';
+import { z } from 'zod';
+import type { PublicUser } from '../../types/profile';
 
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "10px 15px",
-  margin: "6px 0",
-  borderRadius: "999px",
-  border: "1px solid #d0d0d0",
-  backgroundColor: "#f5f5f5",
-  fontSize: "0.95rem",
-};
-
-const buttonStyle: React.CSSProperties = {
-  width: "100%",
-  marginTop: "12px",
-  backgroundColor: "crimson",
-  color: "white",
-  border: "none",
-  padding: "12px",
-  borderRadius: "999px",
-  fontWeight: 600,
-  fontSize: "1rem",
-  cursor: "pointer",
-};
+const smooth: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 export default function RegisterPage() {
   const router = useRouter();
 
   const [registerData, setRegisterData] = useState<RegisterInput>({
-    email: "",
-    password: "",
-    firstName: "",
-    lastName: "",
-    confirmPassword: "",
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    confirmPassword: '',
   });
 
   const [errors, setErrors] = useState<{
@@ -56,40 +38,29 @@ export default function RegisterPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [countdown, setCountdown] = useState(5);
 
-  // Countdown timer
   useEffect(() => {
     if (isSuccess && countdown > 0) {
-      const timer = setTimeout(() => {
-        setCountdown(countdown - 1);
-      }, 1000);
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
     } else if (isSuccess && countdown === 0) {
-      router.push("/login");
+      router.push('/login');
     }
   }, [isSuccess, countdown, router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    // Clear previous errors
     setErrors({});
 
-    // Validate form data with Zod
     try {
       registerSchema.parse(registerData);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: {
-          email?: string;
-          password?: string;
-          confirmPassword?: string;
-          firstName?: string;
-          lastName?: string;
+          email?: string; password?: string;
+          confirmPassword?: string; firstName?: string; lastName?: string;
         } = {};
         error.issues.forEach((err) => {
-          if (err.path[0]) {
-            fieldErrors[err.path[0] as keyof typeof fieldErrors] = err.message;
-          }
+          if (err.path[0]) fieldErrors[err.path[0] as keyof typeof fieldErrors] = err.message;
         });
         setErrors(fieldErrors);
         return;
@@ -97,371 +68,313 @@ export default function RegisterPage() {
     }
 
     setIsSubmitting(true);
-
     try {
       const { confirmPassword, ...apiData } = registerData;
-      await api.post<PublicUser>("/api/v1/users/register", apiData);
+      await api.post<PublicUser>('/api/v1/users/register', apiData);
       setIsSuccess(true);
     } catch (error: any) {
-      setErrors({
-        general:
-          error?.response?.data?.message ||
-          "Registration failed. Please try again.",
-      });
+      setErrors({ general: error?.response?.data?.message || 'Registration failed. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <main
-      style={{
-        position: "relative",
-        width: "100vw",
-        height: "100vh",
-        overflow: "hidden",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <DarkVeil />
+    <div className="min-h-screen bg-white text-[#111] flex flex-col">
 
-      <div
-        style={{
-          position: "relative",
-          zIndex: 2,
-          display: "flex",
-          width: "82vw",
-          maxWidth: "1200px",
-          height: "680px",
-          borderRadius: "28px",
-          border: "4px solid rgba(255,255,255,0.9)",
-          overflow: "hidden",
-          backgroundColor: "rgba(255,255,255,0.08)",
-          backdropFilter: "blur(12px)",
-          boxShadow: "0 18px 40px rgba(0,0,0,0.35)",
-        }}
+      {/* Top bar */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, delay: 0.1 }}
+        className="flex items-center justify-between px-6 md:px-14 pt-8"
       >
-        {/* LEFT: solid white content side */}
-        <div
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(255,255,255,0.98)",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            padding: "40px 56px",
-            color: "#111",
-          }}
+        <Link href="/" className="flex items-center gap-3">
+          <Image src="/ToroConnectLP.png" alt="Toro Campus Connect" width={32} height={32} className="w-8 h-8" />
+          <span className="text-[13px] font-light tracking-wide text-[#999]">Toro Campus Connect</span>
+        </Link>
+        <Link href="/login" className="text-[13px] font-semibold text-[#CC0033] hover:underline underline-offset-4">
+          Sign in
+        </Link>
+      </motion.div>
+
+      {/* Main content */}
+      <div className="flex-1 flex flex-col md:flex-row max-w-6xl mx-auto w-full px-6 md:px-14 py-12 md:py-20 gap-16 md:gap-24">
+
+        {/* LEFT — editorial headline */}
+        <div className="flex flex-col justify-center md:w-[45%]">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 0.15, ease: smooth }}
+          >
+            <p className="text-[11px] font-semibold tracking-[0.15em] text-[#CC0033] uppercase mb-6">
+              Join CampusConnect
+            </p>
+
+            <div className="overflow-hidden mb-1">
+              <motion.h1
+                initial={{ y: '110%' }}
+                animate={{ y: '0%' }}
+                transition={{ duration: 0.8, delay: 0.25, ease: smooth }}
+                className="text-[3.5rem] md:text-[5rem] font-extralight leading-[0.92] tracking-tighter"
+              >
+                Be part
+              </motion.h1>
+            </div>
+            <div className="overflow-hidden mb-1">
+              <motion.h1
+                initial={{ y: '110%' }}
+                animate={{ y: '0%' }}
+                transition={{ duration: 0.8, delay: 0.35, ease: smooth }}
+                className="text-[3.5rem] md:text-[5rem] font-extralight leading-[0.92] tracking-tighter"
+              >
+                of your
+              </motion.h1>
+            </div>
+            <div className="overflow-hidden mb-6">
+              <motion.h1
+                initial={{ y: '110%' }}
+                animate={{ y: '0%' }}
+                transition={{ duration: 0.8, delay: 0.45, ease: smooth }}
+                className="text-[3.5rem] md:text-[5rem] font-extrabold leading-[0.92] tracking-tighter text-[#CC0033]"
+              >
+                campus.
+              </motion.h1>
+            </div>
+
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.6, ease: smooth }}
+              className="text-[14px] text-[#aaa] font-light leading-relaxed max-w-xs"
+            >
+              One account. Your feed, clubs, marketplace, events, and everything CSUN in one place.
+            </motion.p>
+
+            {/* Password requirements — subtle, editorial */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.7, delay: 0.75 }}
+              className="mt-8 pt-6 border-t border-[#eee]"
+            >
+              <p className="text-[11px] font-semibold tracking-[0.12em] text-[#bbb] uppercase mb-2">
+                Password requirements
+              </p>
+              <p className="text-[12px] text-[#ccc] font-light leading-relaxed">
+                8+ characters — uppercase, lowercase,<br />number, special character.
+              </p>
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* RIGHT — form or success */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, delay: 0.3, ease: smooth }}
+          className="flex flex-col justify-center md:w-[55%]"
         >
+
           {!isSuccess ? (
             <>
-              <h2
-                style={{
-                  marginBottom: "18px",
-                  fontSize: "1.9rem",
-                  fontWeight: 700,
-                }}
-              >
-                Create Account
-              </h2>
-
-              {/* Password Requirements Box */}
-              <div
-                style={{
-                  marginBottom: "15px",
-                  padding: "10px 14px",
-                  backgroundColor: "#fff5f5",
-                  borderLeft: "3px solid crimson",
-                  borderRadius: "4px",
-                  fontSize: "0.8rem",
-                  color: "#333",
-                }}
-              >
-                <strong style={{ color: "crimson" }}>Password must have:</strong> 8+ chars, uppercase, lowercase, number, special character
-              </div>
-
-              {/* General Error Message */}
+              {/* Error banner */}
               {errors.general && (
-                <div
-                  style={{
-                    marginBottom: "15px",
-                    padding: "12px",
-                    backgroundColor: "#fee",
-                    color: "crimson",
-                    borderRadius: "12px",
-                    fontSize: "0.9rem",
-                    border: "1px solid crimson",
-                  }}
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 px-4 py-3 border border-[#CC0033]/30 bg-[#CC0033]/5 text-[13px] text-[#CC0033]"
                 >
                   {errors.general}
-                </div>
+                </motion.div>
               )}
 
-              <form
-                onSubmit={handleSubmit}
-                style={{ display: "flex", flexDirection: "column" }}
-              >
-                {/* First Name Input */}
-                <div>
-                  <input
-                    type="text"
-                    placeholder="First Name"
-                    style={{
-                      ...inputStyle,
-                      border: errors.firstName
-                        ? "2px solid crimson"
-                        : "1px solid #d0d0d0",
-                    }}
-                    required
-                    value={registerData.firstName}
-                    onChange={(e) =>
-                      setRegisterData({
-                        ...registerData,
-                        firstName: e.target.value,
-                      })
-                    }
-                  />
-                  {errors.firstName && (
-                    <p
-                      style={{
-                        color: "crimson",
-                        fontSize: "0.85rem",
-                        marginTop: "2px",
-                        marginLeft: "15px",
-                      }}
-                    >
-                      {errors.firstName}
-                    </p>
-                  )}
+              <form onSubmit={handleSubmit} className="flex flex-col gap-0">
+
+                {/* First + Last Name row */}
+                <div className="border-t border-[#eee] pt-5 pb-5 grid grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2">
+                      First Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Jane"
+                      value={registerData.firstName}
+                      onChange={(e) => setRegisterData({ ...registerData, firstName: e.target.value })}
+                      className="w-full bg-transparent text-[15px] font-light text-[#111] placeholder-[#ccc] border-0 border-b border-[#e0e0e0] focus:border-[#CC0033] focus:outline-none pb-2 transition-colors duration-200"
+                    />
+                    {errors.firstName && <p className="mt-2 text-[12px] text-[#CC0033]">{errors.firstName}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2">
+                      Last Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Doe"
+                      value={registerData.lastName}
+                      onChange={(e) => setRegisterData({ ...registerData, lastName: e.target.value })}
+                      className="w-full bg-transparent text-[15px] font-light text-[#111] placeholder-[#ccc] border-0 border-b border-[#e0e0e0] focus:border-[#CC0033] focus:outline-none pb-2 transition-colors duration-200"
+                    />
+                    {errors.lastName && <p className="mt-2 text-[12px] text-[#CC0033]">{errors.lastName}</p>}
+                  </div>
                 </div>
 
-                {/* Last Name Input */}
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Last Name"
-                    style={{
-                      ...inputStyle,
-                      border: errors.lastName
-                        ? "2px solid crimson"
-                        : "1px solid #d0d0d0",
-                    }}
-                    required
-                    value={registerData.lastName}
-                    onChange={(e) =>
-                      setRegisterData({ ...registerData, lastName: e.target.value })
-                    }
-                  />
-                  {errors.lastName && (
-                    <p
-                      style={{
-                        color: "crimson",
-                        fontSize: "0.85rem",
-                        marginTop: "2px",
-                        marginLeft: "15px",
-                      }}
-                    >
-                      {errors.lastName}
-                    </p>
-                  )}
-                </div>
-
-                {/* Email Input */}
-                <div>
+                {/* Email */}
+                <div className="border-t border-[#eee] pt-5 pb-5">
+                  <label className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2">
+                    CSUN Email
+                  </label>
                   <input
                     type="email"
-                    placeholder="CSUN Email Address"
-                    style={{
-                      ...inputStyle,
-                      border: errors.email
-                        ? "2px solid crimson"
-                        : "1px solid #d0d0d0",
-                    }}
-                    required
+                    placeholder="your.name@my.csun.edu"
                     value={registerData.email}
-                    onChange={(e) =>
-                      setRegisterData({ ...registerData, email: e.target.value })
-                    }
+                    onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                    className="w-full bg-transparent text-[15px] font-light text-[#111] placeholder-[#ccc] border-0 border-b border-[#e0e0e0] focus:border-[#CC0033] focus:outline-none pb-2 transition-colors duration-200"
                   />
-                  {errors.email && (
-                    <p
-                      style={{
-                        color: "crimson",
-                        fontSize: "0.85rem",
-                        marginTop: "2px",
-                        marginLeft: "15px",
-                      }}
-                    >
-                      {errors.email}
-                    </p>
-                  )}
+                  {errors.email && <p className="mt-2 text-[12px] text-[#CC0033]">{errors.email}</p>}
                 </div>
 
-                {/* Password Input */}
-                <div>
+                {/* Password */}
+                <div className="border-t border-[#eee] pt-5 pb-5">
+                  <label className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2">
+                    Password
+                  </label>
                   <PasswordField
                     value={registerData.password}
-                    onChange={(e) =>
-                      setRegisterData({ ...registerData, password: e.target.value })
-                    }
-                    placeholder="Password"
+                    onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                    placeholder="••••••••"
                     style={{
-                      ...inputStyle,
-                      border: errors.password
-                        ? "2px solid crimson"
-                        : "1px solid #d0d0d0",
+                      width: '100%',
+                      background: 'transparent',
+                      fontSize: '15px',
+                      fontWeight: 300,
+                      color: '#111',
+                      border: 'none',
+                      borderBottom: errors.password ? '1px solid #CC0033' : '1px solid #e0e0e0',
+                      borderRadius: 0,
+                      padding: '0 0 8px 0',
+                      outline: 'none',
                     }}
                   />
-                  {errors.password && (
-                    <p
-                      style={{
-                        color: "crimson",
-                        fontSize: "0.85rem",
-                        marginTop: "2px",
-                        marginLeft: "15px",
-                      }}
-                    >
-                      {errors.password}
-                    </p>
-                  )}
+                  {errors.password && <p className="mt-2 text-[12px] text-[#CC0033]">{errors.password}</p>}
                 </div>
 
-                {/* Confirm Password Input */}
-                <div>
+                {/* Confirm Password */}
+                <div className="border-t border-[#eee] pt-5 pb-5">
+                  <label className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2">
+                    Confirm Password
+                  </label>
                   <PasswordField
                     value={registerData.confirmPassword}
-                    onChange={(e) =>
-                      setRegisterData({
-                        ...registerData,
-                        confirmPassword: e.target.value,
-                      })
-                    }
-                    placeholder="Re-enter Password"
+                    onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
+                    placeholder="••••••••"
                     style={{
-                      ...inputStyle,
-                      border: errors.confirmPassword
-                        ? "2px solid crimson"
-                        : "1px solid #d0d0d0",
+                      width: '100%',
+                      background: 'transparent',
+                      fontSize: '15px',
+                      fontWeight: 300,
+                      color: '#111',
+                      border: 'none',
+                      borderBottom: errors.confirmPassword ? '1px solid #CC0033' : '1px solid #e0e0e0',
+                      borderRadius: 0,
+                      padding: '0 0 8px 0',
+                      outline: 'none',
                     }}
                   />
-                  {errors.confirmPassword && (
-                    <p
-                      style={{
-                        color: "crimson",
-                        fontSize: "0.85rem",
-                        marginTop: "2px",
-                        marginLeft: "15px",
-                      }}
-                    >
-                      {errors.confirmPassword}
-                    </p>
-                  )}
+                  {errors.confirmPassword && <p className="mt-2 text-[12px] text-[#CC0033]">{errors.confirmPassword}</p>}
                 </div>
 
-                <button
-                  style={{
-                    ...buttonStyle,
-                    backgroundColor: isSubmitting ? "#999" : "crimson",
-                    cursor: isSubmitting ? "not-allowed" : "pointer",
-                    opacity: isSubmitting ? 0.7 : 1,
-                  }}
-                  type="submit"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Creating Account..." : "Sign-up"}
-                </button>
+                <div className="border-t border-[#eee]" />
 
-                <p
-                  style={{
-                    marginTop: "10px",
-                    fontSize: "0.9rem",
-                  }}
-                >
-                  Already have an account?{" "}
-                  <a
-                    href="/login"
-                    style={{
-                      color: "crimson",
-                      fontWeight: 500,
-                      textDecoration: "none",
-                    }}
+                {/* Submit */}
+                <div className="flex items-center justify-between mt-8">
+                  <p className="text-[13px] text-[#aaa] font-light">
+                    Already have an account?{' '}
+                    <Link href="/login" className="text-[#CC0033] font-semibold hover:underline underline-offset-4">
+                      Sign in
+                    </Link>
+                  </p>
+
+                  <motion.button
+                    type="submit"
+                    disabled={isSubmitting}
+                    whileHover={{ x: 3 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="group inline-flex items-center gap-3 bg-[#CC0033] text-white px-8 py-4 text-[13px] font-semibold hover:bg-[#a80028] transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Login
-                  </a>
-                </p>
+                    {isSubmitting ? 'Creating account…' : 'Create account'}
+                    <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                  </motion.button>
+                </div>
+
               </form>
             </>
           ) : (
-            // Success State - CSUN Red & White Theme
-            <div style={{ textAlign: "center" }}>
-              <div
-                style={{
-                  fontSize: "4rem",
-                  color: "crimson",
-                  marginBottom: "20px",
-                }}
-              >
-                ✓
+            /* Success state */
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: smooth }}
+            >
+              <div className="overflow-hidden mb-1">
+                <motion.h2
+                  initial={{ y: '110%' }}
+                  animate={{ y: '0%' }}
+                  transition={{ duration: 0.8, ease: smooth }}
+                  className="text-[3rem] md:text-[4rem] font-extralight leading-[0.92] tracking-tighter"
+                >
+                  Account
+                </motion.h2>
               </div>
-              <h2
-                style={{
-                  fontSize: "1.9rem",
-                  fontWeight: 700,
-                  marginBottom: "16px",
-                  color: "crimson",
-                }}
-              >
-                Account Created!
-              </h2>
-              <p
-                style={{
-                  fontSize: "1rem",
-                  color: "#333",
-                  marginBottom: "30px",
-                  lineHeight: "1.6",
-                }}
-              >
-                Welcome to CampusConnect, <strong>{registerData.firstName}</strong>!
+              <div className="overflow-hidden mb-8">
+                <motion.h2
+                  initial={{ y: '110%' }}
+                  animate={{ y: '0%' }}
+                  transition={{ duration: 0.8, delay: 0.1, ease: smooth }}
+                  className="text-[3rem] md:text-[4rem] font-extrabold leading-[0.92] tracking-tighter text-[#CC0033]"
+                >
+                  created.
+                </motion.h2>
+              </div>
+
+              <p className="text-[14px] text-[#aaa] font-light leading-relaxed mb-10">
+                Check your inbox and verify your email to get started.
                 <br />
-                Redirecting to login in <strong style={{ color: "crimson" }}>{countdown}</strong> seconds...
+                <span className="text-[12px] text-[#ccc]">
+                  Heading to login in{' '}
+                  <span className="text-[#CC0033] font-semibold tabular-nums">{countdown}s</span>…
+                </span>
               </p>
 
-              <button
-                onClick={() => router.push("/login")}
-                style={{
-                  ...buttonStyle,
-                  backgroundColor: "crimson",
-                  maxWidth: "300px",
-                  margin: "0 auto",
-                }}
+              <motion.button
+                onClick={() => router.push('/login')}
+                whileHover={{ x: 3 }}
+                whileTap={{ scale: 0.98 }}
+                className="group inline-flex items-center gap-3 bg-[#111] text-white px-8 py-4 text-[13px] font-semibold hover:bg-[#CC0033] transition-colors duration-300"
               >
-                Go to Login Now
-              </button>
-            </div>
+                Go to login
+                <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+              </motion.button>
+            </motion.div>
           )}
-        </div>
 
-        {/* RIGHT: translucent logo side with CSUN seal */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: "24px",
-            borderLeft: "2px solid rgba(255,255,255,0.4)",
-          }}
-        >
-          <img
-            src="/CSUNSeal-.png"
-            alt="CSUN Seal"
-            style={{ width: "190px", opacity: 0.96 }}
-          />
-        </div>
+        </motion.div>
       </div>
-    </main>
+
+      {/* Bottom strip */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, delay: 0.8 }}
+        className="px-6 md:px-14 py-6 border-t border-black/[0.04] flex items-center justify-between"
+      >
+        <p className="text-[11px] text-[#ccc] font-light">© 2026 CampusConnect. COMP 490 Senior Design.</p>
+        <p className="text-[11px] text-[#ccc] font-light">Not affiliated with CSUN.</p>
+      </motion.div>
+
+    </div>
   );
 }

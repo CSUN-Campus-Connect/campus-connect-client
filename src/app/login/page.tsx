@@ -1,39 +1,32 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { api } from "../../lib/axios";
-import DarkVeil from "@/components/Landingpage/DarkVeil";
-import PasswordField from "@/components/authTools/ViewFilter";
-import { PublicUser } from "@/types/profile";
-import { loginSchema, LoginInput } from "@/lib/validators/auth.validators";
-import { z } from "zod";
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
+import { api } from '../../lib/axios';
+import PasswordField from '@/components/authTools/ViewFilter';
+import { PublicUser } from '@/types/profile';
+import { loginSchema, LoginInput } from '@/lib/validators/auth.validators';
+import { z } from 'zod';
+
+const smooth: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 export default function LoginPage() {
   const router = useRouter();
 
   React.useEffect(() => {
-    const user = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
-
-    if (user && token) {
-      console.log("Stored user: ", user);
-      router.push("/dashboard");
-    }
+    const user = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    if (user && token) router.push('/dashboard');
   }, [router]);
 
-  const [loginData, setLoginData] = useState<LoginInput>({
-    email: "",
-    password: "",
-  });
-
-  const [errors, setErrors] = useState<{
-    email?: string;
-    password?: string;
-    general?: string;
-  }>({});
-
+  const [loginData, setLoginData] = useState<LoginInput>({ email: '', password: '' });
+  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [showResendButton, setShowResendButton] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
@@ -41,17 +34,12 @@ export default function LoginPage() {
   const handleResendVerification = async () => {
     setIsResending(true);
     setResendSuccess(false);
-
     try {
-      await api.post("/api/v1/users/resend-verification", {
-        email: loginData.email,
-      });
+      await api.post('/api/v1/users/resend-verification', { email: loginData.email });
       setResendSuccess(true);
-      setTimeout(() => setResendSuccess(false), 5000); // Hide after 5s
+      setTimeout(() => setResendSuccess(false), 5000);
     } catch (error: any) {
-      setErrors({
-        general: error?.response?.data?.message || "Failed to resend verification email",
-      });
+      setErrors({ general: error?.response?.data?.message || 'Failed to resend verification email' });
     } finally {
       setIsResending(false);
     }
@@ -59,23 +47,17 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    // Clear previous errors
     setErrors({});
     setShowResendButton(false);
     setResendSuccess(false);
 
-    // Validate form data with Zod
     try {
       loginSchema.parse(loginData);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: { email?: string; password?: string } = {};
         error.issues.forEach((issue) => {
-          if (issue.path[0]) {
-            fieldErrors[issue.path[0] as keyof typeof fieldErrors] =
-              issue.message;
-          }
+          if (issue.path[0]) fieldErrors[issue.path[0] as keyof typeof fieldErrors] = issue.message;
         });
         setErrors(fieldErrors);
         return;
@@ -83,329 +65,282 @@ export default function LoginPage() {
     }
 
     setIsSubmitting(true);
-
     try {
-      const response = await api.post<{ token: string; sessionId: string; user: PublicUser }>(
-        "/api/v1/users/login",
-        loginData
-      );
-      const user: PublicUser = response.data.user;
-
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("sessionId", response.data.sessionId);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-
-      router.push("/dashboard");
+      const response = await api.post<{ token: string; user: PublicUser }>('/api/v1/users/login', loginData);
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      setIsLoading(true);
+      setTimeout(() => router.push('/dashboard'), 1800);
     } catch (error: any) {
-      // Get backend error message
-      const backendError =
-        error?.response?.data?.message || error?.response?.data?.error || "";
-
-      console.log("Backend error:", backendError);
-      console.log("Includes verify?", backendError.toLowerCase().includes("verify"));
-
-      // Show user-friendly message based on error type
-      let userMessage = "Something went wrong. Please try again.";
-
-      // Check if it's an email verification error
-      if (
-        backendError.toLowerCase().includes("verify") ||
-        backendError.toLowerCase().includes("verification")
-      ) {
-        userMessage =
-          "Please verify your email before logging in. Check your inbox for the verification link.";
-        setShowResendButton(true); // Show resend button
-        console.log("SHOULD SHOW RESEND BUTTON"); // Debug
-      }
-      // Check if it's wrong credentials
-      else if (
-        backendError.toLowerCase().includes("invalid") ||
-        backendError.toLowerCase().includes("incorrect") ||
-        backendError.toLowerCase().includes("password")
-      ) {
-        userMessage = "Invalid email or password. Please try again.";
-        console.log("Wrong credentials"); // Debug
-      }
-      // Otherwise show backend message if available
-      else if (backendError) {
+      const backendError = error?.response?.data?.message || error?.response?.data?.error || '';
+      let userMessage = 'Something went wrong. Please try again.';
+      if (backendError.toLowerCase().includes('verify') || backendError.toLowerCase().includes('verification')) {
+        userMessage = 'Please verify your email before logging in. Check your inbox.';
+        setShowResendButton(true);
+      } else if (backendError.toLowerCase().includes('invalid') || backendError.toLowerCase().includes('incorrect') || backendError.toLowerCase().includes('password')) {
+        userMessage = 'Invalid email or password.';
+      } else if (backendError) {
         userMessage = backendError;
-        console.log("Using raw message"); // Debug
       }
-
-      console.log("showResendButton state:", showResendButton); // Debug
-
-      setErrors({
-        general: userMessage,
-      });
+      setErrors({ general: userMessage });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <main
-      style={{
-        position: "relative",
-        width: "100vw",
-        height: "100vh",
-        overflow: "hidden",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        color: "white",
-      }}
-    >
-      <DarkVeil />
+    <div className="min-h-screen bg-white text-[#111] flex flex-col">
 
-      <div
-        style={{
-          position: "relative",
-          zIndex: 2,
-          display: "flex",
-          width: "80vw",
-          maxWidth: "1100px",
-          height: "520px",
-          borderRadius: "28px",
-          border: "4px solid rgba(255,255,255,0.9)",
-          overflow: "hidden",
-          backgroundColor: "rgba(255,255,255,0.08)",
-          backdropFilter: "blur(12px)",
-          boxShadow: "0 18px 40px rgba(0,0,0,0.35)",
-        }}
+      {/* Login loading overlay */}
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center gap-10"
+          >
+            {/* Wordmark */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: smooth }}
+              className="flex items-center gap-3"
+            >
+              <Image src="/ToroConnectLP.png" alt="" width={28} height={28} className="w-7 h-7" />
+              <span className="text-[13px] font-light tracking-wide text-[#999]">Toro Campus Connect</span>
+            </motion.div>
+
+            {/* Three-dot pulse */}
+            <div className="flex items-center gap-3">
+              {[0, 1, 2].map((i) => (
+                <motion.span
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full bg-[#CC0033]"
+                  animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8] }}
+                  transition={{
+                    duration: 1.1,
+                    repeat: Infinity,
+                    delay: i * 0.18,
+                    ease: 'easeInOut',
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Animated red line sweeping in from left */}
+            <motion.div
+              className="absolute bottom-0 left-0 h-[3px] bg-[#CC0033]"
+              initial={{ width: 0 }}
+              animate={{ width: '100%' }}
+              transition={{ duration: 1.6, ease: smooth }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Top bar — mirrors landing page */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, delay: 0.1 }}
+        className="flex items-center justify-between px-6 md:px-14 pt-8"
       >
-        {/* LEFT: translucent logo panel */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            borderRight: "2px solid rgba(255,255,255,0.4)",
-          }}
-        >
-          <img
-            src="/ToroSeal.png"
-            alt="Toro Seal"
-            style={{
-              width: "300px",
-              height: "300px",
-              objectFit: "contain",
-              opacity: 0.96,
-            }}
-          />
+        <Link href="/" className="flex items-center gap-3">
+          <Image src="/ToroConnectLP.png" alt="Toro Campus Connect" width={32} height={32} className="w-8 h-8" />
+          <span className="text-[13px] font-light tracking-wide text-[#999]">Toro Campus Connect</span>
+        </Link>
+        <Link href="/register" className="text-[13px] font-semibold text-[#CC0033] hover:underline underline-offset-4">
+          Sign up
+        </Link>
+      </motion.div>
+
+      {/* Main content — editorial split */}
+      <div className="flex-1 flex flex-col md:flex-row max-w-6xl mx-auto w-full px-6 md:px-14 py-16 md:py-24 gap-16 md:gap-24">
+
+        {/* LEFT — headline editorial block */}
+        <div className="flex flex-col justify-center md:w-[45%]">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 0.15, ease: smooth }}
+          >
+            <p className="text-[11px] font-semibold tracking-[0.15em] text-[#CC0033] uppercase mb-6">
+              Welcome back
+            </p>
+
+            <div className="overflow-hidden mb-1">
+              <motion.h1
+                initial={{ y: '110%' }}
+                animate={{ y: '0%' }}
+                transition={{ duration: 0.8, delay: 0.25, ease: smooth }}
+                className="text-[3.5rem] md:text-[5rem] font-extralight leading-[0.92] tracking-tighter"
+              >
+                Your
+              </motion.h1>
+            </div>
+            <div className="overflow-hidden mb-1">
+              <motion.h1
+                initial={{ y: '110%' }}
+                animate={{ y: '0%' }}
+                transition={{ duration: 0.8, delay: 0.35, ease: smooth }}
+                className="text-[3.5rem] md:text-[5rem] font-extralight leading-[0.92] tracking-tighter"
+              >
+                campus
+              </motion.h1>
+            </div>
+            <div className="overflow-hidden mb-6">
+              <motion.h1
+                initial={{ y: '110%' }}
+                animate={{ y: '0%' }}
+                transition={{ duration: 0.8, delay: 0.45, ease: smooth }}
+                className="text-[3.5rem] md:text-[5rem] font-extrabold leading-[0.92] tracking-tighter text-[#CC0033]"
+              >
+                awaits.
+              </motion.h1>
+            </div>
+
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.6, ease: smooth }}
+              className="text-[14px] text-[#aaa] font-light leading-relaxed max-w-xs"
+            >
+              Sign in to access your feed, messages, clubs, marketplace, and everything CSUN.
+            </motion.p>
+          </motion.div>
         </div>
 
-        {/* RIGHT: solid white content panel */}
-        <div
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(255,255,255,0.98)",
-            padding: "40px 56px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            color: "#111",
-          }}
+        {/* RIGHT — form */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, delay: 0.3, ease: smooth }}
+          className="flex flex-col justify-center md:w-[55%]"
         >
-          <h2
-            style={{
-              fontSize: "1.9rem",
-              fontWeight: 700,
-              marginBottom: "22px",
-            }}
-          >
-            Login
-          </h2>
 
-          {/* General Error Message */}
+          {/* Error banner */}
           {errors.general && (
-            <div
-              style={{
-                marginBottom: "15px",
-                padding: "12px",
-                backgroundColor: "#fee",
-                color: "crimson",
-                borderRadius: "12px",
-                fontSize: "0.9rem",
-                border: "1px solid crimson",
-              }}
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 px-4 py-3 border border-[#CC0033]/30 bg-[#CC0033]/5 text-[13px] text-[#CC0033]"
             >
               {errors.general}
-            </div>
-          )}
-
-          {/* Success Message for Resend */}
-          {resendSuccess && (
-            <div
-              style={{
-                marginBottom: "15px",
-                padding: "12px",
-                backgroundColor: "#fff5f5",
-                color: "crimson",
-                borderRadius: "12px",
-                fontSize: "0.9rem",
-                border: "1px solid crimson",
-              }}
-            >
-              ✓ Verification email sent! Check your inbox.
-            </div>
-          )}
-
-          <form
-            onSubmit={handleSubmit}
-            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
-          >
-            {/* Email Input */}
-            <div>
-              <input
-                type="email"
-                placeholder="Email"
-                value={loginData.email}
-                onChange={(e) =>
-                  setLoginData({ ...loginData, email: e.target.value })
-                }
-                style={{
-                  width: "100%",
-                  padding: "10px 15px",
-                  borderRadius: "999px",
-                  border: errors.email
-                    ? "2px solid crimson"
-                    : "1px solid #d0d0d0",
-                  backgroundColor: "#f5f5f5",
-                  fontSize: "0.95rem",
-                }}
-              />
-              {errors.email && (
-                <p
-                  style={{
-                    color: "crimson",
-                    fontSize: "0.85rem",
-                    marginTop: "5px",
-                    marginLeft: "15px",
-                  }}
-                >
-                  {errors.email}
-                </p>
-              )}
-            </div>
-
-            {/* Password Input */}
-            <div>
-              <PasswordField
-                value={loginData.password}
-                onChange={(e) =>
-                  setLoginData({ ...loginData, password: e.target.value })
-                }
-                placeholder="Password"
-                style={{
-                  width: "100%",
-                  padding: "10px 15px",
-                  borderRadius: "999px",
-                  border: errors.password
-                    ? "2px solid crimson"
-                    : "1px solid #d0d0d0",
-                  backgroundColor: "#f5f5f5",
-                  fontSize: "0.95rem",
-                }}
-              />
-              {errors.password && (
-                <p
-                  style={{
-                    color: "crimson",
-                    fontSize: "0.85rem",
-                    marginTop: "5px",
-                    marginLeft: "15px",
-                  }}
-                >
-                  {errors.password}
-                </p>
-              )}
-            </div>
-
-            <div
-              style={{
-                marginTop: "4px",
-                marginBottom: "4px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              {/* Resend Verification Button (only shows on verification error) */}
-              {showResendButton ? (
+              {showResendButton && (
                 <button
                   type="button"
                   onClick={handleResendVerification}
                   disabled={isResending}
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "crimson",
-                    background: "none",
-                    border: "1px solid crimson",
-                    padding: "4px 10px",
-                    borderRadius: "12px",
-                    cursor: isResending ? "not-allowed" : "pointer",
-                    opacity: isResending ? 0.5 : 1,
-                    fontWeight: 500,
-                  }}
+                  className="ml-3 text-[12px] underline underline-offset-2 opacity-80 hover:opacity-100 transition-opacity disabled:opacity-40"
                 >
-                  {isResending ? "Sending..." : "Resend email"}
+                  {isResending ? 'Sending…' : 'Resend email'}
                 </button>
-              ) : (
-                <span></span>
               )}
-                <a
-                href="/forgot-password"
-                style={{
-                  fontSize: "0.85rem",
-                  color: "crimson",
-                  textDecoration: "none",
-                }}
-              >
-                Forgot password?
-              </a>
+            </motion.div>
+          )}
+
+          {resendSuccess && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 px-4 py-3 border border-[#111]/10 bg-[#FAFAF7] text-[13px] text-[#555]"
+            >
+              Verification email sent — check your inbox.
+            </motion.div>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-0">
+
+            {/* Email */}
+            <div className="border-t border-[#eee] pt-5 pb-5">
+              <label className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                placeholder="your.name@my.csun.edu"
+                value={loginData.email}
+                onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                className="w-full bg-transparent text-[15px] font-light text-[#111] placeholder-[#ccc] border-0 border-b border-[#e0e0e0] focus:border-[#CC0033] focus:outline-none pb-2 transition-colors duration-200"
+              />
+              {errors.email && (
+                <p className="mt-2 text-[12px] text-[#CC0033]">{errors.email}</p>
+              )}
             </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              style={{
-                marginTop: "8px",
-                padding: "12px",
-                borderRadius: "999px",
-                border: "none",
-                backgroundColor: isSubmitting ? "#999" : "crimson",
-                color: "white",
-                fontWeight: 600,
-                fontSize: "1rem",
-                cursor: isSubmitting ? "not-allowed" : "pointer",
-                opacity: isSubmitting ? 0.7 : 1,
-              }}
-            >
-              {isSubmitting ? "Logging in..." : "Login"}
-            </button>
+            {/* Password */}
+            <div className="border-t border-[#eee] pt-5 pb-5">
+              <label className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2">
+                Password
+              </label>
+              <PasswordField
+                value={loginData.password}
+                onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                placeholder="••••••••"
+                style={{
+                  width: '100%',
+                  background: 'transparent',
+                  fontSize: '15px',
+                  fontWeight: 300,
+                  color: '#111',
+                  border: 'none',
+                  borderBottom: errors.password ? '1px solid #CC0033' : '1px solid #e0e0e0',
+                  borderRadius: 0,
+                  padding: '0 0 8px 0',
+                  outline: 'none',
+                }}
+              />
+              {errors.password && (
+                <p className="mt-2 text-[12px] text-[#CC0033]">{errors.password}</p>
+              )}
+            </div>
+
+            <div className="border-t border-[#eee]" />
+
+            {/* Actions row */}
+            <div className="flex items-center justify-between mt-8">
+              <Link
+                href="/forgot-password"
+                className="text-[12px] text-[#bbb] hover:text-[#CC0033] transition-colors underline-offset-4"
+              >
+                Forgot password?
+              </Link>
+
+              <motion.button
+                type="submit"
+                disabled={isSubmitting}
+                whileHover={{ x: 3 }}
+                whileTap={{ scale: 0.98 }}
+                className="group inline-flex items-center gap-3 bg-[#111] text-white px-8 py-4 text-[13px] font-semibold hover:bg-[#CC0033] transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? 'Signing in…' : 'Sign in'}
+                <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+              </motion.button>
+            </div>
+
           </form>
 
-          <p
-            style={{
-              marginTop: "16px",
-              fontSize: "0.9rem",
-            }}
-          >
-            Don't have an account?{" "}
-            <a
-              href="/register"
-              style={{
-                color: "crimson",
-                fontWeight: 500,
-                textDecoration: "none",
-              }}
-            >
-              Sign up
-            </a>
+          <p className="mt-10 text-[13px] text-[#aaa] font-light">
+            New to CampusConnect?{' '}
+            <Link href="/register" className="text-[#CC0033] font-semibold hover:underline underline-offset-4">
+              Create an account
+            </Link>
           </p>
-        </div>
+
+        </motion.div>
       </div>
-    </main>
+
+      {/* Bottom strip — mirrors landing footer */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, delay: 0.8 }}
+        className="px-6 md:px-14 py-6 border-t border-black/[0.04] flex items-center justify-between"
+      >
+        <p className="text-[11px] text-[#ccc] font-light">© 2026 CampusConnect. COMP 490 Senior Design.</p>
+        <p className="text-[11px] text-[#ccc] font-light">Not affiliated with CSUN.</p>
+      </motion.div>
+
+    </div>
   );
 }
