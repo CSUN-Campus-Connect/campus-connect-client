@@ -4,6 +4,18 @@
 /* ── Tailwind CSS v4 ── */
 @import "tailwindcss";
 
+*, *::before, *::after {
+  font-family: 'Sora', sans-serif;
+}
+
+::selection {
+  background: #CC0033;
+  color: white;
+}
+
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { scrollbar-width: none; }
+
 /* ── Keyframe animations (used by livestream + other pages via inline style) ── */
 @keyframes ls-spin  { to { transform: rotate(360deg); } }
 @keyframes ls-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
