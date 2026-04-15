@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { z } from "zod";
+import { useRouter } from "next/navigation";
 
 import { api } from "../../../lib/axios";
 import { changePasswordSchema } from "@/lib/validators/auth.validators";
@@ -60,7 +61,9 @@ function SectionCard({
         <Box sx={{ color: red, display: "flex", alignItems: "center" }}>
           {icon}
         </Box>
-        <Typography sx={{ fontSize: 16, fontWeight: 800, color: "#111827" }}>{title}</Typography>
+        <Typography sx={{ fontSize: 16, fontWeight: 800, color: "#111827" }}>
+          {title}
+        </Typography>
       </Stack>
       {children}
     </Box>
@@ -68,16 +71,23 @@ function SectionCard({
 }
 
 function DeleteAccountSection() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const CONFIRM_TEXT = "DELETE";
-  const isConfirmValid = confirmText === CONFIRM_TEXT;
+  // Requires both "DELETE" confirmation text and password before the button is enabled
+  const isConfirmValid = confirmText === CONFIRM_TEXT && password.trim().length > 0;
 
+  // Resets all form state when the user cancels or after a successful deletion
   const closeAndReset = () => {
     setOpen(false);
     setConfirmText("");
+    setPassword("");
+    setError(null);
     setIsDeleting(false);
   };
 
@@ -85,21 +95,28 @@ function DeleteAccountSection() {
     if (!isConfirmValid) return;
 
     setIsDeleting(true);
+    setError(null);
 
-    // TODO: Replace this placeholder flow with real account deletion request
-    // call backend endpoint (auth module)
-    // final behavior will send email confirmation that account has been deleted
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const token = localStorage.getItem("token");
+      await api.delete("/api/v1/users/me", {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { password },
+      });
 
-    setIsDeleting(false);
-    setConfirmText("");
-    setOpen(false);
-
-    alert("Account deletion initiated.");
+      // Clears all auth data and redirects to home after successful account deletion
+      localStorage.clear();
+      router.push("/");
+    } catch (err: any) {
+      setError(
+        err?.response?.data?.message || "Failed to delete account. Please try again."
+      );
+      setIsDeleting(false);
+    }
   };
 
   return (
-    <Box sx={{ borderTop: "1px solid #E5E7EB", pt: .5 }}>
+    <Box sx={{ borderTop: "1px solid #E5E7EB", pt: 0.5 }}>
       <Box
         sx={{
           mt: 1.5,
@@ -109,48 +126,46 @@ function DeleteAccountSection() {
         }}
       >
         <Box sx={{ p: 3 }}>
-  <Stack
-    direction="row"
-    justifyContent="space-between"
-    alignItems="center"
-    spacing={2}
-  >
-    <Box>
-      <Stack direction="row" spacing={1} alignItems="center" mb={0.5}>
-        <DeleteOutlineIcon sx={{ color: "#DC2626" }} />
-        <Typography sx={{ fontWeight: 900, color: "#DC2626", fontSize: 16 }}>
-          Delete account
-        </Typography>
-      </Stack>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            spacing={2}
+          >
+            <Box>
+              <Stack direction="row" spacing={1} alignItems="center" mb={0.5}>
+                <DeleteOutlineIcon sx={{ color: "#DC2626" }} />
+                <Typography sx={{ fontWeight: 900, color: "#DC2626", fontSize: 16 }}>
+                  Delete account
+                </Typography>
+              </Stack>
+              <Typography sx={{ color: "#6B7280", fontSize: 14, mt: 1 }}>
+                Permanently remove your account and all associated data.
+              </Typography>
+            </Box>
 
-      <Typography sx={{ color: "#6B7280", fontSize: 14, mt: 1 }}>
-        Permanently remove your account and all associated data.
-      </Typography>
-    </Box>
-
-    {!open && (
-  <Button
-    variant="outlined"
-    onClick={() => setOpen(true)}
-    sx={{
-      borderColor: "rgba(220,38,38,0.45)",
-      color: "#DC2626",
-      textTransform: "none",
-      borderRadius: 2,
-      fontWeight: 800,
-      px: 2.5,
-      whiteSpace: "nowrap",
-      "&:hover": {
-        borderColor: "#DC2626",
-        background: "rgba(220,38,38,0.06)",
-      },
-    }}
-  >
-    Delete my account
-  </Button>
-)}
-  </Stack>
-
+            {!open && (
+              <Button
+                variant="outlined"
+                onClick={() => setOpen(true)}
+                sx={{
+                  borderColor: "rgba(220,38,38,0.45)",
+                  color: "#DC2626",
+                  textTransform: "none",
+                  borderRadius: 2,
+                  fontWeight: 800,
+                  px: 2.5,
+                  whiteSpace: "nowrap",
+                  "&:hover": {
+                    borderColor: "#DC2626",
+                    background: "rgba(220,38,38,0.06)",
+                  },
+                }}
+              >
+                Delete my account
+              </Button>
+            )}
+          </Stack>
 
           {open && (
             <Box
@@ -163,18 +178,15 @@ function DeleteAccountSection() {
               }}
             >
               <Box sx={{ p: 3, borderBottom: "1px solid rgba(220,38,38,0.18)" }}>
-                <Stack direction="row" spacing={1} alignItems="center" mb={0.75}>
-                  <Typography sx={{ fontWeight: 900, color: "#DC2626", fontSize: 15 }}>
-                    Confirm deletion
-                  </Typography>
-                </Stack>
-
+                <Typography sx={{ fontWeight: 900, color: "#DC2626", fontSize: 15, mb: 0.75 }}>
+                  Confirm deletion
+                </Typography>
                 <Typography sx={{ color: "#6B7280", fontSize: 14 }}>
                   To confirm, type{" "}
                   <Box component="span" sx={{ fontFamily: "monospace" }}>
                     {CONFIRM_TEXT}
                   </Box>{" "}
-                  in exactly all caps. This cannot be undone.
+                  in exactly all caps and enter your password. This cannot be undone.
                 </Typography>
               </Box>
 
@@ -195,6 +207,31 @@ function DeleteAccountSection() {
                       },
                     }}
                   />
+
+                  <TextField
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setError(null);
+                    }}
+                    type="password"
+                    placeholder="Enter your password to confirm"
+                    size="small"
+                    fullWidth
+                    autoComplete="current-password"
+                    sx={{
+                      ...textFieldSx,
+                      "& .MuiOutlinedInput-root.Mui-focused fieldset": {
+                        borderColor: "#DC2626",
+                      },
+                    }}
+                  />
+
+                  {error && (
+                    <Typography sx={{ fontSize: 13, color: "#DC2626" }}>
+                      {error}
+                    </Typography>
+                  )}
 
                   <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                     <Button
@@ -257,28 +294,28 @@ export default function AccountPage() {
 
   const [success, setSuccess] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
-
   const [saving, setSaving] = useState(false);
 
+  // Auto-hides the success alert after 3 seconds
   useEffect(() => {
     if (!showSuccess) return;
-
     const timer = setTimeout(() => {
       setShowSuccess(false);
     }, 3000);
-
     return () => clearTimeout(timer);
   }, [showSuccess]);
 
+  // Updates the typed field in the form, clears its error, and hides any success message
   const updateField = <K extends keyof ChangePasswordForm>(key: K, value: string) => {
+    // keep all existing field values, only update the one that changed
     setForm((p) => ({ ...p, [key]: value }));
     setErrors((prev) => {
       const next = { ...prev };
       delete next.general;
+      // clear the error for the field the user is currently editing
       delete next[key];
       return next;
     });
-
     if (showSuccess) setShowSuccess(false);
     if (success) setSuccess(null);
   };
@@ -288,6 +325,7 @@ export default function AccountPage() {
     setShowSuccess(false);
     setSuccess(null);
 
+    // Validates against the schema before hitting the API
     try {
       changePasswordSchema.parse(form);
     } catch (err) {
@@ -304,14 +342,12 @@ export default function AccountPage() {
 
     const token = localStorage.getItem("token");
     if (!token) {
-      setErrors({ general: "You’re not logged in. Please log in again." });
+      setErrors({ general: "You're not logged in. Please log in again." });
       return;
     }
 
     setSaving(true);
     try {
-
-      // change password uses the existing authenticated password change endpoint in auth module
       await api.patch(
         "/api/v1/users/me/password",
         {
@@ -323,17 +359,14 @@ export default function AccountPage() {
         }
       );
 
-      // TODO: Confirm if password change should log out of other sessions - if so, implement that flow
       setSuccess("Your password has been updated successfully.");
       setShowSuccess(true);
-
       setForm({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
     } catch (error: any) {
       const backendMsg =
         error?.response?.data?.message ??
         error?.response?.data?.error ??
         "Failed to change password. Please try again.";
-
       setErrors({ general: backendMsg });
     } finally {
       setSaving(false);
