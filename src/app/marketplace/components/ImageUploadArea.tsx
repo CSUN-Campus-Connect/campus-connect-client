@@ -230,7 +230,7 @@ export default function ImageUploadArea({ images, onAddFile, onUpdateUrl, onAddS
               onChange={(e) => setUrlInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleUrlAdd(); } if (e.key === 'Escape') setUrlMode(false); }}
               placeholder="https://example.com/image.jpg"
-              style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: 13 }}
+              style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151' }}
             />
           </div>
           <button type="button" onClick={handleUrlAdd} style={{ padding: '8px 14px', background: '#A80532', border: 'none', borderRadius: 8, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Add</button>
