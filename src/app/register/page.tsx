@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "../../../lib/axios";
-import type { PublicUser } from "../../../types/profile";
+import { api } from "../../lib/axios";
+import type { PublicUser } from "../../types/profile";
 import DarkVeil from "@/components/Landingpage/DarkVeil";
 import PasswordField from "@/components/authTools/ViewFilter";
 import { registerSchema, RegisterInput } from "@/lib/validators/auth.validators";
@@ -64,7 +64,7 @@ export default function RegisterPage() {
       }, 1000);
       return () => clearTimeout(timer);
     } else if (isSuccess && countdown === 0) {
-      router.push("/access/login");
+      router.push("/login");
     }
   }, [isSuccess, countdown, router]);
 
@@ -381,7 +381,7 @@ export default function RegisterPage() {
                 >
                   Already have an account?{" "}
                   <a
-                    href="/access/login"
+                    href="/login"
                     style={{
                       color: "crimson",
                       fontWeight: 500,
@@ -429,7 +429,7 @@ export default function RegisterPage() {
               </p>
 
               <button
-                onClick={() => router.push("/access/login")}
+                onClick={() => router.push("/login")}
                 style={{
                   ...buttonStyle,
                   backgroundColor: "crimson",

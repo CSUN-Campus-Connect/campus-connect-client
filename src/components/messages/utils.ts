@@ -1,4 +1,4 @@
-import type { Attachment, ID, Message } from "@/types/messages";
+import type { Attachment, ID, Message, Thread } from "@/types/messages";
 
 export const scrollBarSx = {
   "&::-webkit-scrollbar": { width: 10, height: 10 },
@@ -43,15 +43,32 @@ export function activityText(nowMs: number, lastActiveAt: number): string {
   return `Active ${Math.floor(diffH / 24)}d ago`;
 }
 
+export function isGroupThread(t: Pick<Thread, "participantIds">): boolean {
+  return t.participantIds.length > 2;
+}
+
 export function getLastMessage(all: Message[], threadId: ID): Message | null {
   const ms = all.filter((m) => m.threadId === threadId);
   if (!ms.length) return null;
   return ms.sort((a, b) => b.createdAt - a.createdAt)[0];
 }
 
-export function isThreadUnread(all: Message[], threadId: ID, meId: ID): boolean {
+export function isThreadUnread(
+  all: Message[],
+  threadId: ID,
+  meId: ID,
+  readReceiptsByThread?: Record<string, { userId: string; messageId: string }>
+): boolean {
   const last = getLastMessage(all, threadId);
   if (!last || last.fromUserId === meId) return false;
+  if (readReceiptsByThread) {
+    const receipt = readReceiptsByThread[threadId];
+    if (!receipt) return true;
+    const msgs = all.filter((m) => m.threadId === threadId).sort((a, b) => a.createdAt - b.createdAt);
+    const receiptIdx = msgs.findIndex((m) => m.id === receipt.messageId);
+    const lastIdx = msgs.findIndex((m) => m.id === last.id);
+    return receiptIdx < lastIdx;
+  }
   return !new Set(last.seenByUserIds ?? []).has(meId);
 }
 
@@ -68,7 +85,6 @@ const RAW_GIF_LIST: { url: string; title: string }[] = [
   { url: "https://media.giphy.com/media/3o7TKMt1VVNkHV2PaE/giphy.gif", title: "facepalm" },
   { url: "https://media.giphy.com/media/3o6ZsWwQGQWbFhJ6xO/giphy.gif", title: "fire" },
   { url: "https://media.giphy.com/media/l0HlMG1EX2H38cZeE/giphy.gif", title: "shocked" },
-
   { url: "https://media.giphy.com/media/l4FGuhL4U2WyjdkaY/giphy.gif", title: "clapping" },
   { url: "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif", title: "mind blown" },
   { url: "https://media.giphy.com/media/3orieUe6ejxSFxYCXe/giphy.gif", title: "thinking" },
@@ -79,7 +95,6 @@ const RAW_GIF_LIST: { url: string; title: string }[] = [
   { url: "https://media.giphy.com/media/xUPGcguWZHRC2HyBRS/giphy.gif", title: "happy dance" },
   { url: "https://media.giphy.com/media/3o7TKsQ8UQxZq0kF0s/giphy.gif", title: "deal with it" },
   { url: "https://media.giphy.com/media/l0MYEqEzwMWFCg8rm/giphy.gif", title: "thumbs up" },
-
   { url: "https://media.giphy.com/media/3og0IPxMM0erATueVW/giphy.gif", title: "thumbs down" },
   { url: "https://media.giphy.com/media/xT5LMHxhOfscxPfIfm/giphy.gif", title: "sleepy" },
   { url: "https://media.giphy.com/media/l0MYu38R0PPhIXe36/giphy.gif", title: "awkward" },
@@ -90,7 +105,6 @@ const RAW_GIF_LIST: { url: string; title: string }[] = [
   { url: "https://media.giphy.com/media/xT5LMGIKgT6U6M3p2g/giphy.gif", title: "celebration" },
   { url: "https://media.giphy.com/media/l0MYu5M1H2bF2hJ2w/giphy.gif", title: "bruh" },
   { url: "https://media.giphy.com/media/3o6ZtpxSZbQRRnwCKQ/giphy.gif", title: "yikes" },
-
   { url: "https://media.giphy.com/media/l0MYL2SNbbztrug1y/giphy.gif", title: "angry" },
   { url: "https://media.giphy.com/media/3orieR8m9r1CwC0vUA/giphy.gif", title: "evil laugh" },
   { url: "https://media.giphy.com/media/3o6Zt7hRj9KjC3h8iY/giphy.gif", title: "shrug" },
@@ -101,7 +115,6 @@ const RAW_GIF_LIST: { url: string; title: string }[] = [
   { url: "https://media.giphy.com/media/3orieZDAp40AhhOOsg/giphy.gif", title: "panic" },
   { url: "https://media.giphy.com/media/l0MYu5M1H2bF2hJ2w/giphy.gif", title: "cringe" },
   { url: "https://media.giphy.com/media/3o7TKMfn35NL1ll44U/giphy.gif", title: "victory" },
-
   { url: "https://media.giphy.com/media/l3vR85PnGsBwu1PFK/giphy.gif", title: "sad" },
   { url: "https://media.giphy.com/media/3orieQ3nLzIdR7bGxO/giphy.gif", title: "confetti" },
   { url: "https://media.giphy.com/media/xT0xeJpnrWC4XWblEk/giphy.gif", title: "thinking hard" },

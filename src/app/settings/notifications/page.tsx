@@ -4,8 +4,8 @@ import React, { useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
-import Switch from "@mui/material/Switch";
 import Chip from "@mui/material/Chip";
+import { SettingsToggle } from "@/components/settings";
 import CircularProgress from "@mui/material/CircularProgress";
 
 import { api } from "../../../lib/axios";
@@ -130,13 +130,6 @@ export default function NotificationsPage() {
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const clearSavedStatusRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const justLoadedRef = useRef(true);
-
-  const brandSwitchSx = {
-    "& .MuiSwitch-switchBase.Mui-checked": { color: red },
-    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-      backgroundColor: red,
-    },
-  };
 
   const currentSettings: NotificationSettings = {
     clubsNotifications,
@@ -318,10 +311,9 @@ export default function NotificationsPage() {
             label="Clubs"
             description="Updates from clubs you're in"
             right={
-              <Switch
+              <SettingsToggle
                 checked={clubsNotifications}
-                onChange={(e) => setClubsNotifications(e.target.checked)}
-                sx={brandSwitchSx}
+                onChange={setClubsNotifications}
                 disabled={!hasLoaded}
               />
             }
@@ -333,10 +325,9 @@ export default function NotificationsPage() {
             label="Campus Events + Reminders"
             description="Upcoming campus events"
             right={
-              <Switch
+              <SettingsToggle
                 checked={campusEventsNotifications}
-                onChange={(e) => setCampusEventsNotifications(e.target.checked)}
-                sx={brandSwitchSx}
+                onChange={setCampusEventsNotifications}
                 disabled={!hasLoaded}
               />
             }
@@ -348,10 +339,9 @@ export default function NotificationsPage() {
             label="Marketplace"
             description="Your marketplace listings"
             right={
-              <Switch
+              <SettingsToggle
                 checked={marketplaceNotifications}
-                onChange={(e) => setMarketplaceNotifications(e.target.checked)}
-                sx={brandSwitchSx}
+                onChange={setMarketplaceNotifications}
                 disabled={!hasLoaded}
               />
             }
@@ -363,10 +353,9 @@ export default function NotificationsPage() {
             label="Academic"
             description="Academic-related updates"
             right={
-              <Switch
+              <SettingsToggle
                 checked={academicNotifications}
-                onChange={(e) => setAcademicNotifications(e.target.checked)}
-                sx={brandSwitchSx}
+                onChange={setAcademicNotifications}
                 disabled={!hasLoaded}
               />
             }
@@ -378,10 +367,9 @@ export default function NotificationsPage() {
             label="Follow Requests + Mentions"
             description="When someone follows or tags you"
             right={
-              <Switch
+              <SettingsToggle
                 checked={followRequestNotifications}
-                onChange={(e) => setFollowRequestNotifications(e.target.checked)}
-                sx={brandSwitchSx}
+                onChange={setFollowRequestNotifications}
                 disabled={!hasLoaded}
               />
             }

@@ -1,13 +1,14 @@
 "use client";
 
 import * as React from "react";
+import { chatbotDisclaimerLine, chatbotGreeting } from "@/lib/chatbotI18n";
+import type { SiteLangCode } from "@/lib/siteLanguage";
+import { getStoredSiteLang } from "@/lib/siteLanguage";
 import { EmailAgentButton } from "./EmailAgentButton";
 import GlassSurface from "./GlassSurface";
 
 type ChatRole = "user" | "assistant";
 type ChatItem = { role: ChatRole; content: string };
-
-const DISCLAIMER = "Not official CSUN advice. Verify with CSUN sources.";
 const MAX_MESSAGE_CHARS = 2000;
 const PANEL_W = 360;
 const PANEL_H = 520;
@@ -26,17 +27,22 @@ export function CsunChatbotWidget() {
   const [fullScreen, setFullScreen] = React.useState(false);
   const [position, setPosition] = React.useState<{ left: number; top: number } | null>(null);
   const [fluidGlassSupported, setFluidGlassSupported] = React.useState(true);
-  const [items, setItems] = React.useState<ChatItem[]>([
-    { role: "assistant", content: "Hi! I can help with general CSUN questions.\n\nAsk away, or choose \"Email Agent instead\".\n\n" + DISCLAIMER },
-  ]);
+  const [uiLang, setUiLang] = React.useState<SiteLangCode>("en");
+  const [items, setItems] = React.useState<ChatItem[]>([{ role: "assistant", content: chatbotGreeting("en") }]);
   const [message, setMessage] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const listRef = React.useRef<HTMLDivElement | null>(null);
   const dragRef = React.useRef<{ startX: number; startY: number; startLeft: number; startTop: number } | null>(null);
   const didDragRef = React.useRef(false);
+  const composingRef = React.useRef(false);
 
   React.useEffect(() => setFluidGlassSupported(supportsBackdropFilter()), []);
+  React.useEffect(() => {
+    const lang = getStoredSiteLang();
+    setUiLang(lang);
+    setItems([{ role: "assistant", content: chatbotGreeting(lang) }]);
+  }, []);
   React.useEffect(() => {
     if (!open) return;
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
@@ -90,10 +96,15 @@ export function CsunChatbotWidget() {
     setMessage("");
     setItems((prev) => [...prev, { role: "user", content: text }]);
     try {
+      const lang = getStoredSiteLang();
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ message: text, history: items.map((i) => ({ role: i.role, content: i.content })) }),
+        body: JSON.stringify({
+          message: text,
+          language: lang,
+          history: items.map((i) => ({ role: i.role, content: i.content })),
+        }),
       });
       const data = (await res.json().catch(() => null)) as any;
       if (!res.ok || !data?.reply) throw new Error(typeof data?.error === "string" ? data.error : "Something went wrong.");
@@ -107,9 +118,20 @@ export function CsunChatbotWidget() {
 
   React.useEffect(() => {
     if (!fullScreen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setFullScreen(false); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFullScreen(false);
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, [fullScreen]);
+
+  React.useEffect(() => {
+    if (!fullScreen || typeof document === "undefined") return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
   }, [fullScreen]);
 
   const clampedPosition = React.useMemo(() => {
@@ -126,23 +148,42 @@ export function CsunChatbotWidget() {
 
   return (
     <div
+      className="notranslate"
+      translate="no"
       style={{
         position: "fixed",
-        ...(fullScreen ? { left: 0, top: 0, width: "100vw", height: "100vh" } : clampedPosition === null ? { right: MARGIN, bottom: MARGIN } : { left: clampedPosition.left, top: clampedPosition.top }),
+        ...(fullScreen
+          ? { left: 0, top: 0, width: "100dvw", height: "100dvh" }
+          : clampedPosition === null
+            ? { right: MARGIN, bottom: MARGIN }
+            : { left: clampedPosition.left, top: clampedPosition.top }),
         zIndex: 2147483647,
         fontFamily: 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"',
         display: "flex",
-        alignItems: fullScreen ? "center" : undefined,
-        justifyContent: fullScreen ? "center" : undefined,
+        alignItems: fullScreen ? "stretch" : undefined,
+        justifyContent: fullScreen ? "stretch" : undefined,
       }}
     >
       {!open && (
         <div
           role="button"
           tabIndex={0}
-          onMouseDown={(e) => { if (e.button === 0) handleDragStart(e); }}
-          onClick={() => { if (didDragRef.current) { didDragRef.current = false; return; } setOpen(true); }}
-          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen(true); } }}
+          onMouseDown={(e) => {
+            if (e.button === 0) handleDragStart(e);
+          }}
+          onClick={() => {
+            if (didDragRef.current) {
+              didDragRef.current = false;
+              return;
+            }
+            setOpen(true);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setOpen(true);
+            }
+          }}
           style={{ cursor: "grab", flexShrink: 0 }}
           title="Drag to move · Click to open"
           aria-label="Need Help? Open chatbot"
@@ -167,18 +208,39 @@ export function CsunChatbotWidget() {
               <span style={{ fontWeight: 900, color: "rgba(0,0,0,0.85)", fontSize: 14, padding: "0 8px", textAlign: "center" }}>Need Help?</span>
             </GlassSurface>
           ) : (
-            <div style={{ width: BUTTON_W, height: BUTTON_H, borderRadius: 12, background: RED, color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.2)" }}>Need Help?</div>
+            <div
+              style={{
+                width: BUTTON_W,
+                height: BUTTON_H,
+                borderRadius: 12,
+                background: RED,
+                color: "white",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: 900,
+                fontSize: 14,
+                boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+                border: "1px solid rgba(255,255,255,0.2)",
+              }}
+            >
+              Need Help?
+            </div>
           )}
         </div>
       )}
       {open && (
         <div
+          className="notranslate"
+          translate="no"
           style={{
-            width: fullScreen ? "min(480px, 95vw)" : PANEL_W,
-            height: fullScreen ? "85vh" : PANEL_H,
-            maxHeight: fullScreen ? "900px" : undefined,
+            width: fullScreen ? "100%" : PANEL_W,
+            height: fullScreen ? "100%" : PANEL_H,
+            maxWidth: fullScreen ? "100%" : undefined,
+            maxHeight: fullScreen ? "100%" : undefined,
+            minHeight: fullScreen ? 0 : undefined,
             background: "white",
-            borderRadius: 12,
+            borderRadius: fullScreen ? 0 : 12,
             border: "1px solid rgba(0,0,0,0.12)",
             boxShadow: fullScreen ? "0 24px 60px rgba(0,0,0,0.35)" : "0 18px 50px rgba(0,0,0,0.28)",
             overflow: "hidden",
@@ -186,38 +248,218 @@ export function CsunChatbotWidget() {
             flexDirection: "column",
           }}
         >
-          <div onMouseDown={(e) => { if (e.button === 0 && !fullScreen) handleDragStart(e); }} style={{ padding: "12px 12px", background: RED, color: "white", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, cursor: fullScreen ? "default" : "grab" }}>
+          <div
+            onMouseDown={(e) => {
+              if (e.button === 0 && !fullScreen) handleDragStart(e);
+            }}
+            style={{
+              padding: "12px 12px",
+              background: RED,
+              color: "white",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              cursor: fullScreen ? "default" : "grab",
+            }}
+          >
             <div style={{ minWidth: 0 }}>
               <div style={{ fontWeight: 900, fontSize: 14, lineHeight: 1.1 }}>CSUN Help</div>
-              <div style={{ fontSize: 12, opacity: 0.9, marginTop: 2 }}>{DISCLAIMER}</div>
+              <div style={{ fontSize: 12, opacity: 0.9, marginTop: 2 }}>{chatbotDisclaimerLine(uiLang)}</div>
             </div>
             <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-              <button type="button" onClick={() => setFullScreen(!fullScreen)} style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.12)", color: "white", fontWeight: 900, cursor: "pointer" }} aria-label={fullScreen ? "Exit full screen" : "Full screen"} title={fullScreen ? "Exit full screen" : "Full screen"}>{fullScreen ? "⊟" : "⊞"}</button>
-              <button type="button" onClick={() => setOpen(false)} style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.12)", color: "white", fontWeight: 900, cursor: "pointer", flexShrink: 0 }} aria-label="Close" title="Close">✕</button>
+              <button
+                type="button"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFullScreen((v) => !v);
+                }}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 8,
+                  border: "1px solid rgba(255,255,255,0.25)",
+                  background: "rgba(255,255,255,0.12)",
+                  color: "white",
+                  fontWeight: 900,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 0,
+                }}
+                aria-label={fullScreen ? "Exit full screen" : "Full screen"}
+                title={fullScreen ? "Exit full screen" : "Full screen"}
+              >
+                {fullScreen ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <polyline points="4 14 10 14 10 20" />
+                    <polyline points="20 10 14 10 14 4" />
+                    <line x1="14" y1="10" x2="21" y2="3" />
+                    <line x1="3" y1="21" x2="10" y2="14" />
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <polyline points="15 3 21 3 21 9" />
+                    <polyline points="9 21 3 21 3 15" />
+                    <line x1="21" y1="3" x2="14" y2="10" />
+                    <line x1="3" y1="21" x2="10" y2="14" />
+                  </svg>
+                )}
+              </button>
+              <button
+                type="button"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpen(false);
+                  setFullScreen(false);
+                }}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 8,
+                  border: "1px solid rgba(255,255,255,0.25)",
+                  background: "rgba(255,255,255,0.12)",
+                  color: "white",
+                  fontWeight: 900,
+                  cursor: "pointer",
+                  flexShrink: 0,
+                }}
+                aria-label="Close"
+                title="Close"
+              >
+                ✕
+              </button>
             </div>
           </div>
-          <div ref={listRef} style={{ flex: 1, padding: 12, overflowY: "auto", background: "linear-gradient(180deg, #ffffff 0%, #fafafa 100%)" }}>
+          <div
+            ref={listRef}
+            style={{ flex: 1, padding: 12, overflowY: "auto", background: "linear-gradient(180deg, #ffffff 0%, #fafafa 100%)" }}
+          >
             {items.map((it, idx) => (
               <div key={idx} style={{ display: "flex", justifyContent: it.role === "user" ? "flex-end" : "flex-start", marginBottom: 10 }}>
-                <div style={{ maxWidth: "85%", padding: "10px 12px", borderRadius: 12, whiteSpace: "pre-line", background: it.role === "user" ? RED : "white", color: it.role === "user" ? "white" : "rgba(0,0,0,0.86)", border: it.role === "user" ? "none" : "1px solid rgba(0,0,0,0.10)" }}>{it.content}</div>
+                <div
+                  style={{
+                    maxWidth: "85%",
+                    padding: "10px 12px",
+                    borderRadius: 12,
+                    whiteSpace: "pre-line",
+                    background: it.role === "user" ? RED : "white",
+                    color: it.role === "user" ? "white" : "rgba(0,0,0,0.86)",
+                    border: it.role === "user" ? "none" : "1px solid rgba(0,0,0,0.10)",
+                  }}
+                >
+                  {it.content}
+                </div>
               </div>
             ))}
             {loading && (
               <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 10 }}>
-                <div style={{ maxWidth: "85%", padding: "10px 12px", borderRadius: 12, background: "white", color: "rgba(0,0,0,0.7)", border: "1px solid rgba(0,0,0,0.10)" }}>Typing…</div>
+                <div
+                  style={{
+                    maxWidth: "85%",
+                    padding: "10px 12px",
+                    borderRadius: 12,
+                    background: "white",
+                    color: "rgba(0,0,0,0.7)",
+                    border: "1px solid rgba(0,0,0,0.10)",
+                  }}
+                >
+                  Typing…
+                </div>
               </div>
             )}
           </div>
-          <div style={{ padding: 12, borderTop: "1px solid rgba(0,0,0,0.08)", background: "white" }}>
-            {error && <div style={{ marginBottom: 10, padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(220,38,38,0.35)", background: "rgba(220,38,38,0.06)", color: "rgba(153,27,27,0.95)", fontSize: 12, fontWeight: 700 }}>{error}</div>}
+          <div
+            className="notranslate"
+            translate="no"
+            style={{
+              padding: 12,
+              paddingBottom: "max(12px, env(safe-area-inset-bottom, 0px))",
+              borderTop: "1px solid rgba(0,0,0,0.08)",
+              background: "white",
+              flexShrink: 0,
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            {error && (
+              <div
+                style={{
+                  marginBottom: 10,
+                  padding: "8px 10px",
+                  borderRadius: 8,
+                  border: "1px solid rgba(220,38,38,0.35)",
+                  background: "rgba(220,38,38,0.06)",
+                  color: "rgba(153,27,27,0.95)",
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}
+              >
+                {error}
+              </div>
+            )}
             <div style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
               <span style={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.65)" }}>Email Agent instead:</span>
               <EmailAgentButton label="Open email" />
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Ask a CSUN question…" disabled={loading} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(); } }} style={{ flex: 1, height: 40, borderRadius: 8, border: "1px solid rgba(0,0,0,0.15)", padding: "0 10px", outline: "none" }} />
-              <button type="button" onClick={() => void send()} disabled={loading || !message.trim()} style={{ width: 88, height: 40, borderRadius: 8, border: "1px solid rgba(0,0,0,0.12)", background: loading || !message.trim() ? "rgba(0,0,0,0.08)" : RED, color: loading || !message.trim() ? "rgba(0,0,0,0.35)" : "white", fontWeight: 900, cursor: loading || !message.trim() ? "not-allowed" : "pointer" }}>Send</button>
-            </div>
+            <form
+              style={{ display: "flex", gap: 8 }}
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (composingRef.current) return;
+                void send();
+              }}
+            >
+              <input
+                id="cc-csun-chatbot-message"
+                name="cc_chatbot_message"
+                type="text"
+                enterKeyHint="send"
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Ask a CSUN question…"
+                disabled={loading}
+                onCompositionStart={() => {
+                  composingRef.current = true;
+                }}
+                onCompositionEnd={() => {
+                  composingRef.current = false;
+                }}
+                className="notranslate"
+                translate="no"
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  height: 40,
+                  borderRadius: 8,
+                  border: "1px solid rgba(0,0,0,0.15)",
+                  padding: "0 10px",
+                  outline: "none",
+                  fontSize: 16,
+                }}
+              />
+              <button
+                type="submit"
+                disabled={loading || !message.trim()}
+                style={{
+                  width: 88,
+                  height: 40,
+                  borderRadius: 8,
+                  border: "1px solid rgba(0,0,0,0.12)",
+                  background: loading || !message.trim() ? "rgba(0,0,0,0.08)" : RED,
+                  color: loading || !message.trim() ? "rgba(0,0,0,0.35)" : "white",
+                  fontWeight: 900,
+                  cursor: loading || !message.trim() ? "not-allowed" : "pointer",
+                }}
+              >
+                Send
+              </button>
+            </form>
           </div>
         </div>
       )}

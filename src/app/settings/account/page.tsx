@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 
@@ -16,6 +17,7 @@ import Alert from "@mui/material/Alert";
 import Fade from "@mui/material/Fade";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 
 const red = "#B11226";
 const darkRed = "#7A0A0A";
@@ -385,6 +387,23 @@ export default function AccountPage() {
       </Box>
 
       <Stack spacing={3} sx={{ maxWidth: 820 }}>
+        <SectionCard icon={<PersonOutlineIcon />} title="Profile">
+          <Typography sx={{ color: "#6B7280", fontSize: 14, mb: 1.5 }}>
+            View or edit your public profile page.
+          </Typography>
+          <Button
+            component={Link}
+            href="http://localhost:3000/profile"
+            variant="outlined"
+            sx={{
+              ...outlineNeutralSx,
+              alignSelf: "flex-start",
+            }}
+          >
+            Open profile
+          </Button>
+        </SectionCard>
+
         <SectionCard icon={<LockOutlinedIcon />} title="Password">
           <Box
             component="form"

@@ -699,7 +699,7 @@ setReportSubmitted(true);
                 external
                 isLast
                 onExternalClick={() => {
-                  // TODO: Replace this route if the final terms page lives elsewhere.
+                  
                   window.open("/terms", "_blank");
                 }}
               />
@@ -711,14 +711,14 @@ setReportSubmitted(true);
           <Divider sx={{ mb: 3, borderColor: "#EEF1F5" }} />
 
           <Box sx={{ textAlign: "center", color: secondaryText }}>
-            {/* TODO: Replace this hardcoded version with a real app version source if needed
-            (for example package metadata, environment config, or backend-provided version info). */}
+           
+            {} 
             <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
               App Version 1.1.1
             </Typography>
 
             <Typography sx={{ fontSize: 12, mt: 0.5, color: "#9CA3AF" }}>
-              © 2026 CampusConnect. All rights reserved.
+              © 2025 CampusConnect. All rights reserved.
             </Typography>
           </Box>
         </Box>
