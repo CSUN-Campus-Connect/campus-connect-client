@@ -85,14 +85,16 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await api.post<{ token: string; user: PublicUser }>(
+      const response = await api.post<{ token: string; sessionId: string; user: PublicUser }>(
         "/api/v1/users/login",
         loginData
       );
       const user: PublicUser = response.data.user;
 
       localStorage.setItem("token", response.data.token);
-      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("sessionId", response.data.sessionId);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+
       router.push("/dashboard");
     } catch (error: any) {
       // Get backend error message

@@ -12,7 +12,6 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
 import { api } from "../../../lib/axios";
-import { subtle } from "crypto";
 
 const border = "#E5E7EB";
 const subtleBorder = "#F3F4F6";
@@ -35,6 +34,10 @@ type ActiveSessionItem = {
   detailLabel: string;
   isCurrentSession: boolean;
 };
+
+const getAuthHeaders = () => ({
+  headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+});
 
 function ContentCard({ children }: { children: React.ReactNode }) {
   return (
@@ -238,6 +241,9 @@ export default function SecurityPage() {
   const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
   const [revokingAll, setRevokingAll] = useState(false);
 
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+
+  // Fetches login history only when the section is first opened
   useEffect(() => {
     if (!loginHistoryOpen) return;
 
@@ -248,27 +254,19 @@ export default function SecurityPage() {
         setLoginHistoryLoading(true);
         setLoginHistoryError(null);
 
-       
-       // UI shape:
-       //     id: string,
-       //     deviceLabel: string,
-       //     locationLabel: string,
-       //     timestampLabel: string,
-       
-        const mappedData: LoginHistoryItem[] = [
-          {
-            id: "1",
-            deviceLabel: "Chrome on Windows",
-            locationLabel: "Hidden Hills, CA",
-            timestampLabel: "2 hours ago",
-          },
-          {
-            id: "2",
-            deviceLabel: "Safari on iPhone",
-            locationLabel: "Los Angeles, CA",
-            timestampLabel: "Yesterday",
-          },
-        ];
+        const response = await api.get<{ history: any[] }>(
+          "/api/v1/users/login-history",
+          getAuthHeaders()
+        );
+
+        const mappedData: LoginHistoryItem[] = response.data.history.map((item) => ({
+          id: item.id,
+          deviceLabel: item.deviceLabel,
+          locationLabel: item.location || item.ipAddress || "Unknown location",
+          timestampLabel: new Date(item.createdAt).toLocaleDateString("en-US", {
+            month: "short", day: "numeric", year: "numeric",
+          }),
+        }));
 
         if (!isMounted) return;
         setLoginHistory(mappedData);
@@ -276,9 +274,7 @@ export default function SecurityPage() {
         if (!isMounted) return;
         setLoginHistoryError("We couldn't load your login history.");
       } finally {
-        if (isMounted) {
-          setLoginHistoryLoading(false);
-        }
+        if (isMounted) setLoginHistoryLoading(false);
       }
     };
 
@@ -299,21 +295,27 @@ export default function SecurityPage() {
         setActiveSessionsLoading(true);
         setActiveSessionsError(null);
 
+        const response = await api.get<{ sessions: any[]; currentSessionId: string }>(
+          "/api/v1/users/sessions",
+          getAuthHeaders()
+        );
 
-        const mappedData: ActiveSessionItem[] = [
-          {
-            id: "1",
-            deviceLabel: "This device",
-            detailLabel: "Chrome on Windows • Current session",
-            isCurrentSession: true,
-          },
-          {
-            id: "2",
-            deviceLabel: "Safari on iPhone",
-            detailLabel: "Last active 3 hours ago",
-            isCurrentSession: false,
-          },
-        ];
+        const currentId = response.data.currentSessionId;
+        setCurrentSessionId(currentId); 
+
+        const mappedData: ActiveSessionItem[] = response.data.sessions.map((session) => {
+          const isCurrent = session.id === currentId;
+          return {
+            id: session.id,
+            deviceLabel: session.deviceLabel,
+            detailLabel: isCurrent
+              ? `${session.deviceLabel} • Current session`
+              : `Last active ${new Date(session.lastActiveAt).toLocaleDateString("en-US", {
+                  month: "short", day: "numeric", year: "numeric",
+                })}`,
+            isCurrentSession: isCurrent,
+          };
+        });
 
         if (!isMounted) return;
         setActiveSessions(mappedData);
@@ -321,9 +323,7 @@ export default function SecurityPage() {
         if (!isMounted) return;
         setActiveSessionsError("We couldn't load your active sessions.");
       } finally {
-        if (isMounted) {
-          setActiveSessionsLoading(false);
-        }
+        if (isMounted) setActiveSessionsLoading(false);
       }
     };
 
@@ -337,9 +337,13 @@ export default function SecurityPage() {
   const handleRevokeSession = async (sessionId: string) => {
     try {
       setRevokingSessionId(sessionId);
-
-      
-
+      const token = localStorage.getItem("token");
+      await api.post(
+        "/api/v1/users/logout",
+        { sessionId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // Removes the revoked session from the list without refetching
       setActiveSessions((prev) => prev.filter((session) => session.id !== sessionId));
     } catch (error) {
       console.error("Failed to revoke session", error);
@@ -351,8 +355,12 @@ export default function SecurityPage() {
   const handleRevokeAllOtherSessions = async () => {
     try {
       setRevokingAll(true);
-
-     
+      await api.post(
+        "/api/v1/users/sessions/revoke-all",
+        { currentSessionId },
+        getAuthHeaders()
+      );
+      // Keeps only the current session in the list after revoking all others
       setActiveSessions((prev) => prev.filter((session) => session.isCurrentSession));
     } catch (error) {
       console.error("Failed to revoke other sessions", error);
@@ -468,6 +476,27 @@ export default function SecurityPage() {
                 >
                   Current Devices
                 </Typography>
+
+                {activeSessions.filter((s) => !s.isCurrentSession).length > 1 && (
+                  <Button
+                    variant="contained"
+                    disabled={revokingAll}
+                    onClick={handleRevokeAllOtherSessions}
+                    sx={{
+                      textTransform: "none",
+                      backgroundColor: red,
+                      color: "#FFFFFF",
+                      fontWeight: 700,
+                      fontSize: 13,
+                      borderRadius: "20px",
+                      boxShadow: "none",
+                      "&:hover": { backgroundColor: "#8B0E1C", boxShadow: "none" },
+                      "&.Mui-disabled": { backgroundColor: "#E5E7EB", color: "#9CA3AF" },
+                    }}
+                  >
+                    {revokingAll ? "Ending all..." : "End all other sessions"}
+                  </Button>
+                )}
               </Box>
 
               <SectionStatus
@@ -537,9 +566,7 @@ export default function SecurityPage() {
                             color: red,
                             fontWeight: 700,
                             alignSelf: { xs: "flex-start", sm: "center" },
-                            "&:hover": {
-                              backgroundColor: "#FEF2F2",
-                            },
+                            "&:hover": { backgroundColor: "#FEF2F2" },
                           }}
                         >
                           {revokingSessionId === session.id ? "Ending..." : "End session"}
@@ -556,7 +583,6 @@ export default function SecurityPage() {
             title="Privacy Policy"
             description="Read our privacy policy"
             onExternalClick={() => {
-              
               window.open("/privacy-policy", "_blank");
             }}
             isLast

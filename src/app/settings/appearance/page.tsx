@@ -1,5 +1,5 @@
 "use client";
-
+ 
 import React, { useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -9,14 +9,26 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
-
 import { useSiteAppearance } from "@/components/SiteAppearanceProvider";
 import type { TextSize, ThemeMode } from "@/lib/siteAppearance";
-
+import { api } from "../../../lib/axios";
+ 
 const red = "#B11226";
-
-type SaveStatus = "idle" | "saving" | "saved";
-
+ 
+// Shape of the appearance settings stored in the database
+type AppearanceSettings = {
+  theme: ThemeMode;
+  textSize: TextSize;
+};
+ 
+// Tracks whether settings are being loaded from the API, auto-saved, or confirmed saved
+type SaveStatus = "idle" | "loading" | "saving" | "saved";
+ 
+const DEFAULT_APPEARANCE_SETTINGS: AppearanceSettings = {
+  theme: "light",
+  textSize: "medium",
+};
+ 
 function SettingsRow({
   label,
   description,
@@ -50,13 +62,28 @@ function SettingsRow({
           </Typography>
         )}
       </Box>
-
       <Box sx={{ flex: "0 0 auto" }}>{right}</Box>
     </Box>
   );
 }
-
+ 
 function SaveStatusChip({ status }: { status: SaveStatus }) {
+  if (status === "loading") {
+    return (
+      <Chip
+        icon={<CircularProgress size={14} />}
+        label="Loading..."
+        size="small"
+        sx={{
+          backgroundColor: "rgba(177, 18, 38, 0.08)",
+          color: red,
+          fontWeight: 700,
+          "& .MuiChip-icon": { ml: 1 },
+        }}
+      />
+    );
+  }
+ 
   if (status === "saving") {
     return (
       <Chip
@@ -67,14 +94,12 @@ function SaveStatusChip({ status }: { status: SaveStatus }) {
           backgroundColor: "rgba(177, 18, 38, 0.12)",
           color: red,
           fontWeight: 700,
-          "& .MuiChip-icon": {
-            ml: 1,
-          },
+          "& .MuiChip-icon": { ml: 1 },
         }}
       />
     );
   }
-
+ 
   if (status === "saved") {
     return (
       <Chip
@@ -86,62 +111,134 @@ function SaveStatusChip({ status }: { status: SaveStatus }) {
       />
     );
   }
-
+ 
   return null;
 }
-
+ 
 export default function AppearancePage() {
+  // Global theme state shared across the app via SiteAppearanceProvider
   const { theme, textSize, setTheme, setTextSize } = useSiteAppearance();
-
+ 
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
-  const [hasHydrated, setHasHydrated] = useState(false);
-  const appearanceInitRef = useRef(false);
-  const prevRef = useRef<{ theme: ThemeMode; textSize: TextSize } | null>(null);
-  const clearSavedRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
+  // True once the initial API fetch has completed (controls whether selects are interactive)
+  const [hasLoaded, setHasLoaded] = useState(false);
+  // The last settings successfully saved to the database — used to detect unsaved changes
+  const [initialSettings, setInitialSettings] = useState<AppearanceSettings>(
+    DEFAULT_APPEARANCE_SETTINGS
+  );
+ 
+  // Prevents auto-save from firing immediately after the initial API load sets theme/textSize
+  const justLoadedRef = useRef(false);
+  // Debounce timer: delays the PATCH request until the user stops changing settings
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Timer that clears the "Saved" chip after 1.8 seconds
+  const clearSavedStatusRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+ 
   const selectSx = {
     width: 150,
     "& .MuiSelect-select": { py: 1, fontWeight: 500 },
   };
-
+ 
   const menuPaperSx = {
     "& .MuiMenuItem-root": { fontWeight: 300 },
     "& .MuiMenuItem-root.Mui-selected": { fontWeight: 700 },
   };
-
+ 
+  // Fetch saved appearance settings from the API on mount and apply them globally
   useEffect(() => {
-    setHasHydrated(true);
+    let isMounted = true;
+ 
+    const fetchAppearanceSettings = async () => {
+      try {
+        setSaveStatus("loading");
+ 
+        const token = localStorage.getItem("token");
+        const response = await api.get("/api/v1/settings/appearance", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+ 
+        const data: AppearanceSettings = response.data.data;
+        if (!isMounted) return;
+ 
+        // Apply fetched settings to global provider so the whole app reflects them
+        setTheme(data.theme);
+        setTextSize(data.textSize);
+        setInitialSettings(data);
+        setSaveStatus("idle");
+      } catch {
+        if (!isMounted) return;
+ 
+        // Fall back to defaults if the endpoint fails (e.g. new user, network error)
+        setTheme(DEFAULT_APPEARANCE_SETTINGS.theme);
+        setTextSize(DEFAULT_APPEARANCE_SETTINGS.textSize);
+        setInitialSettings(DEFAULT_APPEARANCE_SETTINGS);
+        setSaveStatus("idle");
+      } finally {
+        if (isMounted) {
+          setHasLoaded(true);
+          // Signal the auto-save effect to skip the first change triggered by this load
+          justLoadedRef.current = true;
+        }
+      }
+    };
+ 
+    fetchAppearanceSettings();
+ 
+    return () => {
+      isMounted = false;
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      if (clearSavedStatusRef.current) clearTimeout(clearSavedStatusRef.current);
+    };
   }, []);
-
+ 
+  // Auto-save to the API whenever the user changes theme or text size (debounced 700ms)
   useEffect(() => {
-    if (!hasHydrated) return;
-
-    if (!appearanceInitRef.current) {
-      appearanceInitRef.current = true;
-      prevRef.current = { theme, textSize };
+    // Wait until the initial fetch has finished before watching for changes
+    if (!hasLoaded) return;
+ 
+    // Skip the first trigger caused by the initial load setting theme/textSize
+    if (justLoadedRef.current) {
+      justLoadedRef.current = false;
       return;
     }
-
-    if (
-      !prevRef.current ||
-      (prevRef.current.theme === theme && prevRef.current.textSize === textSize)
-    ) {
-      return;
-    }
-
-    prevRef.current = { theme, textSize };
-
-    if (clearSavedRef.current) clearTimeout(clearSavedRef.current);
-
-    setSaveStatus("saving");
-    const t = setTimeout(() => {
-      setSaveStatus("saved");
-      clearSavedRef.current = setTimeout(() => setSaveStatus("idle"), 1600);
-    }, 200);
-
-    return () => clearTimeout(t);
-  }, [theme, textSize, hasHydrated]);
-
+ 
+    // Only save if something actually changed from what's in the database
+    const hasChanges =
+      theme !== initialSettings.theme || textSize !== initialSettings.textSize;
+    if (!hasChanges) return;
+ 
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    if (clearSavedStatusRef.current) clearTimeout(clearSavedStatusRef.current);
+ 
+    // Capture current values in a closure so the timeout uses the right snapshot
+    const currentSettings = { theme, textSize };
+ 
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        setSaveStatus("saving");
+ 
+        const token = localStorage.getItem("token");
+        await api.patch("/api/v1/settings/appearance", currentSettings, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+ 
+        // Update baseline so subsequent no-op changes don't trigger another save
+        setInitialSettings(currentSettings);
+        setSaveStatus("saved");
+ 
+        clearSavedStatusRef.current = setTimeout(() => {
+          setSaveStatus("idle");
+        }, 1800);
+      } catch {
+        setSaveStatus("idle");
+      }
+    }, 700);
+ 
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [theme, textSize, hasLoaded]);
+ 
   return (
     <Box>
       <Box
@@ -162,10 +259,9 @@ export default function AppearancePage() {
             Customize theme and readability
           </Typography>
         </Box>
-
         <SaveStatusChip status={saveStatus} />
       </Box>
-
+ 
       <Box
         sx={{
           border: (t) => `1px solid ${t.palette.divider}`,
@@ -179,7 +275,7 @@ export default function AppearancePage() {
         }}
       >
         <Divider />
-
+ 
         <SettingsRow
           label="Theme"
           description="Choose light or dark mode"
@@ -190,7 +286,7 @@ export default function AppearancePage() {
                 onChange={(e) => setTheme(e.target.value as ThemeMode)}
                 sx={selectSx}
                 MenuProps={{ PaperProps: { sx: menuPaperSx } }}
-                disabled={!hasHydrated}
+                disabled={!hasLoaded}
               >
                 <MenuItem value="light">Light</MenuItem>
                 <MenuItem value="dark">Dark</MenuItem>
@@ -198,7 +294,7 @@ export default function AppearancePage() {
             </FormControl>
           }
         />
-
+ 
         <SettingsRow
           label="Text size"
           description="Adjust readability"
@@ -210,7 +306,7 @@ export default function AppearancePage() {
                 onChange={(e) => setTextSize(e.target.value as TextSize)}
                 sx={selectSx}
                 MenuProps={{ PaperProps: { sx: menuPaperSx } }}
-                disabled={!hasHydrated}
+                disabled={!hasLoaded}
               >
                 <MenuItem value="small">Small</MenuItem>
                 <MenuItem value="medium">Medium</MenuItem>

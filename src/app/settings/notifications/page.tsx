@@ -147,16 +147,12 @@ export default function NotificationsPage() {
         setHasLoaded(false);
         setSaveStatus("loading");
 
-        // TODO: Replace this placeholder data with a backend settings-module route
-        // for the current user's notification preferences.
+        const token = localStorage.getItem("token");
 
-        const data: NotificationSettings = {
-          clubsNotifications: true,
-          campusEventsNotifications: true,
-          marketplaceNotifications: true,
-          academicNotifications: true,
-          followRequestNotifications: true,
-        };
+        const response = await api.get("/api/v1/settings/notifications", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data: NotificationSettings = response.data.data;
 
         if (!isMounted) return;
 
@@ -172,7 +168,7 @@ export default function NotificationsPage() {
         if (!isMounted) return;
 
         // If loading saved notification settings fails, fall back to defaults so the page
-        // remains usable while backend persistence is unavailable or still being implemented.
+        // remains usable if backend persistence is unavailable 
         setClubsNotifications(defaultNotificationSettings.clubsNotifications);
         setCampusEventsNotifications(
           defaultNotificationSettings.campusEventsNotifications
@@ -244,8 +240,11 @@ export default function NotificationsPage() {
       try {
         setSaveStatus("saving");
 
-        
+        const token = localStorage.getItem("token");
 
+        await api.patch("/api/v1/settings/notifications", currentSettings,{
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setInitialSettings(currentSettings);
         setSaveStatus("saved");
 
@@ -253,7 +252,6 @@ export default function NotificationsPage() {
           setSaveStatus("idle");
         }, 1800);
       } catch (error) {
-        
         setSaveStatus("idle");
       }
     }, 700);

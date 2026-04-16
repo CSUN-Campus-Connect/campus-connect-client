@@ -231,17 +231,18 @@ export default function PrivacyPage() {
         setHasLoaded(false);
         setSaveStatus("loading");
 
-        
-
-        const response = await api.get("/settings/privacy");
+        const token = localStorage.getItem("token");
+        const response = await api.get("/api/v1/settings/privacy", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         const data: PrivacySettings = {
           accountVisibility:
-            response.data.accountVisibility ?? defaultSettings.accountVisibility,
+            response.data.data.accountVisibility ?? defaultSettings.accountVisibility,
           whoCanMessage:
-            response.data.whoCanMessage ?? defaultSettings.whoCanMessage,
+            response.data.data.whoCanMessage ?? defaultSettings.whoCanMessage,
           allowTagging:
-            response.data.allowTagging ?? defaultSettings.allowTagging,
+            response.data.data.allowTagging ?? defaultSettings.allowTagging,
         };
 
         if (!isMounted) return;
@@ -312,8 +313,10 @@ export default function PrivacyPage() {
       try {
         setSaveStatus("saving");
 
-        
-        await api.patch("/settings/privacy", currentSettings);
+        const token = localStorage.getItem("token");
+        await api.patch("/api/v1/settings/privacy", currentSettings, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         setInitialSettings(currentSettings);
         setSaveStatus("saved");
