@@ -3,6 +3,10 @@ import "./globals.css";
 import { CsunChatbotWidget } from "@/components/widgets/chatbot";
 import ThemeRegistry from "./ThemeRegistry";
 import { SiteAppearanceProvider } from "@/components/SiteAppearanceProvider";
+import SiteLanguageBootstrap from "@/components/SiteLanguageBootstrap";
+import SiteLanguageCookieScript from "@/components/SiteLanguageCookieScript";
+import SiteLanguageHtmlLang from "@/components/SiteLanguageHtmlLang";
+import SiteLanguageRouteSync from "@/components/SiteLanguageRouteSync";
 
 export const metadata: Metadata = {
   title: "Toro Campus Connect",
@@ -25,6 +29,10 @@ export default function RootLayout({
       <body className="relative overflow-visible">
         <SiteAppearanceProvider>
           <ThemeRegistry options={{ key: "mui" }}>
+            <SiteLanguageCookieScript />
+            <SiteLanguageBootstrap />
+            <SiteLanguageHtmlLang />
+            <SiteLanguageRouteSync />
             {children}
             <CsunChatbotWidget />
           </ThemeRegistry>
