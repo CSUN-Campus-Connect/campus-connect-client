@@ -111,7 +111,8 @@ export function AnnouncementProvider({ children }: { children: React.ReactNode }
 
     // Guests: poll /active every 30s for near-real-time updates.
     // Trade-off: 30s delay vs. no infrastructure for anonymous sockets.
-    const poll = async () => {
+    // Removed it since it takes a lot of resources for non registered users
+    /*const poll = async () => {
       try {
         const res = await getActiveAnnouncement();
         setActiveAnnouncement((prev) => {
@@ -127,6 +128,8 @@ export function AnnouncementProvider({ children }: { children: React.ReactNode }
 
     const pollTimer = setInterval(poll, 30_000);
     return () => clearInterval(pollTimer);
+    */
+   return;
   }, []);
 
   // Auto-clear expired GREEN alerts client-side (server also expires them,
