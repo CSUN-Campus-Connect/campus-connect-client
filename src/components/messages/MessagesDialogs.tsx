@@ -7,8 +7,7 @@ import {
   Box,
   Button,
   Checkbox,
-  Tab,
-  Tabs,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -19,6 +18,8 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Tab,
+  Tabs,
   TextField,
   Typography,
 } from "@mui/material";
@@ -53,9 +54,10 @@ export type MessagesDialogsProps = {
   onReportReason: (r: string) => void;
   onReportDetails: (v: string) => void;
   onSubmitReport: () => void;
+  onSearchUsers: (q: string) => Promise<User[]>;
   createGroupOpen?: boolean;
   onCloseCreateGroup?: () => void;
-  onCreateGroup?: (participantIds: ID[], name: string) => void | Promise<void>;
+  onCreateGroup?: (participantIds: ID[], name: string, groupPictureUrl?: string) => void | Promise<void>;
 };
 
 export default function MessagesDialogs(props: MessagesDialogsProps) {
@@ -84,35 +86,75 @@ export default function MessagesDialogs(props: MessagesDialogsProps) {
     onReportReason,
     onReportDetails,
     onSubmitReport,
+    onSearchUsers,
     createGroupOpen = false,
     onCloseCreateGroup,
     onCreateGroup,
   } = props;
 
   const [newMsgQuery, setNewMsgQuery] = React.useState("");
+  const [searchResults, setSearchResults] = React.useState<User[]>([]);
+  const [searchLoading, setSearchLoading] = React.useState(false);
   const [noteText, setNoteText] = React.useState(myNoteText);
   const [gifTab, setGifTab] = React.useState<"all" | "favorites">("all");
+  const searchTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [createGroupQuery, setCreateGroupQuery] = React.useState("");
   const [createGroupSelected, setCreateGroupSelected] = React.useState<Set<ID>>(new Set());
   const [createGroupName, setCreateGroupName] = React.useState("");
-  React.useEffect(() => { if (!newMsgOpen) setNewMsgQuery(""); }, [newMsgOpen]);
-  React.useEffect(() => { if (noteOpen) setNoteText(myNoteText); }, [noteOpen, myNoteText]);
-  React.useEffect(() => { if (!gifOpen) setGifTab("all"); }, [gifOpen]);
+  const [createGroupPictureUrl, setCreateGroupPictureUrl] = React.useState<string>("");
+
+  React.useEffect(() => {
+    if (!newMsgOpen) {
+      setNewMsgQuery("");
+      setSearchResults([]);
+      setSearchLoading(false);
+    }
+  }, [newMsgOpen]);
+
+  React.useEffect(() => {
+    if (noteOpen) setNoteText(myNoteText);
+  }, [noteOpen, myNoteText]);
+
+  React.useEffect(() => {
+    if (!gifOpen) setGifTab("all");
+  }, [gifOpen]);
+
   React.useEffect(() => {
     if (!createGroupOpen) {
       setCreateGroupQuery("");
       setCreateGroupSelected(new Set());
       setCreateGroupName("");
+      setCreateGroupPictureUrl("");
     }
   }, [createGroupOpen]);
 
-  const filteredUsers = React.useMemo(() => {
-    const q = newMsgQuery.trim().toLowerCase();
-    return users
-      .filter((u) => u.id !== meId && !blockedUserIds.has(u.id))
-      .filter((u) => !q || u.username.toLowerCase().includes(q) || u.displayName.toLowerCase().includes(q))
-      .slice(0, 30);
-  }, [newMsgQuery, users, blockedUserIds, meId]);
+  React.useEffect(() => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+
+    const q = newMsgQuery.trim();
+
+    if (q.length < 2) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      return;
+    }
+
+    setSearchLoading(true);
+    searchTimerRef.current = setTimeout(async () => {
+      const results = await onSearchUsers(q);
+      setSearchResults(results.filter((u) => u.id !== meId && !blockedUserIds.has(u.id)));
+      setSearchLoading(false);
+    }, 350);
+
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    };
+  }, [newMsgQuery, onSearchUsers, meId, blockedUserIds]);
+
+  const displayedUsers = newMsgQuery.trim().length < 2
+    ? users.filter((u) => u.id !== meId && !blockedUserIds.has(u.id)).slice(0, 30)
+    : searchResults;
 
   const createGroupFilteredUsers = React.useMemo(() => {
     const q = createGroupQuery.trim().toLowerCase();
@@ -135,11 +177,12 @@ export default function MessagesDialogs(props: MessagesDialogsProps) {
     const name = createGroupName.trim() || "Group chat";
     const participantIds = [meId, ...createGroupSelected];
     if (participantIds.length < 2) return;
-    onCreateGroup?.(participantIds, name);
+    onCreateGroup?.(participantIds, name, createGroupPictureUrl || undefined);
     onCloseCreateGroup?.();
   };
 
   const trimmedNote = noteText.trim();
+
   const visibleGifs = React.useMemo(() => {
     if (gifTab === "favorites") return GIF_LIST.filter((g) => gifFavorites.includes(g.url));
     return GIF_LIST;
@@ -153,17 +196,43 @@ export default function MessagesDialogs(props: MessagesDialogsProps) {
           <IconButton onClick={onCloseNewMsg} sx={{ position: "absolute", right: 10, top: 10 }}><CloseIcon /></IconButton>
         </DialogTitle>
         <DialogContent sx={{ pt: 1 }}>
-          <TextField value={newMsgQuery} onChange={(e) => setNewMsgQuery(e.target.value)} placeholder="Search username or name" fullWidth size="small" InputProps={{ sx: { bgcolor: "rgba(0,0,0,0.04)", borderRadius: 999 } }} />
+          <TextField
+            value={newMsgQuery}
+            onChange={(e) => setNewMsgQuery(e.target.value)}
+            placeholder="Search by name or email"
+            fullWidth
+            size="small"
+            autoFocus
+            InputProps={{
+              sx: { bgcolor: "rgba(0,0,0,0.04)", borderRadius: 999 },
+              endAdornment: searchLoading ? <CircularProgress size={16} sx={{ mr: 1 }} /> : null,
+            }}
+          />
           <Divider sx={{ my: 1.5 }} />
           <List sx={{ p: 0, maxHeight: 380, overflow: "auto" }}>
-            {filteredUsers.map((u) => (
-              <ListItemButton key={u.id} onClick={() => { onPickUser(u.id); onCloseNewMsg(); }} sx={{ borderRadius: 2 }}>
+            {displayedUsers.map((u) => (
+              <ListItemButton
+                key={u.id}
+                onClick={() => { onPickUser(u.id); onCloseNewMsg(); }}
+                sx={{ borderRadius: 2 }}
+              >
                 <Avatar src={u.avatarUrl} sx={{ mr: 1.5, bgcolor: "white" }} />
-                <ListItemText primary={<Typography sx={{ fontWeight: 900 }}>{u.displayName}</Typography>} secondary={`@${u.username}`} />
-                <Button variant="contained" sx={{ ml: 1, borderRadius: 999, fontWeight: 900, textTransform: "none", bgcolor: RED }}>Chat</Button>
+                <ListItemText
+                  primary={<Typography sx={{ fontWeight: 900 }}>{u.displayName}</Typography>}
+                  secondary={`@${u.username}`}
+                />
+                <Button variant="contained" sx={{ ml: 1, borderRadius: 999, fontWeight: 900, textTransform: "none", bgcolor: RED }}>
+                  Chat
+                </Button>
               </ListItemButton>
             ))}
-            {filteredUsers.length === 0 && <Box sx={{ py: 5, textAlign: "center" }}><Typography sx={{ fontWeight: 900 }}>No results</Typography></Box>}
+            {!searchLoading && displayedUsers.length === 0 && (
+              <Box sx={{ py: 5, textAlign: "center" }}>
+                <Typography sx={{ fontWeight: 900 }}>
+                  {newMsgQuery.trim().length >= 2 ? "No users found" : "Start typing to search"}
+                </Typography>
+              </Box>
+            )}
           </List>
         </DialogContent>
       </Dialog>
@@ -237,10 +306,33 @@ export default function MessagesDialogs(props: MessagesDialogsProps) {
             <IconButton onClick={onCloseCreateGroup} sx={{ position: "absolute", right: 10, top: 10 }}><CloseIcon /></IconButton>
           </DialogTitle>
           <DialogContent sx={{ pt: 1 }}>
-            <TextField value={createGroupName} onChange={(e) => setCreateGroupName(e.target.value.slice(0, 60))} placeholder="Group name (optional)" fullWidth size="small" sx={{ mb: 1.5 }} />
-            <TextField value={createGroupQuery} onChange={(e) => setCreateGroupQuery(e.target.value)} placeholder="Search people" fullWidth size="small" InputProps={{ sx: { bgcolor: "rgba(0,0,0,0.04)", borderRadius: 999 } }} />
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1.5 }}>
+              <Button variant="outlined" component="label" sx={{ borderRadius: 999, fontWeight: 900, textTransform: "none", minWidth: 0, p: 1.25 }}>
+                {createGroupPictureUrl ? (
+                  <Avatar src={createGroupPictureUrl} sx={{ width: 56, height: 56, border: `2px solid ${RED}` }} />
+                ) : (
+                  <Typography sx={{ fontSize: 12 }}>Add photo</Typography>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () => setCreateGroupPictureUrl(String(reader.result));
+                    reader.readAsDataURL(file);
+                    e.target.value = "";
+                  }}
+                />
+              </Button>
+              <TextField value={createGroupName} onChange={(e) => setCreateGroupName(e.target.value.slice(0, 60))} placeholder="Group name" fullWidth size="small" />
+            </Box>
+            <Typography sx={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.6)", mb: 1 }}>Add members to the group</Typography>
+            <TextField value={createGroupQuery} onChange={(e) => setCreateGroupQuery(e.target.value)} placeholder="Search users" fullWidth size="small" InputProps={{ sx: { bgcolor: "rgba(0,0,0,0.04)", borderRadius: 999 } }} />
             <Divider sx={{ my: 1.5 }} />
-            <List sx={{ p: 0, maxHeight: 320, overflow: "auto" }}>
+            <List sx={{ p: 0, maxHeight: 280, overflow: "auto" }}>
               {createGroupFilteredUsers.map((u) => (
                 <ListItemButton key={u.id} onClick={() => toggleCreateGroupUser(u.id)} sx={{ borderRadius: 2 }}>
                   <ListItemIcon>

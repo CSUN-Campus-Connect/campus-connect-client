@@ -3,18 +3,8 @@
 import * as React from 'react';
 import { Box } from '@mui/material';
 
-export type UseScrollInViewOptions = {
-  threshold?: number;
-  rootMargin?: string;
-  freezeOnceVisible?: boolean; 
-};
-
-/**
- * IntersectionObserver hook that can either reset on scroll
- * or freeze after first visibility.
- */
 export function useScrollInView(
-  { threshold = 0.25, rootMargin = '0px', freezeOnceVisible = false }: UseScrollInViewOptions = {}
+  { threshold = 0.2, freezeOnceVisible = false }: { threshold?: number; freezeOnceVisible?: boolean } = {}
 ) {
   const ref = React.useRef<HTMLDivElement | null>(null);
   const [inView, setInView] = React.useState(false);
@@ -22,48 +12,40 @@ export function useScrollInView(
   React.useEffect(() => {
     const node = ref.current;
     if (!node) return;
-
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (freezeOnceVisible && entry.isIntersecting) {
-          setInView(true);
-          return;
-        }
-        // Reset whenever it leaves the viewport so animation can replay
+        if (freezeOnceVisible && entry.isIntersecting) { setInView(true); return; }
         setInView(entry.isIntersecting);
       },
-      { threshold, rootMargin }
+      { threshold }
     );
-
     observer.observe(node);
     return () => observer.disconnect();
-  }, [threshold, rootMargin, freezeOnceVisible]);
+  }, [threshold, freezeOnceVisible]);
 
   return { ref, inView };
 }
 
-/* ---------------- Fade in on scroll ---------------- */
-
 export type ScrollFadeInProps = {
   children: React.ReactNode;
-  delay?: number;      // ms
-  translateY?: number; // px
+  delay?: number;
+  translateY?: number;
 };
 
 export const ScrollFadeIn: React.FC<ScrollFadeInProps> = ({
   children,
   delay = 0,
-  translateY = 28,
+  translateY = 24,
 }) => {
-  const { ref, inView } = useScrollInView();
+  const { ref, inView } = useScrollInView({ freezeOnceVisible: true });
 
   return (
     <Box
       ref={ref}
       sx={{
         opacity: inView ? 1 : 0,
-        transform: inView ? 'translateY(0px)' : `translateY(${translateY}px)`,
-        transition: `opacity 900ms ${delay}ms ease-out, transform 900ms ${delay}ms ease-out`,
+        transform: inView ? 'translateY(0)' : `translateY(${translateY}px)`,
+        transition: `opacity 700ms ${delay}ms ease-out, transform 700ms ${delay}ms ease-out`,
         willChange: 'opacity, transform',
       }}
     >
@@ -72,31 +54,22 @@ export const ScrollFadeIn: React.FC<ScrollFadeInProps> = ({
   );
 };
 
-export type ScrollRevealPanelProps = {
+export const ScrollSlideIn: React.FC<{
   children: React.ReactNode;
   delay?: number;
-};
-
-export const ScrollRevealPanel: React.FC<ScrollRevealPanelProps> = ({
-  children,
-  delay = 0,
-}) => {
-  // Slightly lower threshold so it feels less twitchy
-  const { ref, inView } = useScrollInView({ threshold: 0.15 });
+  from?: 'left' | 'right';
+}> = ({ children, delay = 0, from = 'left' }) => {
+  const { ref, inView } = useScrollInView({ freezeOnceVisible: true });
+  const x = from === 'left' ? -60 : 60;
 
   return (
     <Box
       ref={ref}
       sx={{
-        position: 'relative',
-        overflow: 'hidden',
-        // Start fully cropped from the bottom, reveal top to bottom
-        clipPath: inView
-          ? 'inset(0% 0% 0% 0%)'
-          : 'inset(0% 0% 100% 0%)',
-        transform: inView ? 'scale(1)' : 'scale(0.98)',
-        transition: `clip-path 900ms ${delay}ms ease-out, transform 900ms ${delay}ms ease-out`,
-        willChange: 'clip-path, transform',
+        opacity: inView ? 1 : 0,
+        transform: inView ? 'translate(0, 0)' : `translate(${x}px, 0)`,
+        transition: `opacity 700ms ${delay}ms ease-out, transform 700ms ${delay}ms ease-out`,
+        willChange: 'opacity, transform',
       }}
     >
       {children}

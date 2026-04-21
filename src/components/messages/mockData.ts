@@ -1,8 +1,9 @@
 import type { Message, Note, Thread, User } from "@/types/messages";
 import { ME_ID } from "./constants";
 
-const now = Date.now();
-const mins = (m: number) => now - m * 60_000;
+
+const now = 60;
+const mins = (m: number) => now - m;
 const avatar = (seed: string) =>
   `https://api.dicebear.com/9.x/icons/svg?seed=${encodeURIComponent(seed)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
 

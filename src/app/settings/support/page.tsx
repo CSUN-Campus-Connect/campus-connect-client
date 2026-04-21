@@ -252,15 +252,25 @@ export default function HelpSupportPage() {
     try {
       setIsSubmitting(true);
 
-      // TODO: Replace this placeholder submit flow with support/bug-report backend route.
-      // If attachments are supported, send the payload as multipart/form-data and align
-      // accepted file types/size limits with the backend upload policy.
+      const token = localStorage.getItem("token");
 
-      console.log("Bug report submitted:", { ...formData, files });
+      await api.post(
+        "/api/v1/settings/bug-report",
+        {
+          title: formData.title,
+          category: formData.category,
+          severity: formData.severity,
+          description: formData.description,
+          steps: formData.steps || undefined,
+          browser: formData.browser || undefined,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-      setReportSubmitted(true);
+setReportSubmitted(true);
     } catch (error) {
-      // TODO: Surface backend validation/upload errors here once support submission is wired.
       console.error("Failed to submit bug report", error);
       setSubmitErrorOpen(true);
     } finally {
@@ -455,10 +465,7 @@ export default function HelpSupportPage() {
                           helperText={errors.category}
                           fullWidth
                         >
-                          {/* TODO:
-                              Keep these values in sync with whatever categories
-                              backend/database expects.
-                          */}
+                    
                           <MenuItem value="profile">Student Profile</MenuItem>
                           <MenuItem value="messaging">Messaging & Chat</MenuItem>
                           <MenuItem value="events">Events & Calendar</MenuItem>
@@ -479,10 +486,7 @@ export default function HelpSupportPage() {
                           helperText={errors.severity}
                           fullWidth
                         >
-                          {/* TODO:
-                              Keep these values in sync with whatever severity enum
-                              backend/database expects.
-                          */}
+                        
                           <MenuItem value="critical">
                             Critical - Can't use the site
                           </MenuItem>
@@ -695,7 +699,7 @@ export default function HelpSupportPage() {
                 external
                 isLast
                 onExternalClick={() => {
-                  // TODO: Replace this route if the final terms page lives elsewhere.
+                  
                   window.open("/terms", "_blank");
                 }}
               />
@@ -707,14 +711,14 @@ export default function HelpSupportPage() {
           <Divider sx={{ mb: 3, borderColor: "#EEF1F5" }} />
 
           <Box sx={{ textAlign: "center", color: secondaryText }}>
-            {/* TODO: Replace this hardcoded version with a real app version source if needed
-            (for example package metadata, environment config, or backend-provided version info). */}
+           
+            {} 
             <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
               App Version 1.1.1
             </Typography>
 
             <Typography sx={{ fontSize: 12, mt: 0.5, color: "#9CA3AF" }}>
-              © 2026 CampusConnect. All rights reserved.
+              © 2025 CampusConnect. All rights reserved.
             </Typography>
           </Box>
         </Box>
