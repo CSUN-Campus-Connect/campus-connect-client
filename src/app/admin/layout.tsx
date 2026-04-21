@@ -25,7 +25,7 @@ const NAV_ITEMS: NavItem[] = [
 
   { label: "Moderation", href: "/admin/moderation", permissions: ["moderation:read"], group: "safety" },
   { label: "Security", href: "/admin/security", permissions: ["security:view_cases"], group: "safety" },
-
+  { label: "Alerts", href: "/admin/announcements", permissions: [], group: "safety" },
   { label: "Marketplace", href: "/admin/marketplace", permissions: ["marketplace:read"], group: "content" },
   { label: "Events", href: "/admin/events", permissions: ["events:read"], group: "content" },
   { label: "Bug Reports", href: "/admin/bugs", permissions: ["bugs:read"], group: "content" },
