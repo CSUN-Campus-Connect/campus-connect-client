@@ -32,6 +32,8 @@ import Diversity3Icon from "@mui/icons-material/Diversity3";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import PersonIcon from "@mui/icons-material/Person";
 import SettingsIcon from "@mui/icons-material/Settings";
+import ShieldIcon from "@mui/icons-material/Shield";
+
 
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 
@@ -63,6 +65,7 @@ const navItems: { label: string; icon: React.ReactNode; href?: string }[] = [
   { label: "Clubs", icon: <Diversity3Icon />, href: "/clubs" },
   { label: "Academics", icon: <SchoolIcon />, href: "/academics" },
   { label: "Marketplace", icon: <StorefrontIcon />, href: "/marketplace" },
+  { label: "Safety", icon: <ShieldIcon />, href: "/security" },
   { label: "SRC", icon: SRCIcon, href: "/StudentRecCenter" },
 ];
 
