@@ -5,29 +5,58 @@
 // ============================================================================
 
 import React, { useState } from 'react';
+import axios from 'axios';
 import { MarketplaceListing } from '../types/marketplace.types';
+import { API_BASE } from '../constants/marketplace.constants';
 
 interface Props {
   item: MarketplaceListing | null;
   onClose: () => void;
+  token: string | null;
 }
 
-export default function ContactSellerModal({ item, onClose }: Props) {
+export default function ContactSellerModal({ item, onClose, token }: Props) {
   const [msg, setMsg]         = useState('');
   const [sending, setSending] = useState(false);
   const [sent, setSent]       = useState(false);
+  const [error, setError]     = useState<string | null>(null);
 
   if (!item) return null;
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!msg.trim()) return;
+    if (!token) {
+      setError('Please log in to contact the seller.');
+      return;
+    }
+
     setSending(true);
-    // Placeholder — replace with real messaging API call
-    await new Promise((r) => setTimeout(r, 900));
-    setSent(true);
-    setSending(false);
-    setTimeout(() => { setSent(false); setMsg(''); onClose(); }, 1800);
+    setError(null);
+
+    try {
+      const { data: conversation } = await axios.post(
+        `${API_BASE}/api/v1/messages/conversations`,
+        {
+          isGroup: false,
+          participantIds: [item.seller.id],
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      await axios.post(
+        `${API_BASE}/api/v1/messages/conversations/${conversation.id}/messages`,
+        { content: msg.trim() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setSent(true);
+      setTimeout(() => { setSent(false); setMsg(''); onClose(); }, 1800);
+    } catch (err: any) {
+      setError(err.response?.data?.message ?? 'Failed to send message. Please try again.');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -81,6 +110,7 @@ export default function ContactSellerModal({ item, onClose }: Props) {
                 onFocus={(e) => { (e.target as HTMLTextAreaElement).style.borderColor = '#A80532'; }}
                 onBlur={(e) => { (e.target as HTMLTextAreaElement).style.borderColor = '#e5e7eb'; }}
               />
+              {error && <p style={{ color: '#dc2626', fontSize: 13, marginBottom: 12 }}>{error}</p>}
               <div style={{ display: 'flex', gap: 8 }}>
                 <button type="button" onClick={onClose} style={{ flex: 1, padding: 12, background: '#f3f4f6', border: 'none', borderRadius: 10, fontWeight: 600, fontSize: 14, cursor: 'pointer', color: '#374151' }}>Cancel</button>
                 <button type="submit" disabled={sending || !msg.trim()} style={{ flex: 2, padding: 12, background: sending || !msg.trim() ? '#9ca3af' : '#A80532', border: 'none', borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: 14, cursor: sending || !msg.trim() ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>

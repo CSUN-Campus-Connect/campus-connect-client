@@ -373,7 +373,7 @@ export default function MarketplacePage() {
           onSuccess={mp.triggerRefresh}
           token={token ?? null}
         />
-        <ContactSellerModal item={contactItem} onClose={() => setContactItem(null)} />
+        <ContactSellerModal item={contactItem} onClose={() => setContactItem(null)} token={token ?? null} />
       </div>
     </>
   );

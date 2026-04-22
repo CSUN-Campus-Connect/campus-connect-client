@@ -10,7 +10,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import ImageUploadArea from './ImageUploadArea';
 import { useImageUpload } from '../hooks/useImageUpload';
-import { CATEGORIES, CONDITIONS, API_BASE, LISTING_TYPES, MEETUP_LOCATIONS } from '../constants/marketplace.constants';
+import { CATEGORIES, CONDITIONS, API_BASE, LISTING_TYPES, MEETUP_LOCATIONS, getListingTypeMeta } from '../constants/marketplace.constants';
 
 interface Props {
   isOpen: boolean;
