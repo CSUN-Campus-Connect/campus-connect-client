@@ -28,6 +28,20 @@ export const SORT_OPTIONS = [
   { value: 'popular',    label: 'Most Popular'       },
 ] as const;
 
+export const LISTING_TYPES = [
+  { value: 'sale', label: 'For Sale', emoji: '🛍️', color: '#0891b2' },
+  { value: 'rent', label: 'For Rent', emoji: '🔄', color: '#8b5cf6' },
+  { value: 'free', label: 'Free / Give Away', emoji: '🎁', color: '#10b981' },
+] as const;
+
+export const MEETUP_LOCATIONS = [
+  'Library Front Desk',
+  'SRC Entrance',
+  'USU Plaza',
+  'Oviatt Library',
+  'Student Center',
+] as const;
+
 // Max images per listing
 export const MAX_IMAGES = 8;
 
@@ -52,4 +66,15 @@ export function getConditionMeta(condition: string) {
 
 export function getCategoryAccent(categoryId: string): string {
   return CATEGORIES.find((c) => c.id === categoryId)?.accent ?? '#D22030';
+}
+
+export function getListingTypeMeta(type: string) {
+  return (
+    LISTING_TYPES.find((lt) => lt.value === type) ?? {
+      value: 'sale',
+      label: 'For Sale',
+      emoji: '🛍️',
+      color: '#0891b2',
+    }
+  );
 }

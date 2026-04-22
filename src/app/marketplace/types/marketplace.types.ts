@@ -14,12 +14,16 @@ export interface MarketplaceListing {
   id: string;
   title: string;
   description: string;
-  price: number;
+  price: number | null;
   originalPrice: number | null;
   images: string[];
   condition: string;
   category: string;
   location: string;
+  listingType: 'sale' | 'rent' | 'free';
+  meetupLocation?: string;
+  rentalPrice: number | null;
+  rentalDurationDays: number | null;
   views: number;
   status: string;
   createdAt: string;
@@ -49,5 +53,9 @@ export interface ListingFormData {
   category: string;
   condition: string;
   location: string;
+  listingType: 'sale' | 'rent' | 'free';
+  meetupLocation?: string;
+  rentalPrice?: string;
+  rentalDurationDays?: string;
   images: FormImageEntry[];
 }
