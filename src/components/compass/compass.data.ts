@@ -255,12 +255,12 @@ export const ALL_MILESTONES: CompassMilestone[] = [
       'After filing, schedule a graduation check with your advisor to confirm',
       'Order regalia through the CSUN Bookstore early — it sells out',
       'Apply for a graduation fee waiver if eligible',
-    ],solar.csun.edu', note: 'Apply to graduate - do NOT skip this step' },
+    ],
+    resources: [
+      { name: 'SOLAR Graduation Application', url: 'https://solar.csun.edu', note: 'Apply to graduate - do NOT skip this step' },
       { name: 'Graduation Dates & Deadlines', url: 'https://www.csun.edu/graduation', note: 'Official semester deadlines for filing' },
       { name: 'Commencement Information', url: 'https://www.csun.edu/graduation', note: 'Cap and gown, ceremony details, and pricing' },
-      { name: 'Diplomat Alumni Toolkit', url: 'https://www.csun.edu/alumni', note: 'Resources for graduating students and new alumni
-      { name: 'SOLAR Graduation Application', url: 'https://www.csun.edu/solar' },
-      { name: 'CSUN Graduation Information', url: 'https://www.csun.edu/records/graduation' },
+      { name: 'Diplomat Alumni Toolkit', url: 'https://www.csun.edu/alumni', note: 'Resources for graduating students and new alumni' },
     ],
     linkedFeature: 'Academics Hub',
   },
