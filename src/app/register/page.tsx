@@ -17,12 +17,13 @@ const smooth: [number, number, number, number] = [0.16, 1, 0.3, 1];
 export default function RegisterPage() {
   const router = useRouter();
 
-  const [registerData, setRegisterData] = useState<RegisterInput>({
+  const [registerData, setRegisterData] = useState<RegisterInput & { phoneNumber?: string }>({
     email: '',
     password: '',
     firstName: '',
     lastName: '',
     confirmPassword: '',
+    phoneNumber: '',
   });
 
   const [errors, setErrors] = useState<{
@@ -31,6 +32,7 @@ export default function RegisterPage() {
     confirmPassword?: string;
     firstName?: string;
     lastName?: string;
+    phoneNumber?: string;
     general?: string;
   }>({});
 
@@ -70,6 +72,8 @@ export default function RegisterPage() {
     setIsSubmitting(true);
     try {
       const { confirmPassword, ...apiData } = registerData;
+      // Strip empty phone number so the backend treats it as null
+      if (!apiData.phoneNumber?.trim()) delete apiData.phoneNumber;
       await api.post<PublicUser>('/api/v1/users/register', apiData);
       setIsSuccess(true);
     } catch (error: any) {
@@ -152,7 +156,6 @@ export default function RegisterPage() {
               One account. Your feed, clubs, marketplace, events, and everything CSUN in one place.
             </motion.p>
 
-            {/* Password requirements — subtle, editorial */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -179,7 +182,6 @@ export default function RegisterPage() {
 
           {!isSuccess ? (
             <>
-              {/* Error banner */}
               {errors.general && (
                 <motion.div
                   initial={{ opacity: 0, y: -8 }}
@@ -235,6 +237,25 @@ export default function RegisterPage() {
                     className="w-full bg-transparent text-[15px] font-light text-[#111] placeholder-[#ccc] border-0 border-b border-[#e0e0e0] focus:border-[#CC0033] focus:outline-none pb-2 transition-colors duration-200"
                   />
                   {errors.email && <p className="mt-2 text-[12px] text-[#CC0033]">{errors.email}</p>}
+                </div>
+
+                {/* Phone Number */}
+                <div className="border-t border-[#eee] pt-5 pb-5">
+                  <label className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2">
+                    Phone Number{' '}
+                    <span className="text-[#ccc] normal-case font-light tracking-normal">— optional</span>
+                  </label>
+                  <input
+                    type="tel"
+                    placeholder="+1 (818) 555-0100"
+                    value={registerData.phoneNumber || ''}
+                    onChange={(e) => setRegisterData({ ...registerData, phoneNumber: e.target.value })}
+                    className="w-full bg-transparent text-[15px] font-light text-[#111] placeholder-[#ccc] border-0 border-b border-[#e0e0e0] focus:border-[#CC0033] focus:outline-none pb-2 transition-colors duration-200"
+                  />
+                  <p className="mt-2 text-[11px] text-[#ccc] font-light">
+                    Only used for emergency safety alerts. Never shared or used for marketing.
+                  </p>
+                  {errors.phoneNumber && <p className="mt-1 text-[12px] text-[#CC0033]">{errors.phoneNumber}</p>}
                 </div>
 
                 {/* Password */}
@@ -313,7 +334,6 @@ export default function RegisterPage() {
               </form>
             </>
           ) : (
-            /* Success state */
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
