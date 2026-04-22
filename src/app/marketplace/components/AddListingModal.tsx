@@ -10,7 +10,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import ImageUploadArea from './ImageUploadArea';
 import { useImageUpload } from '../hooks/useImageUpload';
-import { CATEGORIES, CONDITIONS, API_BASE } from '../constants/marketplace.constants';
+import { CATEGORIES, CONDITIONS, API_BASE, LISTING_TYPES, MEETUP_LOCATIONS } from '../constants/marketplace.constants';
 
 interface Props {
   isOpen: boolean;
@@ -27,6 +27,10 @@ interface FormErrors {
   category?: string;
   condition?: string;
   location?: string;
+  listingType?: string;
+  meetupLocation?: string;
+  rentalPrice?: string;
+  rentalDurationDays?: string;
   images?: string;
 }
 
@@ -42,6 +46,10 @@ export default function AddListingModal({ isOpen, onClose, onSuccess, token }: P
   const [category, setCategory]   = useState('');
   const [condition, setCondition] = useState('');
   const [location, setLocation]   = useState('');
+  const [listingType, setListingType] = useState<'sale' | 'rent' | 'free'>('sale');
+  const [meetupLocation, setMeetupLocation] = useState('');
+  const [rentalPrice, setRentalPrice] = useState('');
+  const [rentalDurationDays, setRentalDurationDays] = useState('');
   const [errors, setErrors]       = useState<FormErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting]   = useState(false);
@@ -57,8 +65,23 @@ export default function AddListingModal({ isOpen, onClose, onSuccess, token }: P
     if (!title.trim() || title.length < 3)      e.title       = 'Title must be at least 3 characters.';
     if (title.length > 100)                       e.title       = 'Title cannot exceed 100 characters.';
     if (!desc.trim() || desc.length < 10)        e.description = 'Description must be at least 10 characters.';
-    if (!price || isNaN(+price) || +price <= 0)  e.price       = 'Enter a valid positive price.';
-    if (origPrice && (+origPrice <= +price))      e.originalPrice = 'Original price must be higher than the selling price.';
+    
+    // Conditional price validation
+    if (listingType === 'sale' && (!price || isNaN(+price) || +price <= 0)) {
+      e.price = 'Enter a valid positive price.';
+    } else if (listingType === 'free' && price) {
+      // Free listings shouldn't have a price
+      setPrice('');
+    }
+    
+    if (origPrice && (+origPrice <= +price)) e.originalPrice = 'Original price must be higher than the selling price.';
+    
+    // Rental validation
+    if (listingType === 'rent') {
+      if (!rentalPrice || isNaN(+rentalPrice) || +rentalPrice <= 0) e.rentalPrice = 'Enter a valid rental price.';
+      if (!rentalDurationDays || isNaN(+rentalDurationDays) || +rentalDurationDays <= 0) e.rentalDurationDays = 'Enter rental duration in days.';
+    }
+    
     if (!category)                                e.category    = 'Please select a category.';
     if (!condition)                               e.condition   = 'Please select a condition.';
     if (!location.trim())                         e.location    = 'Location is required.';
@@ -90,11 +113,15 @@ export default function AddListingModal({ isOpen, onClose, onSuccess, token }: P
         {
           title:         title.trim(),
           description:   desc.trim(),
-          price:         parseFloat(price),
+          price:         listingType === 'free' ? null : parseFloat(price),
           originalPrice: origPrice ? parseFloat(origPrice) : null,
           category,
           condition,
           location:      location.trim(),
+          listingType,
+          meetupLocation: meetupLocation || null,
+          rentalPrice:   listingType === 'rent' ? parseFloat(rentalPrice) : null,
+          rentalDurationDays: listingType === 'rent' ? parseInt(rentalDurationDays) : null,
           images:        urls,
         },
         { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
@@ -116,6 +143,7 @@ export default function AddListingModal({ isOpen, onClose, onSuccess, token }: P
     setStep('Details'); setTitle(''); setDesc(''); setPrice(''); setOrigPrice('');
     setCategory(''); setCondition(''); setLocation(''); setErrors({});
     setSubmitError(null); setSubmitting(false); setSuccess(false);
+    setListingType('sale'); setMeetupLocation(''); setRentalPrice(''); setRentalDurationDays('');
     imageUpload.reset();
   };
 
@@ -278,6 +306,85 @@ export default function AddListingModal({ isOpen, onClose, onSuccess, token }: P
                         onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = errors.location ? '#dc2626' : '#e5e7eb'; }}
                       />
                       {errors.location && <p style={{ color: '#dc2626', fontSize: 12, marginTop: 3 }}>{errors.location}</p>}
+                    </div>
+
+                    {/* Listing Type */}
+                    <div style={{ marginBottom: 14 }}>
+                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>Listing Type <span style={{ color: '#dc2626' }}>*</span></label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+                        {LISTING_TYPES.map((type) => {
+                          const meta = getListingTypeMeta(type.value);
+                          const isSelected = listingType === type.value;
+                          return (
+                            <button key={type.value} type="button" onClick={() => { setListingType(type.value as any); setErrors((p) => ({ ...p, listingType: undefined })); }}
+                              style={{
+                                padding: '10px',
+                                border: `2px solid ${isSelected ? '#A80532' : '#e5e7eb'}`,
+                                borderRadius: 8,
+                                background: isSelected ? '#FEE2E8' : '#fff',
+                                cursor: 'pointer',
+                                fontSize: 13,
+                                fontWeight: 600,
+                                color: isSelected ? '#A80532' : '#374151',
+                                transition: 'all 0.2s',
+                              }}>
+                              <span>{meta.emoji}</span> {meta.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {errors.listingType && <p style={{ color: '#dc2626', fontSize: 12, marginTop: 3 }}>{errors.listingType}</p>}
+                    </div>
+
+                    {/* Price/Rental fields based on listing type */}
+                    {listingType === 'sale' && (
+                      <div style={{ marginBottom: 14 }}>
+                        <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 5 }}>Price <span style={{ color: '#dc2626' }}>*</span></label>
+                        <div style={{ position: 'relative' }}>
+                          <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#6b7280', fontSize: 14 }}>$</span>
+                          <input type="number" step="0.01" min="0" value={price} onChange={(e) => { setPrice(e.target.value); setErrors((p) => ({ ...p, price: undefined })); }} placeholder="0.00" style={{ ...field(errors.price), paddingLeft: 24 }}
+                            onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = '#A80532'; }}
+                            onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = errors.price ? '#dc2626' : '#e5e7eb'; }}
+                          />
+                        </div>
+                        {errors.price && <p style={{ color: '#dc2626', fontSize: 12, marginTop: 3 }}>{errors.price}</p>}
+                      </div>
+                    )}
+
+                    {listingType === 'rent' && (
+                      <>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                          <div>
+                            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 5 }}>Rental Price <span style={{ color: '#dc2626' }}>*</span></label>
+                            <div style={{ position: 'relative' }}>
+                              <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#6b7280', fontSize: 14 }}>$</span>
+                              <input type="number" step="0.01" min="0" value={rentalPrice} onChange={(e) => { setRentalPrice(e.target.value); setErrors((p) => ({ ...p, rentalPrice: undefined })); }} placeholder="0.00" style={{ ...field(errors.rentalPrice), paddingLeft: 24 }}
+                                onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = '#A80532'; }}
+                                onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = errors.rentalPrice ? '#dc2626' : '#e5e7eb'; }}
+                              />
+                            </div>
+                            {errors.rentalPrice && <p style={{ color: '#dc2626', fontSize: 12, marginTop: 3 }}>{errors.rentalPrice}</p>}
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 5 }}>Duration (Days) <span style={{ color: '#dc2626' }}>*</span></label>
+                            <input type="number" min="1" value={rentalDurationDays} onChange={(e) => { setRentalDurationDays(e.target.value); setErrors((p) => ({ ...p, rentalDurationDays: undefined })); }} placeholder="e.g. 7" style={field(errors.rentalDurationDays)}
+                              onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = '#A80532'; }}
+                              onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = errors.rentalDurationDays ? '#dc2626' : '#e5e7eb'; }}
+                            />
+                            {errors.rentalDurationDays && <p style={{ color: '#dc2626', fontSize: 12, marginTop: 3 }}>{errors.rentalDurationDays}</p>}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Meetup Location (optional for all types) */}
+                    <div style={{ marginBottom: 20 }}>
+                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 5 }}>Preferred Meetup Location <span style={{ color: '#9ca3af', fontWeight: 400 }}>(optional)</span></label>
+                      <select value={meetupLocation} onChange={(e) => { setMeetupLocation(e.target.value); setErrors((p) => ({ ...p, meetupLocation: undefined })); }} style={{ ...field(errors.meetupLocation), appearance: 'none', cursor: 'pointer' }}>
+                        <option value="">Select a location...</option>
+                        {MEETUP_LOCATIONS.map((loc) => <option key={loc} value={loc}>{loc}</option>)}
+                      </select>
+                      {errors.meetupLocation && <p style={{ color: '#dc2626', fontSize: 12, marginTop: 3 }}>{errors.meetupLocation}</p>}
                     </div>
 
                     {/* Next */}
