@@ -29,9 +29,9 @@ export const SORT_OPTIONS = [
 ] as const;
 
 export const LISTING_TYPES = [
-  { value: 'sale', label: 'For Sale', emoji: '🛍️', color: '#0891b2' },
-  { value: 'rent', label: 'For Rent', emoji: '🔄', color: '#8b5cf6' },
-  { value: 'free', label: 'Free / Give Away', emoji: '🎁', color: '#10b981' },
+  { value: 'sale', label: 'For Sale', color: '#0891b2' },
+  { value: 'rent', label: 'For Rent', color: '#8b5cf6' },
+  { value: 'free', label: 'Free / Give Away', color: '#10b981' },
 ] as const;
 
 export const MEETUP_LOCATIONS = [
