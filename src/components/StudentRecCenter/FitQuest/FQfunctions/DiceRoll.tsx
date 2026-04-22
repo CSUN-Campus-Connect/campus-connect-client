@@ -38,7 +38,11 @@ type DieProps = {
 const Die: React.FC<DieProps> = ({ label, value, rolling, onRoll }) => {
   return (
     <motion.div
+      role="button"
+      tabIndex={0}
+      aria-label={`Roll ${label} die (current: ${value})`}
       onClick={onRoll}
+      onKeyDown={(e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onRoll(); } }}
       style={{ cursor: "pointer" }}
       whileTap={{ scale: 0.9 }}
       animate={
@@ -156,6 +160,7 @@ const SetRepDice: React.FC<SetRepDiceProps> = ({
       </Stack>
 
       <Typography
+        component="button"
         variant="body2"
         sx={{
           mt: 2,
@@ -165,6 +170,11 @@ const SetRepDice: React.FC<SetRepDiceProps> = ({
           textDecorationStyle: "dotted",
           textUnderlineOffset: 4,
           display: "inline-block",
+          background: "none",
+          border: "none",
+          p: 0,
+          color: "inherit",
+          font: "inherit",
         }}
         onClick={rollBoth}
       >

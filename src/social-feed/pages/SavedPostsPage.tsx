@@ -25,7 +25,7 @@ export default function SavedPostsPage({
   if (!saved.length) {
     return (
       <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"60vh", textAlign:"center", padding:"40px 20px", animation:"fadeUp 240ms ease both" }}>
-        <svg width="52" height="52" fill="none" stroke="var(--text-muted)" strokeWidth="1.3" viewBox="0 0 24 24" style={{ marginBottom:16, opacity:0.5 }}>
+        <svg aria-hidden="true" width="52" height="52" fill="none" stroke="var(--text-muted)" strokeWidth="1.3" viewBox="0 0 24 24" style={{ marginBottom:16, opacity:0.5 }}>
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
         </svg>
         <div style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight:700, color:"var(--text-primary)", marginBottom:6 }}>Nothing saved yet</div>

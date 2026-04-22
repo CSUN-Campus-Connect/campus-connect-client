@@ -253,6 +253,7 @@ export default function MilestonesPanel({
             value={category}
             onChange={(e) => setCategory(e.target.value as Milestone["category"])}
             fullWidth
+            inputProps={{ "aria-label": "Milestone category" }}
             sx={fieldSx}
           >
             <MenuItem value="strength">Strength / PR</MenuItem>
@@ -329,7 +330,7 @@ export default function MilestonesPanel({
               />
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
-              <Select value={dMode} onChange={(e) => setDMode(e.target.value as any)} fullWidth sx={fieldSx}>
+              <Select value={dMode} onChange={(e) => setDMode(e.target.value as any)} fullWidth inputProps={{ "aria-label": "Tracking mode" }} sx={fieldSx}>
                 <MenuItem value="distance">Track distance</MenuItem>
                 <MenuItem value="time">Track time</MenuItem>
                 <MenuItem value="both">Track both</MenuItem>
@@ -391,13 +392,13 @@ export default function MilestonesPanel({
               />
             </Grid>
             <Grid item xs={12} md={4} lg={3}>
-              <Select value={direction} onChange={(e) => setDirection(e.target.value as any)} fullWidth sx={fieldSx}>
+              <Select value={direction} onChange={(e) => setDirection(e.target.value as any)} fullWidth inputProps={{ "aria-label": "Weight direction" }} sx={fieldSx}>
                 <MenuItem value="down">Cut down</MenuItem>
                 <MenuItem value="up">Bulk up</MenuItem>
               </Select>
             </Grid>
             <Grid item xs={12} md={4} lg={3}>
-              <Select value={cadence} onChange={(e) => setCadence(e.target.value as any)} fullWidth sx={fieldSx}>
+              <Select value={cadence} onChange={(e) => setCadence(e.target.value as any)} fullWidth inputProps={{ "aria-label": "Check-in cadence" }} sx={fieldSx}>
                 <MenuItem value="weekly">Weekly</MenuItem>
                 <MenuItem value="biweekly">Bi-weekly</MenuItem>
                 <MenuItem value="monthly">Monthly</MenuItem>
@@ -530,12 +531,12 @@ export default function MilestonesPanel({
                       {m.category === "weight" ? `Body weight (${m.cadence})` : m.label}
                     </Typography>
                     <IconButton
-                      aria-label="delete milestone"
+                      aria-label={`Delete milestone: ${m.category === "weight" ? "Body weight" : m.label}`}
                       onClick={() => deleteMilestone(m.id)}
                       size="small"
                       sx={{ color: "#fff" }}
                     >
-                      <DeleteIcon fontSize="small" />
+                      <DeleteIcon fontSize="small" aria-hidden="true" />
                     </IconButton>
                   </Stack>
 

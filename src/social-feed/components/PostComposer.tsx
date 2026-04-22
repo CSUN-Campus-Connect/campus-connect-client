@@ -109,6 +109,7 @@ export function PostComposer({ currentUserInitials, currentUserAvatar, onPost }:
           <textarea
             ref={textareaRef}
             placeholder="What's on your mind?"
+            aria-label="Write a new post"
             value={value}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
@@ -138,7 +139,7 @@ export function PostComposer({ currentUserInitials, currentUserAvatar, onPost }:
                   <img src={src} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                   <button
                     onClick={() => removeImage(idx)}
-                    title="Remove image"
+                    aria-label={`Remove image ${idx + 1}`}
                     style={{ position:"absolute", top:5, right:5, width:22, height:22, borderRadius:"50%", background:"rgba(0,0,0,0.55)", border:"none", color:"#fff", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, lineHeight:1 }}
                   >×</button>
                 </div>
@@ -163,7 +164,7 @@ export function PostComposer({ currentUserInitials, currentUserAvatar, onPost }:
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={submitting || images.length >= 4}
-                title="Attach image"
+                aria-label="Attach image"
                 style={{ width:34, height:34, borderRadius:"var(--radius-md)", border:"1px solid var(--border-subtle)", background:"transparent", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--text-muted)", cursor: images.length >= 4 ? "not-allowed" : "pointer", opacity: images.length >= 4 ? 0.4 : 1, transition:"background 150ms, color 150ms" }}
                 onMouseEnter={e => { if (images.length < 4) { e.currentTarget.style.background = "var(--bg-elevated)"; e.currentTarget.style.color = "var(--csun-red)"; } }}
                 onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}

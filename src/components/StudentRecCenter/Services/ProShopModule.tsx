@@ -78,7 +78,7 @@ export default function ProShopModule({ service }: Props) {
               },
             }}
           >
-            <CheckCircleRoundedIcon sx={{ fontSize: 14, color: "rgba(59,130,246,0.7)", flexShrink: 0 }} />
+            <CheckCircleRoundedIcon aria-hidden="true" sx={{ fontSize: 14, color: "rgba(59,130,246,0.7)", flexShrink: 0 }} />
             <Typography sx={{ color: "rgba(255,255,255,0.80)", fontSize: 13, fontWeight: 500 }}>
               {item.name}
             </Typography>

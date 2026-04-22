@@ -153,9 +153,10 @@ export default function InviteFriendModal({
                     onClick={handleClose}
                     size="small"
                     disabled={loading}
+                    aria-label="Close"
                     sx={{ color: "rgba(255,255,255,0.35)", "&:hover": { color: "#fff", bgcolor: "rgba(255,255,255,0.08)" } }}
                   >
-                    <CloseIcon fontSize="small" />
+                    <CloseIcon fontSize="small" aria-hidden="true" />
                   </IconButton>
                 </Box>
 
@@ -175,6 +176,7 @@ export default function InviteFriendModal({
                 <TextField
                   fullWidth
                   placeholder="yourid@my.csun.edu"
+                  inputProps={{ "aria-label": "Your CSUN email address" }}
                   value={senderEmail}
                   onChange={(e) => { setSenderEmail(e.target.value); setErrors((prev) => ({ ...prev, sender: undefined })); }}
                   error={!!errors.sender}
@@ -200,6 +202,7 @@ export default function InviteFriendModal({
                 <TextField
                   fullWidth
                   placeholder="friendid@my.csun.edu"
+                  inputProps={{ "aria-label": "Friend's CSUN email address" }}
                   value={friendEmail}
                   onChange={(e) => { setFriendEmail(e.target.value); setErrors((prev) => ({ ...prev, friend: undefined })); }}
                   onKeyDown={(e) => e.key === "Enter" && handleSubmit()}

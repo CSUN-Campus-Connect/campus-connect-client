@@ -138,6 +138,8 @@ export function PostCard({
               <div ref={menuRef} style={{ position: 'relative', flexShrink: 0 }} onBlur={handleMenuBlur}>
                 <button
                   onClick={() => setMenuOpen(o => !o)}
+                  aria-label="More options"
+                  aria-expanded={menuOpen}
                   style={{
                     width: 30, height: 30, borderRadius: '50%', border: 'none',
                     background: menuOpen ? 'var(--bg-hover)' : 'transparent',

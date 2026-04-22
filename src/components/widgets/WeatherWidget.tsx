@@ -257,7 +257,7 @@ export const WeatherWidget: React.FC<{ onDelete?: () => void }> = ({
                     border: "1px solid rgba(0,0,0,0.1)",
                   }}
                 >
-                  <Icon sx={{ fontSize: 34 }} />
+                  <Icon sx={{ fontSize: 34 }} aria-hidden="true" />
                 </Box>
 
                 <Box>
@@ -315,7 +315,7 @@ export const WeatherWidget: React.FC<{ onDelete?: () => void }> = ({
                     </Typography>
 
                     <Stack direction="row" spacing={0.5} alignItems="center">
-                      <HIcon fontSize="small" />
+                      <HIcon fontSize="small" aria-hidden="true" />
                       <Typography variant="body2">
                         {Math.round(h.temperature)}°F
                       </Typography>

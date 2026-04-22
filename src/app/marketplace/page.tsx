@@ -433,7 +433,7 @@ const Marketplace = () => {
             el.style.boxShadow = "0 4px 15px rgba(0,0,0,0.15)";
           }}
         >
-          <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg aria-hidden="true" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6" />
           </svg>
           Back
@@ -476,7 +476,7 @@ const Marketplace = () => {
             el.style.boxShadow = "0 4px 15px rgba(0,0,0,0.15)";
           }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
           My Favorites ({favorites.size})
@@ -554,7 +554,7 @@ const Marketplace = () => {
                   el.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.15)';
                 }}
               >
-                <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <svg aria-hidden="true" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="12" y1="5" x2="12" y2="19"/>
                   <line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
@@ -575,14 +575,15 @@ const Marketplace = () => {
                 border: '2px solid rgba(255, 255, 255, 0.3)'
               }}>
                 <div style={{ marginLeft: '0.5rem', color: '#A80532' }}>
-                  <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg aria-hidden="true" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="11" cy="11" r="8"/>
                     <path d="m21 21-4.35-4.35"/>
                   </svg>
                 </div>
-                
+
                 <input
                   type="text"
+                  aria-label="Search marketplace"
                   placeholder="Search for textbooks, electronics, furniture..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -718,6 +719,7 @@ const Marketplace = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
+              aria-label="Sort listings by"
               style={{
                 padding: '0.75rem 1.25rem',
                 border: '2px solid rgba(255, 255, 255, 0.3)',
@@ -825,6 +827,7 @@ const Marketplace = () => {
                 </div>
                 <button
                   onClick={() => setShowContactModal(false)}
+                  aria-label="Close contact form"
                   style={{
                     background: 'rgba(168, 5, 50, 0.1)',
                     border: '2px solid rgba(168, 5, 50, 0.2)',
@@ -850,7 +853,7 @@ const Marketplace = () => {
                     el.style.transform = 'rotate(0deg)';
                   }}
                 >
-                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg aria-hidden="true" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"/>
                     <line x1="6" y1="6" x2="18" y2="18"/>
                   </svg>
@@ -905,6 +908,7 @@ const Marketplace = () => {
               <textarea
                 value={contactMessage}
                 onChange={(e) => setContactMessage(e.target.value)}
+                aria-label="Message to seller"
                 placeholder="Write your message here..."
                 rows={5}
                 style={{

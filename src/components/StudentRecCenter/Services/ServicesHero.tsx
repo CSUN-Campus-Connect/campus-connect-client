@@ -37,6 +37,7 @@ export default function ServicesHero() {
       {orbs.map((o, i) => (
         <Box
           key={i}
+          aria-hidden="true"
           sx={{
             position: "absolute",
             top: o.top,

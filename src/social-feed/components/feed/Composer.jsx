@@ -137,6 +137,7 @@ export function Composer({ currentUser, availableTags = [], onPost }) {
             onChange={e => { setContent(e.target.value); if (!expanded) setExpanded(true); }}
             onFocus={() => setExpanded(true)}
             onKeyDown={handleKeyDown}
+            aria-label="Write a post"
             placeholder="Share an update, idea, or resource with fellow Matadors..."
             maxLength={MAX_CHARS + 50}
             style={{
@@ -189,6 +190,7 @@ export function Composer({ currentUser, availableTags = [], onPost }) {
                         </div>
                       )}
                       <button
+                        aria-label="Remove image"
                         onClick={() => {
                           URL.revokeObjectURL(f.preview);
                           setFiles(prev => prev.filter(x => x.id !== f.id));

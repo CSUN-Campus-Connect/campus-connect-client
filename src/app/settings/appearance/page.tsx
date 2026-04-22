@@ -287,6 +287,7 @@ export default function AppearancePage() {
                 sx={selectSx}
                 MenuProps={{ PaperProps: { sx: menuPaperSx } }}
                 disabled={!hasLoaded}
+                inputProps={{ "aria-label": "Theme" }}
               >
                 <MenuItem value="light">Light</MenuItem>
                 <MenuItem value="dark">Dark</MenuItem>
@@ -307,6 +308,7 @@ export default function AppearancePage() {
                 sx={selectSx}
                 MenuProps={{ PaperProps: { sx: menuPaperSx } }}
                 disabled={!hasLoaded}
+                inputProps={{ "aria-label": "Text size" }}
               >
                 <MenuItem value="small">Small</MenuItem>
                 <MenuItem value="medium">Medium</MenuItem>

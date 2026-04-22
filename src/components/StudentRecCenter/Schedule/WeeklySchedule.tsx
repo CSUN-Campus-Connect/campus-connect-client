@@ -180,9 +180,10 @@ export default function WeeklySchedule() {
           <IconButton
             onClick={() => setWeekStart((w) => w.subtract(1, "week"))}
             size="small"
+            aria-label="Previous week"
             sx={{ color: "#fff", border: "1px solid rgba(255,255,255,0.25)", "&:hover": { bgcolor: "rgba(255,255,255,0.1)" } }}
           >
-            <ChevronLeftIcon fontSize="small" />
+            <ChevronLeftIcon fontSize="small" aria-hidden="true" />
           </IconButton>
           <Typography sx={{ fontWeight: 800, color: "#fff", fontSize: "1rem", minWidth: 200, textAlign: "center" }}>
             {weekStart.format("MMM D")} – {weekStart.add(6, "day").format("MMM D, YYYY")}
@@ -190,9 +191,10 @@ export default function WeeklySchedule() {
           <IconButton
             onClick={() => setWeekStart((w) => w.add(1, "week"))}
             size="small"
+            aria-label="Next week"
             sx={{ color: "#fff", border: "1px solid rgba(255,255,255,0.25)", "&:hover": { bgcolor: "rgba(255,255,255,0.1)" } }}
           >
-            <ChevronRightIcon fontSize="small" />
+            <ChevronRightIcon fontSize="small" aria-hidden="true" />
           </IconButton>
         </Box>
         {!isCurrentWeek && (
@@ -337,7 +339,11 @@ export default function WeeklySchedule() {
                         arrow
                       >
                         <Box
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`${cls.name}, ${FULL_DAYS[cls.dayOfWeek]}, ${fmt12(cls.startTime)} to ${fmt12(cls.endTime)}, ${cls.location}${isFull ? ", class full" : ""}`}
                           onClick={() => setSelected(cls)}
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(cls); } }}
                           sx={{
                             position: "absolute",
                             top, left: 2, right: 2,

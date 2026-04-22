@@ -341,6 +341,7 @@ const AddListingModal: React.FC<AddListingModalProps> = ({ isOpen, onClose, onSu
           <button
             onClick={handleClose}
             disabled={isSubmitting}
+            aria-label="Close listing form"
             style={{
               background: '#F3F4F6',
               border: 'none',
@@ -354,7 +355,7 @@ const AddListingModal: React.FC<AddListingModalProps> = ({ isOpen, onClose, onSu
             onMouseEnter={(e) => !isSubmitting && ((e.target as HTMLElement).style.background = '#E5E7EB')}
             onMouseLeave={(e) => !isSubmitting && ((e.target as HTMLElement).style.background = '#F3F4F6')}
           >
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg aria-hidden="true" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"/>
               <line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
@@ -380,10 +381,11 @@ const AddListingModal: React.FC<AddListingModalProps> = ({ isOpen, onClose, onSu
         <form onSubmit={handleSubmit}>
           {/* Title Field */}
           <div style={{ marginBottom: '1.25rem' }}>
-            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
+            <label htmlFor="listing-title" style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
               Title <span style={{ color: '#DC2626' }}>*</span>
             </label>
             <input
+              id="listing-title"
               type="text"
               value={formData.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
@@ -405,10 +407,11 @@ const AddListingModal: React.FC<AddListingModalProps> = ({ isOpen, onClose, onSu
 
           {/* Description Field */}
           <div style={{ marginBottom: '1.25rem' }}>
-            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
+            <label htmlFor="listing-description" style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
               Description <span style={{ color: '#DC2626' }}>*</span>
             </label>
             <textarea
+              id="listing-description"
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
               placeholder="Describe your item, its condition, and any details buyers should know..."
@@ -434,12 +437,13 @@ const AddListingModal: React.FC<AddListingModalProps> = ({ isOpen, onClose, onSu
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
             {/* Current Price */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
+              <label htmlFor="listing-price" style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
                 Price <span style={{ color: '#DC2626' }}>*</span>
               </label>
               <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#6B7280' }}>$</span>
+                <span aria-hidden="true" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#6B7280' }}>$</span>
                 <input
+                  id="listing-price"
                   type="number"
                   step="0.01"
                   value={formData.price}
@@ -463,12 +467,13 @@ const AddListingModal: React.FC<AddListingModalProps> = ({ isOpen, onClose, onSu
 
             {/* Original Price (Optional) */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
+              <label htmlFor="listing-original-price" style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
                 Original Price (Optional)
               </label>
               <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#6B7280' }}>$</span>
+                <span aria-hidden="true" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#6B7280' }}>$</span>
                 <input
+                  id="listing-original-price"
                   type="number"
                   step="0.01"
                   value={formData.originalPrice}
@@ -495,10 +500,11 @@ const AddListingModal: React.FC<AddListingModalProps> = ({ isOpen, onClose, onSu
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
             {/* Category Dropdown */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
+              <label htmlFor="listing-category" style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
                 Category <span style={{ color: '#DC2626' }}>*</span>
               </label>
               <select
+                id="listing-category"
                 value={formData.category}
                 onChange={(e) => handleInputChange('category', e.target.value)}
                 style={{
@@ -528,10 +534,11 @@ const AddListingModal: React.FC<AddListingModalProps> = ({ isOpen, onClose, onSu
 
             {/* Condition Dropdown */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
+              <label htmlFor="listing-condition" style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
                 Condition <span style={{ color: '#DC2626' }}>*</span>
               </label>
               <select
+                id="listing-condition"
                 value={formData.condition}
                 onChange={(e) => handleInputChange('condition', e.target.value)}
                 style={{
@@ -561,10 +568,11 @@ const AddListingModal: React.FC<AddListingModalProps> = ({ isOpen, onClose, onSu
 
           {/* Location Field */}
           <div style={{ marginBottom: '1.25rem' }}>
-            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
+            <label htmlFor="listing-location" style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
               Location <span style={{ color: '#DC2626' }}>*</span>
             </label>
             <input
+              id="listing-location"
               type="text"
               value={formData.location}
               onChange={(e) => handleInputChange('location', e.target.value)}
@@ -596,6 +604,7 @@ const AddListingModal: React.FC<AddListingModalProps> = ({ isOpen, onClose, onSu
               <div key={index} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
                 <input
                   type="url"
+                  aria-label={`Image URL ${index + 1}`}
                   value={image}
                   onChange={(e) => handleImageChange(index, e.target.value)}
                   placeholder="https://example.com/image.jpg"
@@ -615,6 +624,7 @@ const AddListingModal: React.FC<AddListingModalProps> = ({ isOpen, onClose, onSu
                   <button
                     type="button"
                     onClick={() => removeImageField(index)}
+                    aria-label={`Remove image ${index + 1}`}
                     style={{
                       padding: '0.75rem',
                       background: '#FEE2E2',
@@ -627,7 +637,7 @@ const AddListingModal: React.FC<AddListingModalProps> = ({ isOpen, onClose, onSu
                     onMouseEnter={(e) => (e.target as HTMLElement).style.background = '#FECACA'}
                     onMouseLeave={(e) => (e.target as HTMLElement).style.background = '#FEE2E2'}
                   >
-                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="18" y1="6" x2="6" y2="18"/>
                       <line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>

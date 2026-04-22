@@ -24,7 +24,7 @@ export const MarketplaceSuggestWidget: React.FC<{ onDelete?: () => void }> = ({ 
       <WidgetHeader title="Marketplace Suggestions" onDelete={onDelete} />
       <CardContent sx={{ flex: 1, overflow: "auto" }}>
         <Stack direction={{xs:"column", sm:"row"}} spacing={1} mb={1}>
-          <TextField size="small" placeholder="Search used electronics, textbooks…" value={q} onChange={(e)=>setQ(e.target.value)} fullWidth />
+          <TextField size="small" placeholder="Search used electronics, textbooks…" inputProps={{ "aria-label": "Search marketplace items" }} value={q} onChange={(e)=>setQ(e.target.value)} fullWidth />
           <Button startIcon={<SearchIcon />} variant="contained" onClick={search}>Search</Button>
         </Stack>
         <Stack direction="row" spacing={1} flexWrap="wrap" mb={1}>

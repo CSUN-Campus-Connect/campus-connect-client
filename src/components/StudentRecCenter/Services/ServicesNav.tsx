@@ -77,6 +77,8 @@ export default function ServicesNav({ activeSection }: Props) {
             key={item.id}
             component="button"
             onClick={() => scrollTo(item.id)}
+            aria-current={isActive ? "true" : undefined}
+            aria-label={item.label}
             sx={{
               all: "unset",
               cursor: "pointer",
@@ -106,6 +108,7 @@ export default function ServicesNav({ activeSection }: Props) {
             }}
           >
             <Box
+              aria-hidden="true"
               sx={{
                 display: "flex",
                 alignItems: "center",

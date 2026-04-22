@@ -68,7 +68,7 @@ export default function CourseInfoModal({
               </Typography>
             )}
           </Box>
-          <IconButton onClick={onClose} sx={{ color: "rgba(255,255,255,0.85)", mt: -0.5, mr: -1 }}>
+          <IconButton onClick={onClose} aria-label="Close course info" sx={{ color: "rgba(255,255,255,0.85)", mt: -0.5, mr: -1 }}>
             <CloseIcon />
           </IconButton>
         </Stack>

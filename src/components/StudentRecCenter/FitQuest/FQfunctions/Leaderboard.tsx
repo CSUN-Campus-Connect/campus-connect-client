@@ -138,7 +138,9 @@ export default function LeaderBoard({
                   onMouseLeave={() => setHoverIdx(null)}
                   onClick={() => onAbandon(q)}
                   role="button"
-                  aria-label="Abandon quest"
+                  tabIndex={0}
+                  aria-label={`Abandon quest: ${q.exercise}`}
+                  onKeyDown={(e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onAbandon(q); } }}
                   sx={{
                     ml: "auto",
                     display: "inline-flex",

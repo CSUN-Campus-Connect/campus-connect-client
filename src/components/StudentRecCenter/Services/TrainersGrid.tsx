@@ -100,6 +100,7 @@ function TrainerCard({ trainer }: { trainer: TrainerProfile }) {
         {/* Quote slides up on hover */}
         {trainer.quote && (
           <Box
+            aria-hidden="true"
             sx={{
               position: "absolute",
               bottom: 0,
@@ -116,7 +117,7 @@ function TrainerCard({ trainer }: { trainer: TrainerProfile }) {
               transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
             }}
           >
-            <FormatQuoteRoundedIcon sx={{ color: "rgba(255,100,120,0.55)", fontSize: 20, mb: 0.4 }} />
+            <FormatQuoteRoundedIcon aria-hidden="true" sx={{ color: "rgba(255,100,120,0.55)", fontSize: 20, mb: 0.4 }} />
             <Typography sx={{ color: "rgba(255,255,255,0.82)", fontSize: 11.5, fontStyle: "italic", lineHeight: 1.6 }}>
               {trainer.quote}
             </Typography>

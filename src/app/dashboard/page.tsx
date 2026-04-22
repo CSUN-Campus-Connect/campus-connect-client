@@ -476,6 +476,7 @@ const name = profile?.first + " " + profile?.last;
 
         <Fab
           onClick={openLibrary}
+          aria-label="Add widget to dashboard"
           sx={{ position: "fixed", right: 24, bottom: 24 }}
           color="primary"
         >

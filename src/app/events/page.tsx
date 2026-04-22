@@ -161,6 +161,7 @@ function HeroSection({ totalEvents, search, onSearch }: { totalEvents: number; s
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
           <input value={search} onChange={(e) => onSearch(e.target.value)}
             placeholder="Search events, buildings, organizers..."
+            aria-label="Search events, buildings, organizers"
             style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }} />
         </div>
         <button style={{ background: '#D22030', border: 'none', borderRadius: 13, padding: '12px 22px', color: '#fff', fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 13, cursor: 'pointer', letterSpacing: '0.3px', whiteSpace: 'nowrap' }}>

@@ -99,13 +99,13 @@ export default function ClubSettingsPage() {
           tint="blue"
           icon={<MailOutlineIcon fontSize="small" />}
           title="Allow member invites"
-          action={<SettingsToggle checked={allowMemberInvites} onChange={setAllowMemberInvites} />}
+          action={<SettingsToggle checked={allowMemberInvites} onChange={setAllowMemberInvites} inputProps={{ "aria-label": "Allow member invites" }} />}
         />
         <SettingsRow
           tint="cyan"
           icon={<PeopleOutlineIcon fontSize="small" />}
           title="Show members list"
-          action={<SettingsToggle checked={showMembersList} onChange={setShowMembersList} />}
+          action={<SettingsToggle checked={showMembersList} onChange={setShowMembersList} inputProps={{ "aria-label": "Show members list" }} />}
         />
       </SettingsCard>
 
@@ -116,27 +116,27 @@ export default function ClubSettingsPage() {
           tint="brand"
           icon={<AdminPanelSettingsOutlinedIcon fontSize="small" />}
           title="Admins can post"
-          action={<SettingsToggle checked={adminsCanPost} onChange={setAdminsCanPost} />}
+          action={<SettingsToggle checked={adminsCanPost} onChange={setAdminsCanPost} inputProps={{ "aria-label": "Admins can post" }} />}
         />
         <SettingsRow
           divider
           tint="slate"
           icon={<EditNoteOutlinedIcon fontSize="small" />}
           title="Members can post"
-          action={<SettingsToggle checked={membersCanPost} onChange={setMembersCanPost} />}
+          action={<SettingsToggle checked={membersCanPost} onChange={setMembersCanPost} inputProps={{ "aria-label": "Members can post" }} />}
         />
         <SettingsRow
           divider
           tint="emerald"
           icon={<HowToRegOutlinedIcon fontSize="small" />}
           title="Admins can approve members"
-          action={<SettingsToggle checked={adminsApproveMembers} onChange={setAdminsApproveMembers} />}
+          action={<SettingsToggle checked={adminsApproveMembers} onChange={setAdminsApproveMembers} inputProps={{ "aria-label": "Admins can approve members" }} />}
         />
         <SettingsRow
           tint="orange"
           icon={<EventAvailableOutlinedIcon fontSize="small" />}
           title="Admins can create events"
-          action={<SettingsToggle checked={adminsCreateEvents} onChange={setAdminsCreateEvents} />}
+          action={<SettingsToggle checked={adminsCreateEvents} onChange={setAdminsCreateEvents} inputProps={{ "aria-label": "Admins can create events" }} />}
         />
       </SettingsCard>
 
@@ -147,20 +147,20 @@ export default function ClubSettingsPage() {
           tint="sky"
           icon={<ChatBubbleOutlineIcon fontSize="small" />}
           title="Allow comments"
-          action={<SettingsToggle checked={allowComments} onChange={setAllowComments} />}
+          action={<SettingsToggle checked={allowComments} onChange={setAllowComments} inputProps={{ "aria-label": "Allow comments" }} />}
         />
         <SettingsRow
           divider
           tint="amber"
           icon={<PermMediaOutlinedIcon fontSize="small" />}
           title="Allow media uploads"
-          action={<SettingsToggle checked={allowMediaUploads} onChange={setAllowMediaUploads} />}
+          action={<SettingsToggle checked={allowMediaUploads} onChange={setAllowMediaUploads} inputProps={{ "aria-label": "Allow media uploads" }} />}
         />
         <SettingsRow
           tint="violet"
           icon={<PushPinOutlinedIcon fontSize="small" />}
           title="Pin important posts"
-          action={<SettingsToggle checked={pinImportantPosts} onChange={setPinImportantPosts} />}
+          action={<SettingsToggle checked={pinImportantPosts} onChange={setPinImportantPosts} inputProps={{ "aria-label": "Pin important posts" }} />}
         />
       </SettingsCard>
 
@@ -191,13 +191,13 @@ export default function ClubSettingsPage() {
           tint="blue"
           icon={<SearchOutlinedIcon fontSize="small" />}
           title="Show in search"
-          action={<SettingsToggle checked={showInSearch} onChange={setShowInSearch} />}
+          action={<SettingsToggle checked={showInSearch} onChange={setShowInSearch} inputProps={{ "aria-label": "Show club in search" }} />}
         />
         <SettingsRow
           tint="green"
           icon={<EmailOutlinedIcon fontSize="small" />}
           title="Require school email"
-          action={<SettingsToggle checked={requireSchoolEmail} onChange={setRequireSchoolEmail} />}
+          action={<SettingsToggle checked={requireSchoolEmail} onChange={setRequireSchoolEmail} inputProps={{ "aria-label": "Require school email to join" }} />}
         />
       </SettingsCard>
 
@@ -229,13 +229,13 @@ export default function ClubSettingsPage() {
           tint="amber"
           icon={<NotificationsNoneOutlinedIcon fontSize="small" />}
           title="Event reminders"
-          action={<SettingsToggle checked={eventReminders} onChange={setEventReminders} />}
+          action={<SettingsToggle checked={eventReminders} onChange={setEventReminders} inputProps={{ "aria-label": "Club event reminders" }} />}
         />
         <SettingsRow
           tint="cyan"
           icon={<HowToRegOutlinedIcon fontSize="small" />}
           title="RSVP required"
-          action={<SettingsToggle checked={rsvpRequired} onChange={setRsvpRequired} />}
+          action={<SettingsToggle checked={rsvpRequired} onChange={setRsvpRequired} inputProps={{ "aria-label": "RSVP required for club events" }} />}
         />
       </SettingsCard>
 
@@ -246,20 +246,20 @@ export default function ClubSettingsPage() {
           tint="rose"
           icon={<EditNoteOutlinedIcon fontSize="small" />}
           title="New posts"
-          action={<SettingsToggle checked={newPostsNotif} onChange={setNewPostsNotif} />}
+          action={<SettingsToggle checked={newPostsNotif} onChange={setNewPostsNotif} inputProps={{ "aria-label": "New club posts notifications" }} />}
         />
         <SettingsRow
           divider
           tint="orange"
           icon={<EventAvailableOutlinedIcon fontSize="small" />}
           title="Event reminders"
-          action={<SettingsToggle checked={eventRemindersNotif} onChange={setEventRemindersNotif} />}
+          action={<SettingsToggle checked={eventRemindersNotif} onChange={setEventRemindersNotif} inputProps={{ "aria-label": "Club event reminders notifications" }} />}
         />
         <SettingsRow
           tint="blue"
           icon={<GroupAddOutlinedIcon fontSize="small" />}
           title="Join requests"
-          action={<SettingsToggle checked={joinRequestsNotif} onChange={setJoinRequestsNotif} />}
+          action={<SettingsToggle checked={joinRequestsNotif} onChange={setJoinRequestsNotif} inputProps={{ "aria-label": "Join requests notifications" }} />}
         />
       </SettingsCard>
 
@@ -291,7 +291,7 @@ export default function ClubSettingsPage() {
           tint="green"
           icon={<FilterAltOutlinedIcon fontSize="small" />}
           title="Content filtering"
-          action={<SettingsToggle checked={contentFiltering} onChange={setContentFiltering} />}
+          action={<SettingsToggle checked={contentFiltering} onChange={setContentFiltering} inputProps={{ "aria-label": "Content filtering" }} />}
         />
       </SettingsCard>
     </Box>

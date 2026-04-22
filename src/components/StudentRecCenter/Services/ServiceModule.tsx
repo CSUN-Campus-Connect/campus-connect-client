@@ -78,7 +78,7 @@ function CPRHighlight({ service }: { service: ServiceModuleType }) {
               "& svg": { fontSize: 22 },
             }}
           >
-            <FavoriteRoundedIcon />
+            <FavoriteRoundedIcon aria-hidden="true" />
           </Box>
           <Box>
             <Typography sx={{ color: "white", fontWeight: 900, fontSize: 18, lineHeight: 1.1 }}>
@@ -93,7 +93,7 @@ function CPRHighlight({ service }: { service: ServiceModuleType }) {
           href={service.cta!.href}
           target="_blank"
           rel="noopener noreferrer"
-          endIcon={<OpenInNewRoundedIcon sx={{ fontSize: 13 }} />}
+          endIcon={<OpenInNewRoundedIcon aria-hidden="true" sx={{ fontSize: 13 }} />}
           sx={{
             borderRadius: 999,
             bgcolor: "#f43f5e",
@@ -114,10 +114,10 @@ function CPRHighlight({ service }: { service: ServiceModuleType }) {
       {/* Key facts row */}
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0, borderBottom: "1px solid rgba(244,63,94,0.15)" }}>
         {[
-          { icon: <AttachMoneyRoundedIcon sx={{ fontSize: 16 }} />, label: "Cost", value: "$70 per person" },
-          { icon: <CalendarMonthRoundedIcon sx={{ fontSize: 16 }} />, label: "Schedule", value: "Select Saturdays" },
-          { icon: <TimerRoundedIcon sx={{ fontSize: 16 }} />, label: "Duration", value: "9am – 3:45pm" },
-          { icon: <PeopleRoundedIcon sx={{ fontSize: 16 }} />, label: "Class size", value: "Max 10 participants" },
+          { icon: <AttachMoneyRoundedIcon aria-hidden="true" sx={{ fontSize: 16 }} />, label: "Cost", value: "$70 per person" },
+          { icon: <CalendarMonthRoundedIcon aria-hidden="true" sx={{ fontSize: 16 }} />, label: "Schedule", value: "Select Saturdays" },
+          { icon: <TimerRoundedIcon aria-hidden="true" sx={{ fontSize: 16 }} />, label: "Duration", value: "9am – 3:45pm" },
+          { icon: <PeopleRoundedIcon aria-hidden="true" sx={{ fontSize: 16 }} />, label: "Class size", value: "Max 10 participants" },
         ].map((f, i, arr) => (
           <Box
             key={f.label}
@@ -150,7 +150,7 @@ function CPRHighlight({ service }: { service: ServiceModuleType }) {
                 display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, mt: 0.1,
               }}
             >
-              <CheckRoundedIcon sx={{ fontSize: 11, color: "#fda4af" }} />
+              <CheckRoundedIcon aria-hidden="true" sx={{ fontSize: 11, color: "#fda4af" }} />
             </Box>
             <Typography sx={{ color: "rgba(255,255,255,0.80)", fontSize: 13.5, lineHeight: 1.55 }}>{b}</Typography>
           </Box>
@@ -179,6 +179,7 @@ export default function ServiceModule({ service }: Props) {
       {/* ── Header ──────────────────────────────────────────────── */}
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, alignItems: "flex-start", mb: isCPR ? 0 : 2.5 }}>
         <Box
+          aria-hidden="true"
           sx={{
             width: 52,
             height: 52,
@@ -229,7 +230,7 @@ export default function ServiceModule({ service }: Props) {
             href={service.cta.href}
             target="_blank"
             rel="noopener noreferrer"
-            endIcon={<OpenInNewRoundedIcon sx={{ fontSize: 13 }} />}
+            endIcon={<OpenInNewRoundedIcon aria-hidden="true" sx={{ fontSize: 13 }} />}
             sx={{
               borderRadius: 999,
               bgcolor: service.accentColor,
@@ -271,7 +272,7 @@ export default function ServiceModule({ service }: Props) {
                   display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, mt: 0.1,
                 }}
               >
-                <CheckRoundedIcon sx={{ fontSize: 11, color: service.accentColor }} />
+                <CheckRoundedIcon aria-hidden="true" sx={{ fontSize: 11, color: service.accentColor }} />
               </Box>
               <Typography sx={{ color: "rgba(255,255,255,0.72)", fontSize: 13.5, lineHeight: 1.55 }}>{b}</Typography>
             </Box>

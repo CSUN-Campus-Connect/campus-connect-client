@@ -59,7 +59,7 @@ export default function NotificationsPage() {
       {/* Notification list */}
       {filtered.length === 0 ? (
         <div className="empty-state">
-          <svg className="empty-icon" width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.3" viewBox="0 0 24 24">
+          <svg aria-hidden="true" className="empty-icon" width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.3" viewBox="0 0 24 24">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
             <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
           </svg>
@@ -87,9 +87,15 @@ function NotifItem({ notif, delay, onRead }: { notif: AppNotification; delay: nu
     repost:  "reposted your post",
   }[type];
 
+  const notifLabel = `${fromUser.firstName} ${fromUser.lastName} ${label}${postPreview ? `: "${postPreview}"` : ""}. ${timeAgo} ago.${!read ? " Unread." : ""}`;
+
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={notifLabel}
       onClick={onRead}
+      onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onRead(); } }}
       style={{
         display: "flex", gap: 12, padding: "14px 20px",
         borderBottom: "1px solid var(--border-subtle)",

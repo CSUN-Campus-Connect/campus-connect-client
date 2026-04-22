@@ -6,6 +6,11 @@ interface PasswordFieldProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
   style?: React.CSSProperties;
+  id?: string;
+  'aria-label'?: string;
+  'aria-describedby'?: string;
+  'aria-invalid'?: boolean;
+  autoComplete?: string;
 }
 
 export default function PasswordField({
@@ -13,6 +18,11 @@ export default function PasswordField({
   onChange,
   placeholder = "Password",
   style = {},
+  id,
+  'aria-label': ariaLabel,
+  'aria-describedby': ariaDescribedby,
+  'aria-invalid': ariaInvalid,
+  autoComplete,
 }: PasswordFieldProps) {
   const [show, setShow] = React.useState(false);
 
@@ -44,6 +54,11 @@ export default function PasswordField({
   return (
     <div style={{ position: "relative", width: "100%" }}>
       <input
+        id={id}
+        aria-label={ariaLabel}
+        aria-describedby={ariaDescribedby}
+        aria-invalid={ariaInvalid}
+        autoComplete={autoComplete}
         type={show ? "text" : "password"}
         value={value}
         onChange={onChange}
@@ -60,6 +75,7 @@ export default function PasswordField({
         {show ? (
           // 🔒 Eye Closed Icon SVG
           <svg
+            aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             width="22"
             height="22"
@@ -76,6 +92,7 @@ export default function PasswordField({
         ) : (
           // 🔓 Eye Open Icon SVG
           <svg
+            aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             width="22"
             height="22"
