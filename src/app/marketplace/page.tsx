@@ -283,6 +283,7 @@ export default function MarketplacePage() {
 
   const handleContactSeller = (item: MarketplaceListing) => {
     if (!auth || !token) { alert('Please log in to contact sellers.'); router.push('/login'); return; }
+    if (item.seller.id === user?.id) { alert('This is your own listing.'); return; }
     setContactItem(item);
   };
 

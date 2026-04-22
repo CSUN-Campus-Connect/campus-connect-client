@@ -215,18 +215,20 @@ export default function MarketplaceCard({
         </button>
 
         {/* Slide-up CTA on hover */}
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 12px',
-          transform: hovered ? 'translateY(0)' : 'translateY(100%)',
-          transition: 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1)',
-        }}>
-          <button
-            onClick={(e) => { e.stopPropagation(); onContactSeller(item); }}
-            style={{ width: '100%', background: '#A80532', border: 'none', borderRadius: 9, padding: '9px', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-          >
-            <ChatIcon /> Contact Seller
-          </button>
-        </div>
+        {!isOwner && (
+          <div style={{
+            position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 12px',
+            transform: hovered ? 'translateY(0)' : 'translateY(100%)',
+            transition: 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+          }}>
+            <button
+              onClick={(e) => { e.stopPropagation(); onContactSeller(item); }}
+              style={{ width: '100%', background: '#A80532', border: 'none', borderRadius: 9, padding: '9px', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+            >
+              <ChatIcon /> Contact Seller
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Body */}

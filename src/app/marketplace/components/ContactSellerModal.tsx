@@ -53,7 +53,12 @@ export default function ContactSellerModal({ item, onClose, token }: Props) {
       setSent(true);
       setTimeout(() => { setSent(false); setMsg(''); onClose(); }, 1800);
     } catch (err: any) {
-      setError(err.response?.data?.message ?? 'Failed to send message. Please try again.');
+      const apiMessage = err.response?.data?.message;
+      if (apiMessage === 'Cannot add yourself as a participant') {
+        setError('You cannot message yourself about your own listing.');
+      } else {
+        setError(apiMessage ?? 'Failed to send message. Please try again.');
+      }
     } finally {
       setSending(false);
     }
