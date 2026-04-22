@@ -55,7 +55,7 @@ export default function AddListingModal({ isOpen, onClose, onSuccess, token }: P
   const [submitting, setSubmitting]   = useState(false);
   const [success, setSuccess]         = useState(false);
 
-  const imageUpload = useImageUpload();
+  const imageUpload = useImageUpload(token);
 
   if (!isOpen) return null;
 
@@ -99,6 +99,10 @@ export default function AddListingModal({ isOpen, onClose, onSuccess, token }: P
     setSubmitError(null);
 
     const urls = imageUpload.getFinalUrls();
+    if (imageUpload.images.some((image) => image.uploading)) {
+      setErrors((prev) => ({ ...prev, images: 'Wait for image uploads to finish.' }));
+      return;
+    }
     if (urls.length === 0) {
       setErrors((prev) => ({ ...prev, images: 'Add at least one image.' }));
       return;

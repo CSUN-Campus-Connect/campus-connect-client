@@ -5,27 +5,22 @@
 //
 // Manages the multi-image input system for the AddListingModal.
 // Supports:
-//   - Drag-and-drop file uploads (converted to data-URL for immediate preview)
+//   - Drag-and-drop file uploads (uploaded to the server and returned as URLs)
 //   - Paste-from-clipboard image support
 //   - URL text input
 //   - Image URL validation (checks if URL actually resolves to an image)
 //   - Reorder by drag
 //   - Max MAX_IMAGES items enforced
-//
-// For the actual backend: images are sent as URL strings.
-// File uploads should ideally be uploaded to an image host first (e.g. Cloudinary,
-// Supabase Storage). Since the team doesn't yet have one, this hook converts
-// files to base64 data URLs and sends those — the backend stores them as-is
-// and the browser can render them. When a real image host is added, replace
-// the toDataURL step with a multipart upload call.
 // ============================================================================
 
 import { useState, useCallback } from 'react';
+import axios from 'axios';
 import { FormImageEntry } from '../types/marketplace.types';
 import {
   MAX_IMAGES,
   ACCEPTED_IMAGE_TYPES,
   MAX_FILE_SIZE_BYTES,
+  API_BASE,
 } from '../constants/marketplace.constants';
 
 function newEntry(overrides: Partial<FormImageEntry> = {}): FormImageEntry {
@@ -41,10 +36,52 @@ function newEntry(overrides: Partial<FormImageEntry> = {}): FormImageEntry {
   };
 }
 
-export function useImageUpload(initial?: FormImageEntry[]) {
+export function useImageUpload(token: string | null, initial?: FormImageEntry[]) {
   const [images, setImages] = useState<FormImageEntry[]>(
     initial ?? [newEntry()]
   );
+
+  const uploadFile = useCallback(async (id: string, file: File) => {
+    if (!token) {
+      setImages((cur) =>
+        cur.map((e) =>
+          e.id === id ? { ...e, error: 'You must be logged in to upload images.', uploading: false } : e
+        )
+      );
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'marketplace');
+
+      const { data } = await axios.post(
+        `${API_BASE}/api/v1/upload`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const imageUrl = data.imageUrl as string;
+      setImages((cur) =>
+        cur.map((e) =>
+          e.id === id
+            ? { ...e, url: imageUrl, preview: imageUrl, uploading: false, error: null }
+            : e
+        )
+      );
+    } catch {
+      setImages((cur) =>
+        cur.map((e) =>
+          e.id === id ? { ...e, error: 'Failed to upload image. Please try again.', uploading: false } : e
+        )
+      );
+    }
+  }, [token]);
 
   // ── File picked from disk ────────────────────────────────────────────────
   const addFile = useCallback((file: File) => {
@@ -65,28 +102,11 @@ export function useImageUpload(initial?: FormImageEntry[]) {
       };
       const next = [...prev.filter((e) => e.url !== '' || e.preview !== ''), entry];
 
-      // Convert to base64 data URL (async, updates entry when done)
-      const reader = new FileReader();
-      reader.onload = () => {
-        const dataUrl = reader.result as string;
-        setImages((cur) =>
-          cur.map((e) =>
-            e.id === id ? { ...e, url: dataUrl, uploading: false } : e
-          )
-        );
-      };
-      reader.onerror = () => {
-        setImages((cur) =>
-          cur.map((e) =>
-            e.id === id ? { ...e, error: 'Failed to read file', uploading: false } : e
-          )
-        );
-      };
-      reader.readAsDataURL(file);
+      void uploadFile(id, file);
 
       return next;
     });
-  }, []);
+  }, [uploadFile]);
 
   // ── URL text input changed ───────────────────────────────────────────────
   const updateUrl = useCallback((id: string, value: string) => {
