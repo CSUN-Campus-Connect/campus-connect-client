@@ -203,10 +203,10 @@ export const ALL_MILESTONES: CompassMilestone[] = [
       'Download the WellTrack Boost app — free with CSUN email',
       'Add the Crisis Text Line number to your contacts: Text HOME to 741741',
     ],
-    resources: [
-      { name: 'CSUN Counseling Services', url: 'https://www.csun.edu/counseling', location: 'Klotz Student Health Center', phone: '(818) 677-2366', hours: 'Mon-Fri 8am-5pm', note: 'FREE and confidential for enrolled students' },
-      { name: 'Wellness Center', url: 'https://www.csun.edu/src/wellness', phone: '(818) 677-5899' },
+    resources: [health/counseling-services', location: 'Klotz Student Health Center, Building 200', phone: '(818) 677-2366', hours: 'Mon-Fri 8am-5pm', note: 'FREE and confidential for enrolled students' },
+      { name: 'CSUN Wellness Center', url: 'https://www.csun.edu/health', phone: '(818) 677-5899', note: 'Mental wellness workshops and resources' },
       { name: 'Crisis Text Line', url: 'https://www.crisistextline.org', note: 'Text HOME to 741741 — available 24/7, free and confidential' },
+      { name: 'NAMI CSUN Student Chapter', url: 'https://www.nami.org', note: 'Student-led mental health support and awarenes
       { name: 'WellTrack Boost', url: 'https://app.welltrack-boost.com', note: 'Free mental wellness app with CSUN email — CBT tools, mood tracking, resources' },
     ],
     linkedFeature: 'Safety / Help',
@@ -230,8 +230,10 @@ export const ALL_MILESTONES: CompassMilestone[] = [
       'If you changed your major, run a new DPR immediately',
       'Use the CSUN Graduation Planner tool in SOLAR',
     ],
-    resources: [
-      { name: 'SOLAR Student Portal', url: 'https://www.csun.edu/solar', note: 'DPR is under Student Records > Degree Progress Report' },
+    resources: [solar.csun.edu', note: 'DPR is under Student Records > Degree Progress Report' },
+      { name: 'CSUN Degree Progress Report Tool', url: 'https://solar.csun.edu', note: 'Check your progress toward graduation requirements' },
+      { name: 'Course Catalog & Requirements', url: 'https://catalog.csun.edu', note: 'Official source for all degree and GE requirements' },
+      { name: 'GE Requirements Guide', url: 'https://www.csun.edu/general-education', note: 'Understand lower and upper division GE requirementr Student Records > Degree Progress Report' },
       { name: 'CSUN Undergraduate Studies', url: 'https://www.csun.edu/undergraduate-studies' },
     ],
     linkedFeature: 'Academics Hub',
@@ -253,8 +255,10 @@ export const ALL_MILESTONES: CompassMilestone[] = [
       'After filing, schedule a graduation check with your advisor to confirm',
       'Order regalia through the CSUN Bookstore early — it sells out',
       'Apply for a graduation fee waiver if eligible',
-    ],
-    resources: [
+    ],solar.csun.edu', note: 'Apply to graduate - do NOT skip this step' },
+      { name: 'Graduation Dates & Deadlines', url: 'https://www.csun.edu/graduation', note: 'Official semester deadlines for filing' },
+      { name: 'Commencement Information', url: 'https://www.csun.edu/graduation', note: 'Cap and gown, ceremony details, and pricing' },
+      { name: 'Diplomat Alumni Toolkit', url: 'https://www.csun.edu/alumni', note: 'Resources for graduating students and new alumni
       { name: 'SOLAR Graduation Application', url: 'https://www.csun.edu/solar' },
       { name: 'CSUN Graduation Information', url: 'https://www.csun.edu/records/graduation' },
     ],
@@ -276,8 +280,10 @@ export const ALL_MILESTONES: CompassMilestone[] = [
       'Shadow or informational interview someone in your intended career field',
       'Ask upper-classmen in your major: "What do you wish you had known?"',
       'Use CSUN\'s Career Exploration resources to research job outcomes by major',
-      'If uncertain: try one upper-division class before fully committing',
-      'Check CSUN\'s Exploratory Studies program if you need time to decide',
+      'If uncertain: try one upper-division class before fully commitexploratory', note: 'For undecided students - take time to explore, not a setback' },
+      { name: 'Career Exploration Tool', url: 'https://www.csun.edu/careercenter', note: 'Assess majors based on job outlook and salary' },
+      { name: 'Meet Your Department Advisor', url: 'https://www.csun.edu/students/advising', note: 'Talk before committing to avoid costly mistakes' },
+      { name: 'Course Planning Tools', url: '#', note: 'Use Smart Planner to visualize different major paths
     ],
     resources: [
       { name: 'CSUN Exploratory Studies', url: 'https://www.csun.edu/undergraduate-studies/exploratory', note: 'Designed for undecided students — not a setback, a smart choice' },
