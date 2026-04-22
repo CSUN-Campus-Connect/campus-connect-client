@@ -203,11 +203,11 @@ export const ALL_MILESTONES: CompassMilestone[] = [
       'Download the WellTrack Boost app — free with CSUN email',
       'Add the Crisis Text Line number to your contacts: Text HOME to 741741',
     ],
-    resources: [health/counseling-services', location: 'Klotz Student Health Center, Building 200', phone: '(818) 677-2366', hours: 'Mon-Fri 8am-5pm', note: 'FREE and confidential for enrolled students' },
+    resources: [
+      { name: 'CSUN Counseling Services', url: 'https://www.csun.edu/health/counseling-services', location: 'Klotz Student Health Center, Building 200', phone: '(818) 677-2366', hours: 'Mon-Fri 8am-5pm', note: 'FREE and confidential for enrolled students' },
       { name: 'CSUN Wellness Center', url: 'https://www.csun.edu/health', phone: '(818) 677-5899', note: 'Mental wellness workshops and resources' },
       { name: 'Crisis Text Line', url: 'https://www.crisistextline.org', note: 'Text HOME to 741741 — available 24/7, free and confidential' },
-      { name: 'NAMI CSUN Student Chapter', url: 'https://www.nami.org', note: 'Student-led mental health support and awarenes
-      { name: 'WellTrack Boost', url: 'https://app.welltrack-boost.com', note: 'Free mental wellness app with CSUN email — CBT tools, mood tracking, resources' },
+      { name: 'NAMI CSUN Student Chapter', url: 'https://www.nami.org', note: 'Student-led mental health support and awareness' },
     ],
     linkedFeature: 'Safety / Help',
   },
