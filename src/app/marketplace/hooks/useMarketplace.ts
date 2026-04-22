@@ -22,6 +22,7 @@ export function useMarketplace({ token, userId }: UseMarketplaceOptions) {
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState<string | null>(null);
   const [category, setCategory]       = useState<CategoryFilter>('all');
+  const [listingType, setListingType] = useState<string>('all');
   const [sort, setSort]               = useState<SortOption>('recent');
   const [search, setSearch]           = useState('');
   const [refresh, setRefresh]         = useState(0);
@@ -44,6 +45,7 @@ export function useMarketplace({ token, userId }: UseMarketplaceOptions) {
       try {
         const params = new URLSearchParams();
         if (category !== 'all') params.set('category', category);
+        if (listingType !== 'all') params.set('listingType', listingType);
         if (debouncedSearch)    params.set('search', debouncedSearch);
         params.set('sortBy', sort);
         params.set('status', 'active');
@@ -57,7 +59,7 @@ export function useMarketplace({ token, userId }: UseMarketplaceOptions) {
       }
     };
     fetch();
-  }, [category, debouncedSearch, sort, refresh]);
+  }, [category, listingType, debouncedSearch, sort, refresh]);
 
   // Fetch favorites (only when authenticated)
   useEffect(() => {
@@ -136,6 +138,7 @@ export function useMarketplace({ token, userId }: UseMarketplaceOptions) {
     loading,
     error,
     category, setCategory,
+    listingType, setListingType,
     sort, setSort,
     search, setSearch,
     toggleFavorite,

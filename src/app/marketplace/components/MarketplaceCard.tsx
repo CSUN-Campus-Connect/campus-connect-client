@@ -12,7 +12,7 @@
 
 import React, { useRef, useState } from 'react';
 import { MarketplaceListing } from '../types/marketplace.types';
-import { getConditionMeta, getCategoryAccent } from '../constants/marketplace.constants';
+import { getConditionMeta, getCategoryAccent, getListingTypeMeta } from '../constants/marketplace.constants';
 
 interface Props {
   item: MarketplaceListing;
@@ -121,6 +121,7 @@ export default function MarketplaceCard({
 
   const cond    = getConditionMeta(item.condition);
   const accent  = getCategoryAccent(item.category);
+  const listingTypeMeta = getListingTypeMeta(item.listingType || 'sale');
   const isOwner = !!(currentUserId && item.seller.id === currentUserId);
   const savings = item.originalPrice && item.originalPrice > item.price
     ? Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)
@@ -182,9 +183,14 @@ export default function MarketplaceCard({
           {cond.label}
         </div>
 
+        {/* Listing type badge */}
+        <div style={{ position: 'absolute', top: 10, left: 95, background: 'rgba(168,5,50,0.12)', color: '#A80532', fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 20, border: '1px solid rgba(168,5,50,0.3)', letterSpacing: '0.3px', backdropFilter: 'blur(4px)' }}>
+          {listingTypeMeta.emoji} {listingTypeMeta.label}
+        </div>
+
         {/* Owner badge */}
         {isOwner && (
-          <div style={{ position: 'absolute', top: 10, left: item.condition ? 90 : 10, background: 'rgba(168,5,50,0.85)', color: '#fff', fontSize: 9, fontWeight: 700, padding: '3px 9px', borderRadius: 20, letterSpacing: '0.5px', backdropFilter: 'blur(4px)' }}>
+          <div style={{ position: 'absolute', top: 10, left: item.condition ? 195 : 10, background: 'rgba(168,5,50,0.85)', color: '#fff', fontSize: 9, fontWeight: 700, padding: '3px 9px', borderRadius: 20, letterSpacing: '0.5px', backdropFilter: 'blur(4px)' }}>
             YOUR LISTING
           </div>
         )}
@@ -242,14 +248,25 @@ export default function MarketplaceCard({
 
         {/* Price row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
-          <span style={{ fontSize: 20, fontWeight: 800, color: '#A80532' }}>${item.price.toFixed(2)}</span>
-          {item.originalPrice && (
-            <span style={{ fontSize: 13, color: '#9ca3af', textDecoration: 'line-through' }}>${item.originalPrice.toFixed(2)}</span>
-          )}
-          {savings && (
-            <span style={{ fontSize: 11, fontWeight: 700, background: '#dcfce7', color: '#16a34a', padding: '2px 7px', borderRadius: 6 }}>
-              Save {savings}%
-            </span>
+          {item.listingType === 'free' ? (
+            <span style={{ fontSize: 20, fontWeight: 800, color: '#10b981' }}>Free</span>
+          ) : item.listingType === 'rent' ? (
+            <>
+              <span style={{ fontSize: 20, fontWeight: 800, color: '#A80532' }}>${item.rentalPrice?.toFixed(2) || '0.00'}</span>
+              <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 500 }}>/ {item.rentalDurationDays} days</span>
+            </>
+          ) : (
+            <>
+              <span style={{ fontSize: 20, fontWeight: 800, color: '#A80532' }}>${item.price.toFixed(2)}</span>
+              {item.originalPrice && (
+                <span style={{ fontSize: 13, color: '#9ca3af', textDecoration: 'line-through' }}>${item.originalPrice.toFixed(2)}</span>
+              )}
+              {savings && (
+                <span style={{ fontSize: 11, fontWeight: 700, background: '#dcfce7', color: '#16a34a', padding: '2px 7px', borderRadius: 6 }}>
+                  Save {savings}%
+                </span>
+              )}
+            </>
           )}
         </div>
 

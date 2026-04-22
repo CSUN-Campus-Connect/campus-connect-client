@@ -21,7 +21,7 @@ import AddListingModal from './components/AddListingModal';
 import ContactSellerModal from './components/ContactSellerModal';
 import { LoadingState, ErrorState, EmptyState } from './components/MarketplaceStates';
 import { MarketplaceListing } from './types/marketplace.types';
-import { CATEGORIES, SORT_OPTIONS } from './constants/marketplace.constants';
+import { CATEGORIES, SORT_OPTIONS, LISTING_TYPES } from './constants/marketplace.constants';
 import { useState } from 'react';
 
 // ── Inline SVG icons ───────────────────────────────────────────────────────────
@@ -151,12 +151,14 @@ interface FilterBarProps {
   onSearch: (v: string) => void;
   category: string;
   onCategory: (c: any) => void;
+  listingType: string;
+  onListingType: (lt: any) => void;
   sort: string;
   onSort: (s: any) => void;
   count: number;
 }
 
-function FilterBar({ search, onSearch, category, onCategory, sort, onSort, count }: FilterBarProps) {
+function FilterBar({ search, onSearch, category, onCategory, listingType, onListingType, sort, onSort, count }: FilterBarProps) {
   return (
     <div style={{ position: 'sticky', top: 0, zIndex: 10, backdropFilter: 'blur(18px)', background: 'rgba(100,2,20,0.75)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0.875rem 2rem' }}>
@@ -180,6 +182,48 @@ function FilterBar({ search, onSearch, category, onCategory, sort, onSort, count
           >
             {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value} style={{ background: '#7a0222' }}>{o.label}</option>)}
           </select>
+        </div>
+
+        {/* Listing type pills */}
+        <div style={{ display: 'flex', gap: 7, marginBottom: 12, overflowX: 'auto', scrollbarWidth: 'none', alignItems: 'center' }}>
+          <button
+            onClick={() => onListingType('all')}
+            style={{
+              padding: '6px 16px', borderRadius: 20, border: listingType === 'all' ? 'none' : '1px solid rgba(255,255,255,0.25)',
+              background: listingType === 'all' ? '#fff' : 'rgba(255,255,255,0.08)',
+              color: listingType === 'all' ? '#A80532' : 'rgba(255,255,255,0.8)',
+              fontWeight: listingType === 'all' ? 700 : 500, fontSize: 12,
+              cursor: 'pointer', whiteSpace: 'nowrap',
+              transition: 'all 0.2s',
+              letterSpacing: '0.2px',
+            }}
+            onMouseEnter={(e) => { if (listingType !== 'all') { (e.currentTarget).style.background = 'rgba(255,255,255,0.18)'; } }}
+            onMouseLeave={(e) => { if (listingType !== 'all') { (e.currentTarget).style.background = 'rgba(255,255,255,0.08)'; } }}
+          >
+            All Types
+          </button>
+          {LISTING_TYPES.map((type) => {
+            const active = listingType === type.value;
+            return (
+              <button
+                key={type.value}
+                onClick={() => onListingType(type.value)}
+                style={{
+                  padding: '6px 16px', borderRadius: 20, border: active ? 'none' : '1px solid rgba(255,255,255,0.25)',
+                  background: active ? '#fff' : 'rgba(255,255,255,0.08)',
+                  color: active ? '#A80532' : 'rgba(255,255,255,0.8)',
+                  fontWeight: active ? 700 : 500, fontSize: 12,
+                  cursor: 'pointer', whiteSpace: 'nowrap',
+                  transition: 'all 0.2s',
+                  letterSpacing: '0.2px',
+                }}
+                onMouseEnter={(e) => { if (!active) { (e.currentTarget).style.background = 'rgba(255,255,255,0.18)'; } }}
+                onMouseLeave={(e) => { if (!active) { (e.currentTarget).style.background = 'rgba(255,255,255,0.08)'; } }}
+              >
+                {type.emoji} {type.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Category pills */}
@@ -285,6 +329,8 @@ export default function MarketplacePage() {
             onSearch={mp.setSearch}
             category={mp.category}
             onCategory={mp.setCategory}
+            listingType={mp.listingType}
+            onListingType={mp.setListingType}
             sort={mp.sort}
             onSort={mp.setSort}
             count={mp.listings.length}
