@@ -25,6 +25,7 @@ import "gridstack/dist/gridstack.min.css";
 
 import NewAccountSetup from "../../components/dashboard/accSetup";
 import CalendarCard from "../../components/widgets/CalendarCard";
+import MatadorCompass from "../../components/compass/MatadorCompass";
 import {
   KPI,
   TodayClassesWidget,
@@ -266,6 +267,18 @@ const name = profile?.first + " " + profile?.last;
     );
   };
 
+  const addMatadorCompass = () => {
+    const id = `compass-${Math.random().toString(36).slice(2, 7)}`;
+    addWidget(
+      id,
+      0,
+      0,
+      5,
+      5,
+      <MatadorCompass compact={true} />
+    );
+  };
+
   // init gridstack
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -351,6 +364,20 @@ const name = profile?.first + " " + profile?.last;
           <CalendarCard
             onClose={() => removeWidgetById("calendar")}
           />
+        </Box>
+      </Card>
+    );
+    addWidget(
+      "compass",
+      4,
+      1,
+      8,
+      4,
+      <Card
+        sx={{ height: "100%", display: "flex", flexDirection: "column", borderRadius: 3, overflow: "hidden" }}
+      >
+        <Box sx={{ height: "100%", overflow: "auto" }}>
+          <MatadorCompass compact={true} />
         </Box>
       </Card>
     );
@@ -488,6 +515,17 @@ const name = profile?.first + " " + profile?.last;
         <DialogTitle>Add a widget</DialogTitle>
         <DialogContent>
           <Stack spacing={1.5} mt={1}>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={addMatadorCompass}
+              sx={{ fontWeight: 700, py: 1.5 }}
+            >
+              ⭐ Matador Compass (Student Success Guide)
+            </Button>
+            
+            <Divider />
+
             <Button variant="outlined" onClick={addSticky}>
               Sticky Note
             </Button>
