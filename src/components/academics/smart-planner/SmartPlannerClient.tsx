@@ -587,6 +587,31 @@ export default function SmartPlannerClient() {
             </span>
           </div>
 
+          {/* Build Your Own button */}
+          <Link
+            href="/academics/smart-planner/build-your-own"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 7,
+              color: "#fff", textDecoration: "none",
+              fontSize: 12, fontWeight: 800,
+              padding: "6px 14px",
+              background: "rgba(255,255,255,0.12)",
+              border: "1px solid rgba(255,255,255,0.28)",
+              borderRadius: 999,
+              letterSpacing: "0.02em",
+              transition: "background 0.15s, transform 0.12s",
+              marginLeft: raw ? undefined : "auto",
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "rgba(255,255,255,0.20)"; (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "rgba(255,255,255,0.12)"; (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)"; }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+            Build Your Own
+          </Link>
+
           {/* Right: PDF button + plan label */}
           {raw && (
             <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
