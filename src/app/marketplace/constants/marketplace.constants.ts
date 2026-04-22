@@ -73,7 +73,6 @@ export function getListingTypeMeta(type: string) {
     LISTING_TYPES.find((lt) => lt.value === type) ?? {
       value: 'sale',
       label: 'For Sale',
-      emoji: '🛍️',
       color: '#0891b2',
     }
   );
