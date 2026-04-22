@@ -7,6 +7,8 @@ import {
   dismissAnnouncement,
   type Announcement,
 } from "@/lib/announcement.api";
+import { usePathname } from "next/navigation";
+
 
 // Socket events — must match the server's SOCKET_EVENTS constant
 const EVENT_CREATED = "announcement:created";
@@ -43,7 +45,7 @@ export function AnnouncementProvider({ children }: { children: React.ReactNode }
   const [activeAnnouncement, setActiveAnnouncement] = useState<Announcement | null>(null);
   const [loading, setLoading] = useState(true);
   const [dismissed, setDismissed] = useState(false);
-
+  const pathname = usePathname();
   const socketRef = useRef<Socket | null>(null);
 
   // Fetch the active alert on mount — for EVERYONE, authenticated or not.
@@ -148,23 +150,13 @@ export function AnnouncementProvider({ children }: { children: React.ReactNode }
     return () => clearTimeout(timer);
   }, [activeAnnouncement?.id, activeAnnouncement?.expiresAt]);
 
-  const dismiss = useCallback(async () => {
-    if (!activeAnnouncement) return;
-    setDismissed(true); // Optimistic — hide right away
-    try {
-      await dismissAnnouncement(activeAnnouncement.id);
-    } catch (err) {
-      // Dismissal requires auth — for guests this will fail silently,
-      // and the banner will re-appear on next page load (acceptable for MVP).
-      // For logged-in users, revert if the call genuinely failed.
-      const token = getToken();
-      if (token) {
-        setDismissed(false);
-        console.error("Failed to dismiss announcement:", err);
-      }
-      // Guests: leave dismissed=true locally, accept that refresh shows it again
-    }
-  }, [activeAnnouncement]);
+  useEffect(() => {
+    setDismissed(false);
+  }, [pathname]);
+
+  const dismiss = useCallback(() => {
+    setDismissed(true);
+  }, []);
 
   return (
     <AnnouncementContext.Provider value={{ activeAnnouncement, loading, dismiss, dismissed }}>

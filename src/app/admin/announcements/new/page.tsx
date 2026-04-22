@@ -28,8 +28,8 @@ export default function NewAnnouncementPage() {
   const [confirmationInput, setConfirmationInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [overrideRateLimit, setOverrideRateLimit] = useState(false);
 
-  // Block non-whitelisted users with a friendly message
   if (authLoading) {
     return <div style={{ color: "#999", fontSize: "13px" }}>Loading...</div>;
   }
@@ -88,6 +88,7 @@ export default function NewAnnouncementPage() {
         channels,
         testMode,
         confirmation: confirmationInput,
+        overrideRateLimit,
       };
       const created = await createCriticalAnnouncement(payload);
       router.push(`/admin/announcements/${created.id}`);
@@ -126,7 +127,6 @@ export default function NewAnnouncementPage() {
         </p>
       </div>
 
-      {/* Reminder about test mode */}
       {testMode && (
         <div
           style={{
@@ -146,7 +146,6 @@ export default function NewAnnouncementPage() {
         </div>
       )}
 
-      {/* Form card */}
       <div style={{ background: "#fff", border: "1px solid #f0f0f0", borderRadius: "8px", padding: "24px", marginBottom: "24px" }}>
         <FieldLabel>Title</FieldLabel>
         <input
@@ -226,7 +225,6 @@ export default function NewAnnouncementPage() {
         </div>
       </div>
 
-      {/* Live preview of what students will see */}
       {validForm && (
         <div style={{ marginBottom: "24px" }}>
           <div style={{ fontSize: "11px", color: "#bbb", fontWeight: 500, letterSpacing: "0.8px", textTransform: "uppercase", marginBottom: "10px" }}>
@@ -257,7 +255,6 @@ export default function NewAnnouncementPage() {
         </div>
       )}
 
-      {/* Action buttons */}
       <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
         <Link
           href="/admin/announcements"
@@ -292,7 +289,6 @@ export default function NewAnnouncementPage() {
         </button>
       </div>
 
-      {/* Typed-confirmation modal */}
       {showConfirm && (
         <div
           onClick={() => !submitting && setShowConfirm(false)}
@@ -350,6 +346,17 @@ export default function NewAnnouncementPage() {
             {error && (
               <div style={{ marginTop: "14px", fontSize: "12px", color: "#c94150", background: "#fef2f3", padding: "10px", borderRadius: "6px" }}>
                 {error}
+                {error.includes("15 minutes") && (
+                  <label style={{ display: "flex", gap: "8px", alignItems: "flex-start", cursor: "pointer", marginTop: "10px" }}>
+                    <input
+                      type="checkbox"
+                      checked={overrideRateLimit}
+                      onChange={(e) => setOverrideRateLimit(e.target.checked)}
+                      style={{ marginTop: "2px" }}
+                    />
+                    <span style={{ color: "#666", lineHeight: 1.5 }}>I understand — send anyway and override the rate limit</span>
+                  </label>
+                )}
               </div>
             )}
 
@@ -372,17 +379,17 @@ export default function NewAnnouncementPage() {
               </button>
               <button
                 type="button"
-                disabled={submitting || confirmationInput !== CONFIRMATION_PHRASE}
+                disabled={submitting || confirmationInput !== CONFIRMATION_PHRASE || (!!error && !overrideRateLimit)}
                 onClick={handleSend}
                 style={{
                   padding: "8px 20px",
                   fontSize: "13px",
                   fontWeight: 500,
                   color: "#fff",
-                  background: confirmationInput === CONFIRMATION_PHRASE ? "#c94150" : "#e5e5e5",
+                  background: confirmationInput === CONFIRMATION_PHRASE && (!error || overrideRateLimit) ? "#c94150" : "#e5e5e5",
                   border: "none",
                   borderRadius: "6px",
-                  cursor: confirmationInput === CONFIRMATION_PHRASE && !submitting ? "pointer" : "not-allowed",
+                  cursor: confirmationInput === CONFIRMATION_PHRASE && !submitting && (!error || overrideRateLimit) ? "pointer" : "not-allowed",
                 }}
               >
                 {submitting ? "Sending..." : testMode ? "Send test" : "Send alert"}
@@ -394,8 +401,6 @@ export default function NewAnnouncementPage() {
     </div>
   );
 }
-
-// Shared bits
 
 const inputStyle: React.CSSProperties = {
   width: "100%",

@@ -3,7 +3,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useAnnouncement } from "@/contexts/AnnouncementContext";
 
-// Map severity to visual style
 function getSeverityStyle(severity: string | null) {
   switch (severity) {
     case "CRITICAL_RED":
@@ -39,15 +38,13 @@ export default function AnnouncementBanner() {
       {shouldShow && (
         <motion.div
           key={activeAnnouncement.id}
-          initial={{ y: -80, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -80, opacity: 0 }}
+          initial={{ opacity: 0, scaleY: 0, originY: 0 }}
+          animate={{ opacity: 1, scaleY: 1, originY: 0 }}
+          exit={{ opacity: 0, scaleY: 0, originY: 0 }}
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
+            position: "sticky",
+            top:0,
             zIndex: 9999,
             background: getSeverityStyle(activeAnnouncement.severity).bg,
             color: "#fff",
