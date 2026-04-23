@@ -9,3 +9,4 @@ export { CitationGeneratorWidget } from "./CitationGeneratorWidget";
 export { MarketplaceSuggestWidget } from "./MarketplaceSuggestWidget";
 export { PhotoPinWidget } from "./PhotoPinWidget";
 export * from "./WeatherWidget";
+export { SundialNewsWidget } from "./SundialNewsWidget";

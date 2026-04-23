@@ -9,7 +9,7 @@ const CSUN_RED = "#A80532";
 
 const tabs = [
   { label: "Home",        href: "/StudentRecCenter" },
-  { label: "Services",    href: "/StudentRecCenter/services" },
+  { label: "Services",    href: "/StudentRecCenter/Services" },
   { label: "Schedule",    href: "/StudentRecCenter/Schedule" },
   { label: "Sport Clubs", href: "/StudentRecCenter/SportClubs" },
   { label: "FitQuest",    href: "/StudentRecCenter/FitQuest" },

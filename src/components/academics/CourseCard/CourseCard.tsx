@@ -57,7 +57,9 @@ const EXTRA_CARD_COLORS = [
   },
 ] as const;
 
-const ALL_CARD_COLORS = [...CARD_COLORS, ...EXTRA_CARD_COLORS] as const;
+const ALL_CARD_COLORS = [...CARD_COLORS, ...EXTRA_CARD_COLORS].filter(
+  (c, i, arr) => arr.findIndex((x) => x.value === c.value) === i
+) as (typeof CARD_COLORS[number] | typeof EXTRA_CARD_COLORS[number])[];
 
 type Props = {
   semesterLabel: string;

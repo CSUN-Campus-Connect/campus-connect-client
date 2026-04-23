@@ -37,6 +37,7 @@ import {
   MarketplaceSuggestWidget,
   PhotoPinWidget,
   WeatherWidget,
+  SundialNewsWidget,
 } from "../../components/widgets";
 import DashboardSidebar from "../../components/dashboard/sidebar";
 
@@ -276,6 +277,19 @@ const name = profile?.first + " " + profile?.last;
       5,
       5,
       <MatadorCompass compact={true} />
+    );
+  };
+
+  // ── NEW: Sundial News Widget ──────────────────────────────────────────────────
+  const addSundialNews = () => {
+    const id = `sundial-${Math.random().toString(36).slice(2, 7)}`;
+    addWidget(
+      id,
+      0,
+      0,
+      4,
+      4,
+      <SundialNewsWidget onDelete={() => removeWidgetById(id)} />
     );
   };
 
@@ -526,6 +540,7 @@ const name = profile?.first + " " + profile?.last;
             
             <Divider />
 
+            {/* ── Outlined (utility) widgets ── */}
             <Button variant="outlined" onClick={addSticky}>
               Sticky Note
             </Button>
@@ -559,10 +574,12 @@ const name = profile?.first + " " + profile?.last;
                 );
               }}
             >
-              Today’s Classes
+              Today's Classes
             </Button>
 
             <Divider />
+
+            {/* ── Contained (featured) widgets ── */}
             <Button
               variant="contained"
               onClick={addCanvasAssignments}
@@ -583,6 +600,11 @@ const name = profile?.first + " " + profile?.last;
             </Button>
             <Button variant="contained" onClick={addPhotoPin}>
               Photo Pin (upload and pin)
+            </Button>
+
+            {/* ── Sundial News — part of the red contained set ── */}
+            <Button variant="contained" onClick={addSundialNews}>
+              The Sundial — Campus News
             </Button>
           </Stack>
         </DialogContent>
