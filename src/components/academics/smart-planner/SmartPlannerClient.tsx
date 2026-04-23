@@ -57,6 +57,16 @@ type ElectiveOption = {
   courseUnits?: number;
 };
 
+type CustomCourse = {
+  id: string;
+  courseId: string;
+  courseName: string;
+  units: number;
+  semesterLabel: string; // e.g. "Year 1 Fall"
+  color: string;
+};
+
+
 type SkillTreeResponse = {
   majorName: string;
   catalogYear: string;
@@ -124,30 +134,125 @@ function getDeptColor(key: string): string {
   return DEPT_COLORS[dept] ?? DEPT_COLORS.DEFAULT;
 }
 
-// ─── Tier palette — semester-aware, always dark, no fill ──────────────────────
-function getTierPalette(label: string, _idx: number) {
+// ─── Semester and card styling ───────────────────────────────────────────────
+type SemesterType = "Fall" | "Spring" | "Summer" | "Winter";
+
+type SemesterPalette = { bg: string; border: string; text: string; badge: string };
+
+const DEFAULT_SEMESTER_COLORS: Record<SemesterType, SemesterPalette> = {
+  Fall:   { bg: "#12082e", border: "#7c3aed", text: "#c4b5fd", badge: "#7c3aed" },
+  Winter: { bg: "#061828", border: "#0284c7", text: "#7dd3fc", badge: "#0284c7" },
+  Spring: { bg: "#072010", border: "#16a34a", text: "#86efac", badge: "#16a34a" },
+  Summer: { bg: "#201200", border: "#d97706", text: "#fcd34d", badge: "#d97706" },
+};
+
+function getSemesterType(label: string): SemesterType | null {
   const l = label.toLowerCase();
-  if (l.includes("fall"))   return { border: "#7c3aed", textColor: "#c4b5fd" };
-  if (l.includes("spring")) return { border: "#16a34a", textColor: "#86efac" };
-  if (l.includes("summer")) return { border: "#d97706", textColor: "#fcd34d" };
-  if (l.includes("winter")) return { border: "#0284c7", textColor: "#7dd3fc" };
-  return { border: "#6b7280", textColor: "#d1d5db" };
+  if (l.includes("fall")) return "Fall";
+  if (l.includes("winter")) return "Winter";
+  if (l.includes("spring")) return "Spring";
+  if (l.includes("summer")) return "Summer";
+  return null;
 }
 
-// dept color → dark bg tint for card
-function getDeptBg(color: string): string {
-  return color + "22"; // ~13% opacity tint
+function getSemesterPalette(
+  label: string,
+  semColorOverrides?: Partial<Record<SemesterType | string, { bg: string; border: string; textColor?: string; text?: string; badge?: string }>>
+): SemesterPalette {
+  const sem = getSemesterType(label) ?? "Fall";
+  const override = semColorOverrides?.[sem] ?? semColorOverrides?.[label];
+  const base = DEFAULT_SEMESTER_COLORS[sem];
+  return {
+    bg: override?.bg ?? base.bg,
+    border: override?.border ?? base.border,
+    text: override?.textColor ?? override?.text ?? base.text,
+    badge: override?.border ?? override?.badge ?? base.badge,
+  };
 }
-// dept color → light pastel bg
-const DEPT_LIGHT_BG: Record<string, string> = {
-  "#7c3aed": "#5100ff", "#16a34a": "#00ff4c", "#0284c7": "#0095ff",
-  "#d97706": "#ff9900", "#dc2626": "#ff0000", "#9333ea": "#9500ff",
-  "#0d9488": "#00ffee", "#b45309": "#ff4800", "#ea580c": "#ff5900",
-  "#6b21a8": "#6a00ff", "#0e7490": "#00d9ff", "#475569": "#f1f5f9",
-  "#6b7280": "#5579c2",
+
+// Season-based palette lookup (used by buildLayout)
+function getSemesterPaletteForSeason(
+  season: SemesterType,
+  semColorOverrides?: Partial<Record<SemesterType | string, { bg: string; border: string; textColor?: string; text?: string }>>
+): SemesterPalette {
+  const override = semColorOverrides?.[season];
+  const base = DEFAULT_SEMESTER_COLORS[season];
+  return {
+    bg: override?.bg ?? base.bg,
+    border: override?.border ?? base.border,
+    text: override?.textColor ?? override?.text ?? base.text,
+    badge: override?.border ?? base.badge,
+  };
+}
+
+const LIGHT_SEMESTER_BG: Record<SemesterType, string> = {
+  Fall: "#e8e0ff",
+  Winter: "#ddf0ff",
+  Spring: "#d6f5e3",
+  Summer: "#fff3d6",
 };
-function getDeptLightBg(color: string): string {
-  return DEPT_LIGHT_BG[color] ?? "#f3f4f6";
+
+// Compute the season for a given tier index based on startTerm + which terms are included
+function getTierSeason(
+  tierIndex: number,
+  startTerm: SemesterType,
+  includeSummer: boolean,
+  includeWinter: boolean
+): SemesterType {
+  const pool: SemesterType[] = [];
+  // Build ordered pool: Fall → Winter? → Spring → Summer?
+  const base: SemesterType[] = ["Fall", "Spring"];
+  if (includeWinter) base.splice(1, 0, "Winter");  // Fall → Winter → Spring
+  if (includeSummer) base.push("Summer");            // … → Summer
+  // Rotate so startTerm is first
+  const startIdx = base.indexOf(startTerm);
+  const ordered = startIdx >= 0
+    ? [...base.slice(startIdx), ...base.slice(0, startIdx)]
+    : base;
+  return ordered[tierIndex % ordered.length];
+}
+
+// Build a human-readable label like "Year 1 Fall" from tier index + season
+function buildTierLabel(
+  tierIndex: number,
+  startTerm: SemesterType,
+  includeSummer: boolean,
+  includeWinter: boolean
+): string {
+  const pool: SemesterType[] = ["Fall", "Spring"];
+  if (includeWinter) pool.splice(1, 0, "Winter");
+  if (includeSummer) pool.push("Summer");
+  const startIdx = Math.max(0, pool.indexOf(startTerm));
+  const ordered = [...pool.slice(startIdx), ...pool.slice(0, startIdx)];
+  const season = ordered[tierIndex % ordered.length];
+  const yearNum = Math.floor(tierIndex / ordered.length) + 1;
+  return `Year ${yearNum} ${season}`;
+}
+
+
+function hexToRgb(hex: string): [number, number, number] | null {
+  const cleaned = hex.replace("#", "").trim();
+  const full = cleaned.length === 3 ? cleaned.split("").map((ch) => ch + ch).join("") : cleaned;
+  if (!/^[0-9a-fA-F]{6}$/.test(full)) return null;
+  return [
+    parseInt(full.slice(0, 2), 16),
+    parseInt(full.slice(2, 4), 16),
+    parseInt(full.slice(4, 6), 16),
+  ];
+}
+
+function rgbaFromHex(hex: string, alpha: number): string {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  const [r, g, b] = rgb;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function darkenHex(hex: string, factor = 0.34): string {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  const [r, g, b] = rgb;
+  return `rgb(${Math.round(r * factor)}, ${Math.round(g * factor)}, ${Math.round(b * factor)})`;
 }
 
 type CourseNodeData = {
@@ -158,64 +263,86 @@ type CourseNodeData = {
   semesterLabel: string;
   tierIndex: number;
   onDelete: (id: string) => void;
-  graphDark: boolean;
+  semPalette: SemesterPalette;
+  graphDark?: boolean;
+  deptColorOverrides?: Record<string, string>;
+  isCustom?: boolean;
+  customColor?: string;
 };
 
 function SmartCourseNode({ id, data, selected }: { id: string; data: CourseNodeData; selected?: boolean }) {
-  const pillColor = getDeptColor(data.nodeKey);
-  const isDark = data.graphDark !== false;
+  const dept = data.nodeKey.replace(/-.*/, "").toUpperCase().slice(0, 4);
+  const pillColor = data.isCustom
+    ? (data.customColor ?? "#6b7280")
+    : (data.deptColorOverrides?.[dept] ?? getDeptColor(data.nodeKey));
   const parts = data.nodeKey.split("-");
   const sub = parts[0];
   const cat = parts.slice(1).join(" ");
-  const cardBg = isDark ? getDeptBg(pillColor) : getDeptLightBg(pillColor);
-  const handleColor = isDark ? "#fff" : "#333";
+
+  const rgb = hexToRgb(pillColor);
+  const cardBg = data.graphDark === false
+    ? (rgb ? `rgb(${Math.round(rgb[0]*0.85+20)}, ${Math.round(rgb[1]*0.85+20)}, ${Math.round(rgb[2]*0.85+20)})` : "#f0eeff")
+    : (rgb ? `rgb(${Math.round(rgb[0]*0.18)}, ${Math.round(rgb[1]*0.18)}, ${Math.round(rgb[2]*0.18)})` : "#0d0b1a");
+  const textColor = "#ffffff";
+  const handleBorderColor = data.graphDark === false
+    ? (rgb ? `rgb(${Math.round(rgb[0]*0.45)}, ${Math.round(rgb[1]*0.45)}, ${Math.round(rgb[2]*0.45)})` : "#333")
+    : (rgb ? `rgb(${Math.round(rgb[0]*0.08)}, ${Math.round(rgb[1]*0.08)}, ${Math.round(rgb[2]*0.08)})` : "#000");
+  const handleColor = "#ffffff";
 
   return (
     <div style={{
       background: cardBg,
-      border: `2px solid ${selected ? (isDark ? "#ffffff" : "#0f172a") : pillColor}`,
+      border: `2px solid ${selected ? (data.graphDark === false ? "#0f172a" : "#ffffff") : pillColor}`,
       borderRadius: 14, padding: "10px 14px", width: 215,
-      cursor: "grab", boxShadow: "none", transition: "border-color 0.2s, background 0.2s",
+      cursor: "grab", boxShadow: data.isCustom ? `0 0 0 1px ${rgbaFromHex(pillColor, 0.35)}, 0 4px 16px ${rgbaFromHex(pillColor, 0.18)}` : "none",
+      transition: "border-color 0.2s, background 0.2s",
       userSelect: "none", position: "relative",
     }}>
-      <Handle type="target" position={Position.Top}    style={{ background: handleColor, width:10, height:10, border:"2px solid rgba(255,255,255,0.28)" }} />
-      <Handle type="source" position={Position.Bottom} style={{ background: handleColor, width:10, height:10, border:"2px solid rgba(255,255,255,0.28)" }} />
-      <Handle type="target" position={Position.Left}   style={{ background: handleColor, width:8,  height:8,  border:"2px solid rgba(255,255,255,0.28)", top:"50%" }} id="l-in" />
-      <Handle type="source" position={Position.Right}  style={{ background: handleColor, width:8,  height:8,  border:"2px solid rgba(255,255,255,0.28)", top:"50%" }} id="r-out" />
+      <Handle type="target" position={Position.Top} style={{ background: handleColor, width:10, height:10, border:`2px solid ${handleBorderColor}` }} />
+      <Handle type="source" position={Position.Bottom} style={{ background: handleColor, width:10, height:10, border:`2px solid ${handleBorderColor}` }} />
+      <Handle type="target" position={Position.Left} style={{ background: handleColor, width:8, height:8, border:`2px solid ${handleBorderColor}`, top:"50%" }} id="l-in" />
+      <Handle type="source" position={Position.Right} style={{ background: handleColor, width:8, height:8, border:`2px solid ${handleBorderColor}`, top:"50%" }} id="r-out" />
 
       <button onClick={(e) => { e.stopPropagation(); data.onDelete(id); }} title="Remove" style={{
         position:"absolute", top:6, right:6,
-        background: isDark ? "rgba(255,255,255,0.10)" : "rgba(15,23,42,0.08)", border:"none",
-        borderRadius:6, width:20, height:20, color: isDark ? "rgba(255,255,255,0.50)" : "rgba(15,23,42,0.55)",
+        background: "rgba(255,255,255,0.12)", border:"none",
+        borderRadius:6, width:20, height:20, color: "rgba(255,255,255,0.60)",
         fontSize:13, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
         lineHeight:1, transition:"background 0.14s, color 0.14s", padding:0,
       }}
         onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background="rgba(239,68,68,0.25)"; (e.currentTarget as HTMLButtonElement).style.color="#f87171"; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = isDark ? "rgba(255,255,255,0.10)" : "rgba(15,23,42,0.08)"; (e.currentTarget as HTMLButtonElement).style.color = isDark ? "rgba(255,255,255,0.50)" : "rgba(15,23,42,0.55)"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background="rgba(255,255,255,0.12)"; (e.currentTarget as HTMLButtonElement).style.color="rgba(255,255,255,0.60)"; }}
       >×</button>
 
       <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:5, paddingRight:14 }}>
         <span style={{
           background: pillColor, color: "#fff",
           borderRadius:6, padding:"2px 7px", fontSize:10, fontWeight:800, letterSpacing:"0.05em", whiteSpace:"nowrap",
-        }}>{sub} {cat}</span>
+          display:"flex", alignItems:"center", gap:4,
+        }}>
+          {data.isCustom && <span style={{ fontSize:9 }}>★</span>}
+          {sub} {cat}
+        </span>
         {data.units != null && (
-          <span style={{ fontSize:10, color: isDark ? "rgba(255,255,255,0.88)" : "rgba(0,0,0,0.60)", fontWeight:700 }}>
+          <span style={{ fontSize:10, color: "rgba(255,255,255,0.88)", fontWeight:700 }}>
             {data.units}u
           </span>
         )}
+        {data.isCustom && (
+          <span style={{ fontSize:8, color: rgbaFromHex(pillColor, 0.9), background: rgbaFromHex(pillColor, 0.18), border:`1px solid ${rgbaFromHex(pillColor,0.35)}`, borderRadius:4, padding:"1px 5px", fontWeight:800, letterSpacing:"0.06em" }}>CUSTOM</span>
+        )}
       </div>
 
-      <div style={{ fontSize:11.5, color: isDark ? "rgba(255,255,255,0.94)" : "#1a1a2e", fontWeight:800, lineHeight:1.35, marginBottom:6, minHeight:15 }}>
+      <div style={{ fontSize:11.5, color: textColor, fontWeight:800, lineHeight:1.35, marginBottom:6, minHeight:15 }}>
         {data.title ?? ""}
       </div>
 
       <div style={{
         display:"inline-flex", alignItems:"center",
-        background: isDark ? `${pillColor}22` : `${pillColor}20`,
-        border: `1px solid ${isDark ? `${pillColor}55` : pillColor}`,
+        background: rgbaFromHex(data.semPalette.badge, data.graphDark === false ? 0.20 : 0.18),
+        border: `1px solid ${rgbaFromHex(data.semPalette.badge, 0.45)}`,
         borderRadius:6, padding:"2px 7px",
-        fontSize:9.5, color: isDark ? "rgba(255,255,255,0.80)" : "#1a1a2e", fontWeight:700, letterSpacing:"0.03em",
+        fontSize:9.5, color: "rgba(255,255,255,0.86)", fontWeight:700, letterSpacing:"0.03em",
       }}>{data.semesterLabel}</div>
     </div>
   );
@@ -225,46 +352,56 @@ const nodeTypes = { smartCourse: SmartCourseNode };
 
 // ─── Layout (INVERTED: Year 1 at bottom, Senior at top) ──────────────────────
 
-const LANE_W   = 1160;
-const LANE_X   = 20;
-const LANE_PAD = 34;
-const NODE_W   = 230;
-const NODE_H   = 118;
-const START_Y  = 66;
-const SIDE_PAD = 42;
-const H_GAP    = 42;
-const ROW_GAP  = 34;
-
-// light bg per semester label
-function getTierLightBg(label: string): string {
-  const l = label.toLowerCase();
-  if (l.includes("fall"))   return "#f4efff";
-  if (l.includes("spring")) return "#effcf3";
-  if (l.includes("summer")) return "#fff7eb";
-  if (l.includes("winter")) return "#eef8ff";
-  return "#f1f5f9";
-}
+const LANE_W    = 1400;   // wider lane
+const LANE_X    = 20;
+const LANE_PAD  = 48;     // more breathing room between lanes
+const NODE_W    = 230;
+const NODE_H    = 120;
+const START_Y   = 72;
+const SIDE_PAD  = 52;
+const H_GAP     = 56;     // more horizontal gap between cards
+const ROW_GAP   = 44;     // more vertical gap between rows
+const DEPT_GAP  = 28;     // extra gap between dept groups
+const DEPT_LBL  = 22;     // height of dept label row inside lane
 
 function buildLayout(
   raw: SkillTreeResponse,
   deletedKeys: Set<string>,
   onDelete: (id: string) => void,
-  semColorOverrides?: Record<string, {bg:string;border:string;textColor:string}>,
-  graphDark?: boolean
+  semColorOverrides?: Partial<Record<SemesterType | string, {bg:string;border:string;textColor:string}>>,
+  graphDark?: boolean,
+  startTerm: SemesterType = "Fall",
+  includeSummer = false,
+  includeWinter = false,
+  deptColorOverrides?: Record<string, string>,
+  customCourses?: CustomCourse[]
 ): { rfNodes: Node[]; rfEdges: Edge[] } {
-  const isDark = graphDark !== false;
   const tiers = raw.semesters.slice().sort((a, b) => a.tierIndex - b.tierIndex);
-  const maxTier = tiers[tiers.length - 1]?.tierIndex ?? 0;
 
   const rfNodes: Node[] = [];
   const rfEdges: Edge[] = [];
 
+  // Helper: get dept key from course key
+  function getDept(key: string) {
+    return key.replace(/-.*/, "").toUpperCase().slice(0, 4);
+  }
+
+  // Pre-compute tier heights (accounting for dept grouping)
   const tierHeights = new Map<number, number>();
   for (const t of tiers) {
     const active = raw.nodes.filter((n) => n.tierIndex === t.tierIndex && !deletedKeys.has(n.key));
-    const cols = Math.max(1, Math.min(4, Math.ceil(Math.sqrt(active.length || 1))));
-    const rows = Math.max(1, Math.ceil((active.length || 1) / cols));
-    tierHeights.set(t.tierIndex, Math.max(190, START_Y + rows * NODE_H + (rows - 1) * ROW_GAP + 38));
+    // Group by dept
+    const depts: string[] = [...new Set(active.map((n) => getDept(n.key)))];
+    const numDepts = Math.max(1, depts.length);
+    // Each dept: up to 4 cols, rows = ceil(deptNodes/cols)
+    let totalHeight = START_Y;
+    for (const dept of depts) {
+      const deptNodes = active.filter((n) => getDept(n.key) === dept);
+      const cols = Math.max(1, Math.min(4, deptNodes.length));
+      const rows = Math.max(1, Math.ceil(deptNodes.length / cols));
+      totalHeight += DEPT_LBL + rows * NODE_H + (rows - 1) * ROW_GAP + DEPT_GAP;
+    }
+    tierHeights.set(t.tierIndex, Math.max(220, totalHeight + 20));
   }
 
   const tierYMap = new Map<number, number>();
@@ -272,20 +409,29 @@ function buildLayout(
   for (let i = tiers.length - 1; i >= 0; i--) {
     const t = tiers[i];
     tierYMap.set(t.tierIndex, runningY);
-    runningY += (tierHeights.get(t.tierIndex) ?? 200) + LANE_PAD;
+    runningY += (tierHeights.get(t.tierIndex) ?? 220) + LANE_PAD;
   }
 
   for (const t of tiers) {
     const laneY = tierYMap.get(t.tierIndex) ?? 0;
-    const laneH = tierHeights.get(t.tierIndex) ?? 200;
-    const tiDisplayIdx = maxTier - t.tierIndex;
-    const defaultPalette = getTierPalette(t.label, tiDisplayIdx);
-    const override = semColorOverrides?.[t.label.split(" ")[0]] ?? semColorOverrides?.[t.label];
-    const border = override?.border ?? defaultPalette.border;
-    const textColor = override?.textColor ?? defaultPalette.textColor;
+    const laneH = tierHeights.get(t.tierIndex) ?? 220;
+
+    const season = getTierSeason(t.tierIndex, startTerm, includeSummer, includeWinter);
+    const semesterPalette = getSemesterPaletteForSeason(season, semColorOverrides);
+    const border = semesterPalette.border;
+    const textColor = semesterPalette.text;
     const active = raw.nodes.filter((n) => n.tierIndex === t.tierIndex && !deletedKeys.has(n.key));
 
-    const laneBg = isDark ? "transparent" : getTierLightBg(t.label);
+    // Add any custom courses for this semester
+    const tierLabel = buildTierLabel(t.tierIndex, startTerm, includeSummer, includeWinter);
+    const customForTier = (customCourses ?? []).filter((c) => c.semesterLabel === tierLabel);
+
+    const laneBg = graphDark === false
+      ? LIGHT_SEMESTER_BG[season] ?? semesterPalette.bg
+      : semesterPalette.bg;
+
+    const displayLabel = buildTierLabel(t.tierIndex, startTerm, includeSummer, includeWinter);
+    const totalUnitsInTier = t.totalUnits + customForTier.reduce((s, c) => s + c.units, 0);
 
     rfNodes.push({
       id: `tier-${t.tierIndex}`,
@@ -295,11 +441,21 @@ function buildLayout(
       data: {
         label: (
           <div style={{ textAlign:"left" }}>
-            <div style={{ fontWeight:950, fontSize:13.5, color: isDark ? textColor : border, letterSpacing:"0.05em", textTransform:"uppercase" }}>
-              {t.label.toUpperCase()}
+            <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+              <span style={{
+                background: border, color:"#fff",
+                borderRadius:6, padding:"2px 8px",
+                fontSize:9.5, fontWeight:800, letterSpacing:"0.08em", textTransform:"uppercase",
+                flexShrink:0,
+              }}>
+                {season.toUpperCase()}
+              </span>
+              <div style={{ fontWeight:950, fontSize:13.5, color: border, letterSpacing:"0.05em", textTransform:"uppercase" }}>
+                {displayLabel.toUpperCase()}
+              </div>
             </div>
-            <div style={{ fontSize:10.5, color: isDark ? `${textColor}88` : "rgba(0,0,0,0.44)", fontWeight:700, marginTop:2 }}>
-              {t.totalUnits} units
+            <div style={{ fontSize:10.5, color: rgbaFromHex(textColor, 0.68), fontWeight:700, marginTop:4 }}>
+              {totalUnitsInTier} units{customForTier.length > 0 ? ` (+${customForTier.reduce((s,c)=>s+c.units,0)} custom)` : ""}
             </div>
           </div>
         ),
@@ -314,25 +470,115 @@ function buildLayout(
       zIndex: 0,
     });
 
-    const cols = Math.max(1, Math.min(4, Math.ceil(Math.sqrt(active.length || 1))));
-    const totalRowWidth = cols * NODE_W + (cols - 1) * H_GAP;
-    const startX = LANE_X + SIDE_PAD + Math.max(0, (LANE_W - SIDE_PAD * 2 - totalRowWidth) / 2);
+    // Group nodes by department
+    const depts: string[] = [...new Set(active.map((n) => getDept(n.key)))].sort();
+    let deptOffsetY = START_Y;
 
-    active.forEach((n, index) => {
-      const col = index % cols;
-      const row = Math.floor(index / cols);
+    for (const dept of depts) {
+      const deptNodes = active.filter((n) => getDept(n.key) === dept);
+      const cols = Math.max(1, Math.min(4, deptNodes.length));
+      const totalDeptWidth = cols * NODE_W + (cols - 1) * H_GAP;
+      const deptStartX = LANE_X + SIDE_PAD + Math.max(0, (LANE_W - SIDE_PAD * 2 - totalDeptWidth) / 2);
+
+      // Dept sub-label node (ghost, non-interactive)
+      const deptColor = deptColorOverrides?.[dept] ?? DEPT_COLORS[dept] ?? DEPT_COLORS.DEFAULT;
       rfNodes.push({
-        id: n.key,
-        type: "smartCourse",
-        position: { x: startX + col * (NODE_W + H_GAP), y: laneY + START_Y + row * (NODE_H + ROW_GAP) },
+        id: `dept-label-${t.tierIndex}-${dept}`,
+        type: "default",
+        position: { x: deptStartX, y: laneY + deptOffsetY - 4 },
+        selectable: false, draggable: false,
         data: {
-          nodeKey: n.key, title: n.title ?? null, units: n.units ?? null,
-          levelBand: n.levelBand, semesterLabel: n.semesterLabel,
-          tierIndex: n.tierIndex, onDelete, graphDark: isDark,
-        } as CourseNodeData,
-        zIndex: 10,
+          label: (
+            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+              <span style={{ width:8, height:8, borderRadius:2, background: deptColor, flexShrink:0, display:"inline-block" }}/>
+              <span style={{ fontSize:9, fontWeight:800, color: graphDark === false ? rgbaFromHex(deptColor, 0.85) : rgbaFromHex(deptColor, 0.90), letterSpacing:"0.10em", textTransform:"uppercase" }}>{dept}</span>
+            </div>
+          ),
+        },
+        style: {
+          width: totalDeptWidth, height: DEPT_LBL,
+          background: "transparent", border: "none",
+          padding:"0 4px", pointerEvents:"none", boxShadow:"none",
+        },
+        zIndex: 1,
       });
-    });
+
+      deptOffsetY += DEPT_LBL + 6;
+
+      deptNodes.forEach((n, index) => {
+        const col = index % cols;
+        const row = Math.floor(index / cols);
+        const nodeSeason = getTierSeason(n.tierIndex, startTerm, includeSummer, includeWinter);
+        rfNodes.push({
+          id: n.key,
+          type: "smartCourse",
+          position: { x: deptStartX + col * (NODE_W + H_GAP), y: laneY + deptOffsetY + row * (NODE_H + ROW_GAP) },
+          data: {
+            nodeKey: n.key, title: n.title ?? null, units: n.units ?? null,
+            levelBand: n.levelBand, semesterLabel: buildTierLabel(n.tierIndex, startTerm, includeSummer, includeWinter),
+            tierIndex: n.tierIndex, onDelete,
+            semPalette: getSemesterPaletteForSeason(nodeSeason, semColorOverrides),
+            graphDark,
+            deptColorOverrides,
+          } as CourseNodeData,
+          zIndex: 10,
+        });
+      });
+
+      const rows = Math.ceil(deptNodes.length / cols);
+      deptOffsetY += rows * NODE_H + (rows - 1) * ROW_GAP + DEPT_GAP;
+    }
+
+    // Place custom courses at the end of the lane
+    if (customForTier.length > 0) {
+      const customCols = Math.max(1, Math.min(4, customForTier.length));
+      const totalCustomWidth = customCols * NODE_W + (customCols - 1) * H_GAP;
+      const customStartX = LANE_X + SIDE_PAD + Math.max(0, (LANE_W - SIDE_PAD * 2 - totalCustomWidth) / 2);
+
+      // Custom courses dept label
+      rfNodes.push({
+        id: `dept-label-${t.tierIndex}-CUSTOM`,
+        type: "default",
+        position: { x: customStartX, y: laneY + deptOffsetY - 4 },
+        selectable: false, draggable: false,
+        data: {
+          label: (
+            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+              <span style={{ fontSize:9, color:"rgba(255,255,255,0.55)", fontWeight:800, letterSpacing:"0.10em", textTransform:"uppercase" }}>★ CUSTOM ADDITIONS</span>
+            </div>
+          ),
+        },
+        style: { width: totalCustomWidth, height: DEPT_LBL, background:"transparent", border:"none", padding:"0 4px", pointerEvents:"none", boxShadow:"none" },
+        zIndex: 1,
+      });
+      deptOffsetY += DEPT_LBL + 6;
+
+      customForTier.forEach((c, index) => {
+        const col = index % customCols;
+        const row = Math.floor(index / customCols);
+        const nodeSeason = getTierSeason(t.tierIndex, startTerm, includeSummer, includeWinter);
+        rfNodes.push({
+          id: `custom-${c.id}`,
+          type: "smartCourse",
+          position: { x: customStartX + col * (NODE_W + H_GAP), y: laneY + deptOffsetY + row * (NODE_H + ROW_GAP) },
+          data: {
+            nodeKey: normalizeCourseKey(c.courseId),
+            title: c.courseName,
+            units: c.units,
+            levelBand: 0,
+            semesterLabel: c.semesterLabel,
+            tierIndex: t.tierIndex,
+            onDelete,
+            semPalette: getSemesterPaletteForSeason(nodeSeason, semColorOverrides),
+            graphDark,
+            deptColorOverrides,
+            isCustom: true,
+            customColor: c.color,
+          } as CourseNodeData,
+          zIndex: 10,
+        });
+      });
+    }
   }
 
   const nodeSet = new Set(rfNodes.map((nd) => nd.id));
@@ -347,8 +593,9 @@ function buildLayout(
       id: `${from}->${to}`, source: from, target: to,
       sourceHandle: null, targetHandle: null,
       type: "smoothstep", animated: true,
-      style: { stroke: isDark ? "rgba(255,255,255,0.70)" : "rgba(31,41,55,0.70)", strokeWidth: 2 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: isDark ? "rgba(255,255,255,0.70)" : "rgba(31,41,55,0.70)", width: 16, height: 16 },
+      style: { stroke: graphDark === false ? "rgba(30,30,60,0.60)" : "rgba(255,255,255,0.55)", strokeWidth: 2 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: graphDark === false ? "rgba(30,30,60,0.60)" : "rgba(255,255,255,0.55)", width: 14, height: 14 },
+      zIndex: 5, // between tier blocks (0) and course cards (10)
     });
   }
 
@@ -475,10 +722,13 @@ const css = `
   .react-flow__controls-button { background: transparent !important; border-bottom: 1px solid rgba(255,255,255,0.08) !important; fill: rgba(255,255,255,0.70) !important; }
   .react-flow__controls-button:hover { background: rgba(255,255,255,0.09) !important; }
   .react-flow__minimap { border: 1px solid rgba(255,255,255,0.10) !important; border-radius: 10px !important; }
-  .react-flow__edge-path { stroke: rgba(255,255,255,0.72) !important; stroke-width: 2 !important; }
+  .react-flow__edge-path { stroke: rgba(255,255,255,0.55) !important; stroke-width: 2 !important; }
   .react-flow__edge.animated path { stroke-dasharray: 5 5; }
   .react-flow__connection-line { stroke: rgba(255,255,255,0.88) !important; stroke-width: 2 !important; }
   .react-flow__handle { transition: opacity 0.15s; }
+  /* Ensure edges render above semester blocks (z=0) but below course cards (z=10) */
+  .react-flow__edges { z-index: 5 !important; }
+  .react-flow__edge { z-index: 5 !important; }
 `;
 
 // ─── Inner canvas ─────────────────────────────────────────────────────────────
@@ -490,6 +740,11 @@ function PlannerCanvas({
   graphRef,
   graphDark,
   semColorOverrides,
+  deptColorOverrides,
+  customCourses,
+  startTerm,
+  includeSummer,
+  includeWinter,
 }: {
   raw: SkillTreeResponse | null;
   deletedKeys: Set<string>;
@@ -497,6 +752,11 @@ function PlannerCanvas({
   graphRef?: React.RefObject<HTMLDivElement | null>;
   graphDark?: boolean;
   semColorOverrides?: Record<string, {bg:string;border:string;textColor:string}>;
+  deptColorOverrides?: Record<string, string>;
+  customCourses?: CustomCourse[];
+  startTerm?: SemesterType;
+  includeSummer?: boolean;
+  includeWinter?: boolean;
 }) {
   const { fitView } = useReactFlow();
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -504,10 +764,13 @@ function PlannerCanvas({
 
   useEffect(() => {
     if (!raw) { setNodes([]); setEdges([]); return; }
-    const { rfNodes, rfEdges } = buildLayout(raw, deletedKeys, onDeleteNode, semColorOverrides, graphDark);
+    const { rfNodes, rfEdges } = buildLayout(
+      raw, deletedKeys, onDeleteNode, semColorOverrides, graphDark,
+      startTerm ?? "Fall", includeSummer ?? false, includeWinter ?? false, deptColorOverrides, customCourses
+    );
     setNodes(rfNodes);
     setEdges(rfEdges);
-  }, [raw, deletedKeys, onDeleteNode, setNodes, setEdges]);
+  }, [raw, deletedKeys, onDeleteNode, semColorOverrides, deptColorOverrides, customCourses, graphDark, startTerm, includeSummer, includeWinter, setNodes, setEdges]);
 
   useEffect(() => {
     if (raw) setTimeout(() => fitView({ padding: 0.10, duration: 500 }), 120);
@@ -520,11 +783,11 @@ function PlannerCanvas({
           ...params,
           type: "smoothstep",
           animated: true,
-          style: { stroke: "rgba(255,255,255,0.82)", strokeWidth: 2.2 },
-          markerEnd: { type: MarkerType.ArrowClosed, color: "rgba(255,255,255,0.82)", width: 16, height: 16 },
+          style: { stroke: graphDark === false ? "rgba(30,30,60,0.85)" : "rgba(255,255,255,0.82)", strokeWidth: 2.2 },
+          markerEnd: { type: MarkerType.ArrowClosed, color: graphDark === false ? "rgba(30,30,60,0.85)" : "rgba(255,255,255,0.82)", width: 16, height: 16 },
         }, eds)
       ),
-    [setEdges]
+    [setEdges, graphDark]
   );
 
   const onEdgeClick = useCallback(
@@ -532,22 +795,24 @@ function PlannerCanvas({
     [setEdges]
   );
 
+  const graphBgColor = graphDark === false ? "#e8edf5" : "#06080e";
+  const bgDotColor  = graphDark === false ? "#c8d0e0" : "#131828";
+
   if (!raw) {
     return (
-      <div style={{ height:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:18, padding:40, position:"relative" }}>
-        <div aria-hidden style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)", backgroundSize:"32px 32px", pointerEvents:"none" }} />
-        <div style={{ width:68, height:68, borderRadius:18, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <div style={{ height:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:18, padding:40, position:"relative", background: graphBgColor }}>
+        <div aria-hidden style={{ position:"absolute", inset:0, backgroundImage:`radial-gradient(circle, ${graphDark === false ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)"} 1px, transparent 1px)`, backgroundSize:"32px 32px", pointerEvents:"none" }} />
+        <div style={{ width:68, height:68, borderRadius:18, background: graphDark === false ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.07)", border:`1px solid ${graphDark === false ? "rgba(0,0,0,0.14)" : "rgba(255,255,255,0.15)"}`, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={graphDark === false ? "rgba(0,0,0,0.40)" : "rgba(255,255,255,0.55)"} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/>
             <rect x="9" y="15" width="6" height="6" rx="1"/>
             <path d="M6 9v3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V9"/><line x1="12" y1="12" x2="12" y2="15"/>
           </svg>
         </div>
         <div style={{ textAlign:"center", position:"relative" }}>
-          <p style={{ margin:0, fontSize:20, fontWeight:950, color:"rgba(255,255,255,0.78)" }}>No roadmap built yet</p>
-          <p style={{ margin:"8px 0 0", fontSize:13, color:"rgba(255,255,255,0.38)", maxWidth:340, lineHeight:1.65 }}>
-            Configure your major on the left and click <strong style={{ color:"rgba(255,255,255,0.62)" }}>Build Roadmap</strong>, or try the{" "}
-            <strong style={{ color:"#c4b5fd" }}>CSUN Test Case</strong>.
+          <p style={{ margin:0, fontSize:20, fontWeight:950, color: graphDark === false ? "rgba(0,0,0,0.70)" : "rgba(255,255,255,0.78)" }}>No roadmap built yet</p>
+          <p style={{ margin:"8px 0 0", fontSize:13, color: graphDark === false ? "rgba(0,0,0,0.40)" : "rgba(255,255,255,0.38)", maxWidth:340, lineHeight:1.65 }}>
+            Configure your major on the left and click <strong style={{ color: graphDark === false ? "rgba(0,0,0,0.65)" : "rgba(255,255,255,0.62)" }}>Build Roadmap</strong>
           </p>
         </div>
       </div>
@@ -555,20 +820,25 @@ function PlannerCanvas({
   }
 
   return (
-    <div ref={graphRef} id="rf-graph-capture" style={{ height:"100%", background: graphDark === false ? "#e8edf5" : "#06080e" }} className={graphDark === false ? "graph-light" : ""}>
+    <div ref={graphRef} id="rf-graph-capture" style={{ height:"100%" }} className={graphDark === false ? "graph-light" : ""}>
       <ReactFlow
         nodes={nodes} edges={edges}
         onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
         onConnect={onConnect} onEdgeClick={onEdgeClick}
         nodeTypes={nodeTypes} fitView fitViewOptions={{ padding: 0.12 }}
         proOptions={{ hideAttribution: true }} connectionMode={"loose" as any}
+        style={{ background: graphBgColor }}
       >
-        <Background color={graphDark === false ? "#c8d0e0" : "#131828"} gap={22} size={1} />
+        <Background color={bgDotColor} gap={22} size={1} />
         <Controls />
         <MiniMap
-          nodeColor={(n) => n.id.startsWith("tier-") ? (graphDark === false ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.04)") : getDeptColor(n.id)}
-          maskColor={graphDark === false ? "rgba(232,237,245,0.72)" : "rgba(0,0,0,0.72)"}
-          style={{ background: graphDark === false ? "#e8edf5" : "#06080e" }}
+          nodeColor={(n) => {
+            if (n.id.startsWith("tier-")) return (graphDark === false ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.04)");
+            const dept = n.id.replace(/-.*/, "").toUpperCase().slice(0, 4);
+            return deptColorOverrides?.[dept] ?? getDeptColor(n.id);
+          }}
+          maskColor={graphDark === false ? "rgba(200,210,230,0.60)" : "rgba(0,0,0,0.72)"}
+          style={{ background: graphBgColor }}
         />
       </ReactFlow>
     </div>
@@ -592,7 +862,19 @@ export default function SmartPlannerClient() {
   const [completedText, setCompletedText] = useState("");
   const completedCourses = useMemo(() => parseCompletedInput(completedText), [completedText]);
   const [graphDark, setGraphDark] = useState(true);
-  const [semColors, setSemColors] = useState<Record<string, {bg:string;border:string;textColor:string}>>({});
+  const [semColors, setSemColors] = useState<Record<SemesterType, {bg:string;border:string;textColor:string}>>({
+    Fall: { bg: DEFAULT_SEMESTER_COLORS.Fall.bg, border: DEFAULT_SEMESTER_COLORS.Fall.border, textColor: DEFAULT_SEMESTER_COLORS.Fall.text },
+    Winter: { bg: DEFAULT_SEMESTER_COLORS.Winter.bg, border: DEFAULT_SEMESTER_COLORS.Winter.border, textColor: DEFAULT_SEMESTER_COLORS.Winter.text },
+    Spring: { bg: DEFAULT_SEMESTER_COLORS.Spring.bg, border: DEFAULT_SEMESTER_COLORS.Spring.border, textColor: DEFAULT_SEMESTER_COLORS.Spring.text },
+    Summer: { bg: DEFAULT_SEMESTER_COLORS.Summer.bg, border: DEFAULT_SEMESTER_COLORS.Summer.border, textColor: DEFAULT_SEMESTER_COLORS.Summer.text },
+  });
+  const [deptColorOverrides, setDeptColorOverrides] = useState<Record<string, string>>({});
+  const [showDeptColorPicker, setShowDeptColorPicker] = useState(false);
+  const [customCourses, setCustomCourses] = useState<CustomCourse[]>([]);
+  const [showAddCourseModal, setShowAddCourseModal] = useState(false);
+  const [addCourseForm, setAddCourseForm] = useState({
+    courseId: "", courseName: "", units: "3", semesterLabel: "", color: "#7c3aed",
+  });
 
   const [raw, setRaw] = useState<SkillTreeResponse | null>(null);
   const [deletedKeys, setDeletedKeys] = useState<Set<string>>(new Set());
@@ -690,7 +972,12 @@ export default function SmartPlannerClient() {
   }
 
   const handleDeleteNode = useCallback((key: string) => {
-    setDeletedKeys((prev) => new Set([...prev, key]));
+    if (key.startsWith("custom-")) {
+      const id = key.replace("custom-", "");
+      setCustomCourses((prev) => prev.filter((c) => c.id !== id));
+    } else {
+      setDeletedKeys((prev) => new Set([...prev, key]));
+    }
   }, []);
 
   const savePdf = useCallback(async () => {
@@ -731,7 +1018,8 @@ export default function SmartPlannerClient() {
   }, [raw, electiveFields]);
 
   const totalUnits = raw?.semesters.reduce((s, t) => s + t.totalUnits, 0) ?? 0;
-  const visibleCourses = raw ? raw.nodes.filter((n) => !deletedKeys.has(n.key)).length : 0;
+  const customUnits = customCourses.reduce((s, c) => s + c.units, 0);
+  const visibleCourses = (raw ? raw.nodes.filter((n) => !deletedKeys.has(n.key)).length : 0) + customCourses.length;
 
   const updateElectiveField = (
     id: string,
@@ -773,6 +1061,19 @@ export default function SmartPlannerClient() {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
             Build Your Own
           </Link>
+          {raw && (
+            <button
+              onClick={() => {
+                const semLabels = raw.semesters.map((_, i) => buildTierLabel(i, startTerm, includeSummer, includeWinter));
+                setAddCourseForm((f) => ({ ...f, semesterLabel: semLabels[0] ?? "" }));
+                setShowAddCourseModal(true);
+              }}
+              style={{ display:"inline-flex", alignItems:"center", gap:6, color:"#fff", fontSize:12, fontWeight:800, padding:"5px 13px", background:"rgba(124,58,237,0.22)", border:"1px solid rgba(124,58,237,0.50)", borderRadius:999, letterSpacing:"0.02em", cursor:"pointer", transition:"background 0.14s", fontFamily:"inherit" }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Course
+            </button>
+          )}
           <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:12 }}>
             <button
               onClick={() => setGraphDark((d) => !d)}
@@ -921,11 +1222,11 @@ export default function SmartPlannerClient() {
               <span className="sp-label">Semester Block Colors</span>
               <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                 {(["Fall", "Winter", "Spring", "Summer"] as const).map((sem) => {
-                  const defaultColors: Record<string, {bg:string;border:string;textColor:string}> = {
-                    Fall:   {bg:"rgba(124,58,237,0.18)",  border:"rgba(167,139,250,0.70)", textColor:"#c4b5fd"},
-                    Winter: {bg:"rgba(2,132,199,0.18)",   border:"rgba(125,211,252,0.65)", textColor:"#7dd3fc"},
-                    Spring: {bg:"rgba(22,163,74,0.18)",   border:"rgba(134,239,172,0.70)", textColor:"#86efac"},
-                    Summer: {bg:"rgba(217,119,6,0.18)",   border:"rgba(252,211,77,0.65)",  textColor:"#fcd34d"},
+                  const defaultColors: Record<SemesterType, {bg:string;border:string;textColor:string}> = {
+                    Fall:   { bg: DEFAULT_SEMESTER_COLORS.Fall.bg, border: DEFAULT_SEMESTER_COLORS.Fall.border, textColor: DEFAULT_SEMESTER_COLORS.Fall.text },
+                    Winter: { bg: DEFAULT_SEMESTER_COLORS.Winter.bg, border: DEFAULT_SEMESTER_COLORS.Winter.border, textColor: DEFAULT_SEMESTER_COLORS.Winter.text },
+                    Spring: { bg: DEFAULT_SEMESTER_COLORS.Spring.bg, border: DEFAULT_SEMESTER_COLORS.Spring.border, textColor: DEFAULT_SEMESTER_COLORS.Spring.text },
+                    Summer: { bg: DEFAULT_SEMESTER_COLORS.Summer.bg, border: DEFAULT_SEMESTER_COLORS.Summer.border, textColor: DEFAULT_SEMESTER_COLORS.Summer.text },
                   };
                   const current = semColors[sem] || defaultColors[sem];
                   return (
@@ -934,7 +1235,7 @@ export default function SmartPlannerClient() {
                         onClick={() => setShowSemColorPicker(showSemColorPicker === sem ? null : sem)}
                         style={{
                           width: "100%", display: "flex", alignItems: "center", gap: 8,
-                          background: `${current.bg}`, border: `1.5px solid ${current.border}`,
+                          background: rgbaFromHex(current.border, 0.18), border: `1.5px solid ${current.border}`,
                           borderRadius: 8, padding: "5px 10px", cursor: "pointer",
                           color: current.textColor, fontSize: 11, fontWeight: 800,
                           transition: "opacity 0.14s", fontFamily: "inherit",
@@ -974,6 +1275,93 @@ export default function SmartPlannerClient() {
                   );
                 })}
               </div>
+            </div>
+
+            {/* Department Colors */}
+            <div style={{ marginBottom: 12 }}>
+              <button
+                onClick={() => setShowDeptColorPicker((v) => !v)}
+                style={{
+                  width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between",
+                  background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.14)",
+                  borderRadius:8, padding:"6px 11px", cursor:"pointer",
+                  color:"rgba(255,255,255,0.80)", fontSize:10, fontWeight:800,
+                  letterSpacing:"0.11em", textTransform:"uppercase", fontFamily:"inherit",
+                  transition:"background 0.14s",
+                }}
+              >
+                <span>Department Colors</span>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points={showDeptColorPicker ? "18 15 12 9 6 15" : "6 9 12 15 18 9"}/></svg>
+              </button>
+              {showDeptColorPicker && (
+                <div style={{ background:"rgba(0,0,0,0.28)", borderRadius:9, padding:"10px 11px", border:"1px solid rgba(255,255,255,0.10)", marginTop:4 }}>
+                  <p style={{ margin:"0 0 8px", fontSize:10, color:"rgba(255,255,255,0.42)", lineHeight:1.5 }}>
+                    Override colors by department prefix (e.g. COMP, MATH, GE).
+                  </p>
+                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                    {Object.entries({ ...DEPT_COLORS, ...deptColorOverrides }).map(([dept, color]) => {
+                      const effectiveColor = deptColorOverrides[dept] ?? color;
+                      return (
+                        <div key={dept} style={{ display:"flex", alignItems:"center", gap:6 }}>
+                          <span style={{
+                            background: effectiveColor, color:"#fff",
+                            borderRadius:5, padding:"2px 7px", fontSize:10, fontWeight:800,
+                            letterSpacing:"0.05em", minWidth:52, textAlign:"center", flexShrink:0,
+                          }}>{dept}</span>
+                          <input
+                            type="color"
+                            value={effectiveColor}
+                            onChange={(e) => setDeptColorOverrides((prev) => ({ ...prev, [dept]: e.target.value }))}
+                            style={{ width:28, height:24, border:"none", background:"transparent", padding:0, cursor:"pointer", flexShrink:0 }}
+                          />
+                          <input
+                            className="sp-field"
+                            value={effectiveColor}
+                            onChange={(e) => setDeptColorOverrides((prev) => ({ ...prev, [dept]: e.target.value }))}
+                            style={{ fontSize:10, padding:"4px 7px", flex:1, minWidth:0 }}
+                          />
+                          {deptColorOverrides[dept] && (
+                            <button
+                              onClick={() => setDeptColorOverrides((prev) => { const n = {...prev}; delete n[dept]; return n; })}
+                              style={{ background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.18)", borderRadius:5, padding:"3px 6px", cursor:"pointer", color:"rgba(255,255,255,0.60)", fontSize:10, fontFamily:"inherit" }}
+                              title="Reset to default"
+                            >↺</button>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {/* Add custom dept */}
+                    <div style={{ marginTop:4, borderTop:"1px solid rgba(255,255,255,0.10)", paddingTop:7 }}>
+                      <span className="sp-label" style={{ marginBottom:4 }}>Add Custom Dept</span>
+                      <div style={{ display:"flex", gap:5 }}>
+                        <input
+                          className="sp-field"
+                          id="custom-dept-input"
+                          placeholder="e.g. ART"
+                          style={{ fontSize:10, padding:"4px 7px", textTransform:"uppercase", flex:1 }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              const inp = e.currentTarget;
+                              const val = inp.value.trim().toUpperCase();
+                              if (val) { setDeptColorOverrides((prev) => ({ ...prev, [val]: prev[val] ?? "#6b7280" })); inp.value = ""; }
+                            }
+                          }}
+                        />
+                        <button
+                          className="sp-ghost-btn"
+                          style={{ padding:"3px 9px", fontSize:10 }}
+                          onClick={() => {
+                            const inp = document.getElementById("custom-dept-input") as HTMLInputElement;
+                            if (!inp) return;
+                            const val = inp.value.trim().toUpperCase();
+                            if (val) { setDeptColorOverrides((prev) => ({ ...prev, [val]: prev[val] ?? "#6b7280" })); inp.value = ""; }
+                          }}
+                        >Add</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <hr className="sp-divider"/>
@@ -1023,10 +1411,33 @@ export default function SmartPlannerClient() {
                     <div className="sp-stat-lbl">Courses</div>
                   </div>
                   <div className="sp-stat">
-                    <div className="sp-stat-val">{totalUnits}</div>
+                    <div className="sp-stat-val">{totalUnits + customUnits}</div>
                     <div className="sp-stat-lbl">Units</div>
                   </div>
                 </div>
+
+                {customCourses.length > 0 && (
+                  <div style={{ marginTop:10 }}>
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
+                      <span style={{ fontSize:10, fontWeight:800, letterSpacing:"0.09em", textTransform:"uppercase", color:"rgba(255,255,255,0.40)" }}>Custom Courses ({customCourses.length})</span>
+                      <button className="sp-ghost-btn" style={{ padding:"2px 8px", fontSize:10 }} onClick={() => setCustomCourses([])}>Clear all</button>
+                    </div>
+                    <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+                      {customCourses.map((c) => (
+                        <div key={c.id} style={{ display:"flex", alignItems:"center", gap:7, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.10)", borderRadius:8, padding:"5px 8px" }}>
+                          <span style={{ width:8, height:8, borderRadius:2, background:c.color, flexShrink:0 }}/>
+                          <span style={{ fontSize:11, fontWeight:800, color:"#fff", flex:1, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{c.courseId}</span>
+                          <span style={{ fontSize:10, color:"rgba(255,255,255,0.45)", whiteSpace:"nowrap" }}>{c.units}u · {c.semesterLabel.replace("Year ","Y").replace(" Fall"," F").replace(" Spring"," Sp").replace(" Summer"," Su").replace(" Winter"," W")}</span>
+                          <button onClick={() => setCustomCourses((prev) => prev.filter((x) => x.id !== c.id))}
+                            style={{ background:"none", border:"none", color:"rgba(255,255,255,0.35)", cursor:"pointer", fontSize:13, padding:"0 2px", lineHeight:1, flexShrink:0 }}
+                            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color="#f87171"; }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color="rgba(255,255,255,0.35)"; }}
+                          >×</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {deletedKeys.size > 0 && (
                   <div style={{ marginTop:10, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
@@ -1068,6 +1479,11 @@ export default function SmartPlannerClient() {
               graphRef={graphRef}
               graphDark={graphDark}
               semColorOverrides={semColors}
+              deptColorOverrides={deptColorOverrides}
+              customCourses={customCourses}
+              startTerm={startTerm}
+              includeSummer={includeSummer}
+              includeWinter={includeWinter}
             />
           </div>
         </div>
@@ -1157,6 +1573,134 @@ export default function SmartPlannerClient() {
                 <button className="sp-ghost-btn" style={{ flex:1, justifyContent:"center" }}
                   onClick={() => setShowElectiveModal(false)}>
                   Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ════════ ADD COURSE MODAL ════════ */}
+        {showAddCourseModal && raw && (
+          <div
+            style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.78)", backdropFilter:"blur(8px)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:1001 }}
+            onClick={(e) => { if (e.target === e.currentTarget) setShowAddCourseModal(false); }}
+          >
+            <div style={{ background:"linear-gradient(135deg,#1a0a2e 0%,#12082e 100%)", border:"1px solid rgba(124,58,237,0.35)", borderRadius:22, padding:28, maxWidth:460, width:"92%", animation:"sp-pop 0.2s ease", boxShadow:"0 24px 80px rgba(0,0,0,0.60)" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:20 }}>
+                <div>
+                  <h3 style={{ margin:0, fontWeight:950, fontSize:20, color:"#fff", display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{ background:"rgba(124,58,237,0.28)", border:"1px solid rgba(124,58,237,0.45)", borderRadius:8, width:30, height:30, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>★</span>
+                    Add Custom Course
+                  </h3>
+                  <p style={{ margin:"4px 0 0", fontSize:12, color:"rgba(255,255,255,0.45)" }}>
+                    Add an extra class to any semester in your roadmap.
+                  </p>
+                </div>
+                <button onClick={() => setShowAddCourseModal(false)}
+                  style={{ background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, width:30, height:30, cursor:"pointer", color:"rgba(255,255,255,0.70)", fontSize:18, display:"flex", alignItems:"center", justifyContent:"center" }}>×</button>
+              </div>
+
+              <div style={{ display:"grid", gap:13 }}>
+                {/* Course ID */}
+                <div>
+                  <span className="sp-label">Course ID</span>
+                  <input className="sp-field" type="text" placeholder="e.g. COMP 499"
+                    value={addCourseForm.courseId}
+                    onChange={(e) => setAddCourseForm((f) => ({ ...f, courseId: e.target.value }))}
+                  />
+                </div>
+
+                {/* Course Name */}
+                <div>
+                  <span className="sp-label">Course Name</span>
+                  <input className="sp-field" type="text" placeholder="e.g. Senior Capstone"
+                    value={addCourseForm.courseName}
+                    onChange={(e) => setAddCourseForm((f) => ({ ...f, courseName: e.target.value }))}
+                  />
+                </div>
+
+                {/* Units + Semester in a row */}
+                <div style={{ display:"grid", gridTemplateColumns:"96px 1fr", gap:10 }}>
+                  <div>
+                    <span className="sp-label">Units</span>
+                    <input className="sp-field" type="number" placeholder="3" min={0.5} max={12} step={0.5}
+                      value={addCourseForm.units}
+                      onChange={(e) => setAddCourseForm((f) => ({ ...f, units: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <span className="sp-label">Semester</span>
+                    <select className="sp-field"
+                      value={addCourseForm.semesterLabel}
+                      onChange={(e) => setAddCourseForm((f) => ({ ...f, semesterLabel: e.target.value }))}
+                      style={{ padding:"7px 9px" }}
+                    >
+                      {raw.semesters.map((_, i) => {
+                        const lbl = buildTierLabel(i, startTerm, includeSummer, includeWinter);
+                        return <option key={lbl} value={lbl}>{lbl}</option>;
+                      })}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Color picker */}
+                <div>
+                  <span className="sp-label">Card Color</span>
+                  <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
+                    {["#7c3aed","#0284c7","#16a34a","#d97706","#dc2626","#0d9488","#e879f9","#f59e0b","#64748b","#ec4899"].map((c) => (
+                      <button key={c} onClick={() => setAddCourseForm((f) => ({ ...f, color: c }))}
+                        style={{
+                          width:26, height:26, borderRadius:7, background:c, border:"none", cursor:"pointer", flexShrink:0,
+                          outline: addCourseForm.color === c ? `3px solid #fff` : "none",
+                          outlineOffset: 2, transition:"transform 0.12s",
+                          transform: addCourseForm.color === c ? "scale(1.18)" : "scale(1)",
+                        }}
+                      />
+                    ))}
+                    <div style={{ display:"flex", alignItems:"center", gap:6, marginLeft:4 }}>
+                      <input type="color" value={addCourseForm.color}
+                        onChange={(e) => setAddCourseForm((f) => ({ ...f, color: e.target.value }))}
+                        style={{ width:30, height:26, border:"none", background:"transparent", padding:0, cursor:"pointer" }}
+                      />
+                      <input className="sp-field" value={addCourseForm.color}
+                        onChange={(e) => setAddCourseForm((f) => ({ ...f, color: e.target.value }))}
+                        style={{ fontSize:11, padding:"5px 8px", width:84 }}
+                      />
+                    </div>
+                  </div>
+                  {/* Preview card */}
+                  <div style={{ marginTop:10, padding:"8px 12px", borderRadius:10, background: (() => { const rgb = hexToRgb(addCourseForm.color); return rgb ? `rgb(${Math.round(rgb[0]*0.18)},${Math.round(rgb[1]*0.18)},${Math.round(rgb[2]*0.18)})` : "#1a1a2e"; })(), border:`1.5px solid ${addCourseForm.color}`, display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{ background:addCourseForm.color, color:"#fff", borderRadius:5, padding:"2px 7px", fontSize:10, fontWeight:800 }}>★ {addCourseForm.courseId || "DEPT 000"}</span>
+                    <span style={{ fontSize:11, color:"#fff", fontWeight:700 }}>{addCourseForm.courseName || "Course Name"}</span>
+                    <span style={{ marginLeft:"auto", fontSize:10, color:"rgba(255,255,255,0.60)", fontWeight:700 }}>{addCourseForm.units}u</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display:"flex", gap:9, marginTop:20 }}>
+                <button
+                  className="sp-build-btn"
+                  style={{ flex:2 }}
+                  disabled={!addCourseForm.courseId.trim() || !addCourseForm.courseName.trim() || !addCourseForm.semesterLabel}
+                  onClick={() => {
+                    const units = parseFloat(addCourseForm.units) || 3;
+                    setCustomCourses((prev) => [...prev, {
+                      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                      courseId: addCourseForm.courseId.trim().toUpperCase(),
+                      courseName: addCourseForm.courseName.trim(),
+                      units,
+                      semesterLabel: addCourseForm.semesterLabel,
+                      color: addCourseForm.color,
+                    }]);
+                    setAddCourseForm((f) => ({ ...f, courseId:"", courseName:"", units:"3" }));
+                    setShowAddCourseModal(false);
+                  }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Add to Roadmap
+                </button>
+                <button className="sp-ghost-btn" style={{ flex:1, justifyContent:"center" }} onClick={() => setShowAddCourseModal(false)}>
+                  Cancel
                 </button>
               </div>
             </div>
