@@ -442,9 +442,9 @@ export default function MatadorCompass({ compact = false }: Props) {
               );
             })
           )}
-          <a href="/compass" target="_blank" rel="noopener noreferrer" style={{ display: 'block', textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#D22030', textDecoration: 'none', marginTop: 10 }}>
+          <button onClick={() => window.location.href = '/compass'} style={{ display: 'block', width: '100%', textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#D22030', textDecoration: 'none', marginTop: 10, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0' }}>
             View full Compass
-          </a>
+          </button>
         </div>
       </div>
     );

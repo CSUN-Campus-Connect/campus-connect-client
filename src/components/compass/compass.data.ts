@@ -73,7 +73,7 @@ export const ALL_MILESTONES: CompassMilestone[] = [
     ],
     resources: [
       { name: 'CSUN Academic Advising', url: 'https://www.csun.edu/advising', location: 'University Hall 100', phone: '(818) 677-2467', hours: 'Mon-Fri 8am-5pm' },
-      { name: 'SOLAR Student Portal', url: 'https://solar.csun.edu/psp/ps/?cmd=login', note: 'Schedule appointments and view your DPR online' },
+      { name: 'SOLAR Student Portal', url: 'https://www.csun.edu/it/software-services/services/solar', note: 'Schedule appointments and view your DPR online' },
       { name: 'CSUN Course Catalog', url: 'https://catalog.csun.edu', note: 'Official course descriptions, prerequisites, and requirements' },
     ],
     linkedFeature: 'Academics Hub',
@@ -230,7 +230,7 @@ export const ALL_MILESTONES: CompassMilestone[] = [
       'Use the CSUN Graduation Planner tool in SOLAR',
     ],
     resources: [
-      { name: 'CSUN SOLAR Portal', url: 'https://solar.csun.edu/psp/ps/?cmd=login', note: 'Login and find DPR under Student Records > Degree Progress Report' },
+      { name: 'CSUN SOLAR Portal', url: 'https://www.csun.edu/it/software-services/services/solar', note: 'Login and find DPR under Student Records > Degree Progress Report' },
       { name: 'CSUN Degree Audit', url: 'https://www.csun.edu/registrar', note: 'Check your progress toward graduation requirements' },
       { name: 'Course Catalog & Requirements', url: 'https://catalog.csun.edu', note: 'Official source for all degree and GE requirements' },
       { name: 'GE Requirements Guide', url: 'https://catalog.csun.edu/general-education', note: 'Understand lower and upper division GE requirements' },
@@ -256,7 +256,7 @@ export const ALL_MILESTONES: CompassMilestone[] = [
       'Apply for a graduation fee waiver if eligible',
     ],
     resources: [
-      { name: 'SOLAR Graduation Application', url: 'https://solar.csun.edu/psp/ps/?cmd=login', note: 'Apply to graduate - do NOT skip this step' },
+      { name: 'SOLAR Graduation Application', url: 'https://www.csun.edu/it/software-services/services/solar', note: 'Apply to graduate - do NOT skip this step' },
       { name: 'Graduation Dates & Deadlines', url: 'https://www.csun.edu/graduation', note: 'Official semester deadlines for filing' },
       { name: 'Commencement Information', url: 'https://www.csun.edu/graduation', note: 'Cap and gown, ceremony details, and pricing' },
       { name: 'Diplomat Alumni Toolkit', url: 'https://www.csun.edu/alumni', note: 'Resources for graduating students and new alumni' },
