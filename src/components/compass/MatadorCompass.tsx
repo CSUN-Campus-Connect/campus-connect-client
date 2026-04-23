@@ -442,7 +442,7 @@ export default function MatadorCompass({ compact = false }: Props) {
               );
             })
           )}
-          <a href="/compass" style={{ display: 'block', textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#D22030', textDecoration: 'none', marginTop: 10 }}>
+          <a href="/compass" target="_blank" rel="noopener noreferrer" style={{ display: 'block', textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#D22030', textDecoration: 'none', marginTop: 10 }}>
             View full Compass
           </a>
         </div>
@@ -587,7 +587,7 @@ export default function MatadorCompass({ compact = false }: Props) {
                   {critical} critical milestone{critical !== 1 ? 's' : ''} need your attention
                 </p>
               </div>
-              <button onClick={() => setFilter('all')} style={{ fontSize: 12, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+              <button onClick={() => { setFilter('all'); window.scrollTo(0, 0); }} style={{ fontSize: 12, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
                 View all
               </button>
             </div>

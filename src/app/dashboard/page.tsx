@@ -521,7 +521,7 @@ const name = profile?.first + " " + profile?.last;
               onClick={addMatadorCompass}
               sx={{ fontWeight: 700, py: 1.5 }}
             >
-              ⭐ Matador Compass (Student Success Guide)
+              Matador Compass (Student Success Guide)
             </Button>
             
             <Divider />
