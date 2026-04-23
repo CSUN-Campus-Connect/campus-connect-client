@@ -40,14 +40,24 @@ interface CourseData {
   pillTextColor: string;
 }
 
-// ─── Color palette per semester ───────────────────────────────────────────────
+// ─── Default color palette per semester ───────────────────────────────────────
 
-const SEMESTER_COLORS: Record<SemesterType, { bg: string; border: string; text: string; badge: string }> = {
+const DEFAULT_SEMESTER_COLORS: Record<SemesterType, { bg: string; border: string; text: string; badge: string }> = {
   Fall:   { bg: "#1a0a3e", border: "#7c3aed", text: "#c4b5fd", badge: "#7c3aed" },
+  Winter: { bg: "#0a1f2e", border: "#0284c7", text: "#7dd3fc", badge: "#0284c7" },
   Spring: { bg: "#0a2e1a", border: "#16a34a", text: "#86efac", badge: "#16a34a" },
   Summer: { bg: "#2e1a00", border: "#d97706", text: "#fcd34d", badge: "#d97706" },
-  Winter: { bg: "#0a1f2e", border: "#0284c7", text: "#7dd3fc", badge: "#0284c7" },
 };
+
+const LIGHT_SEMESTER_BACKGROUNDS: Record<SemesterType, string> = {
+  Fall: "#f4efff",
+  Winter: "#eef8ff",
+  Spring: "#effcf3",
+  Summer: "#fff7eb",
+};
+
+// Semester type ordering: Fall(0) → Winter(1) → Spring(2) → Summer(3)
+const SEM_ORDER: Record<SemesterType, number> = { Fall: 0, Winter: 1, Spring: 2, Summer: 3 };
 
 const DEPT_COLORS: Record<string, string> = {
   COMP: "#7c3aed", MATH: "#16a34a", PHYS: "#0284c7", ENGR: "#d97706",
@@ -61,42 +71,56 @@ function getDeptColor(courseId: string): string {
   return DEPT_COLORS[dept] || DEPT_COLORS.DEFAULT;
 }
 
-// ─── CSUN semester options ────────────────────────────────────────────────────
+// ─── CSUN semester options: Fall → Winter → Spring → Summer order ─────────────
 
-const CSUN_SEMESTERS: { label: string; type: SemesterType; year: number }[] = (() => {
-  const out = [];
+function buildSemesterOptions(): { label: string; type: SemesterType; year: number }[] {
+  const out: { label: string; type: SemesterType; year: number }[] = [];
   const currentYear = new Date().getFullYear();
   for (let y = currentYear; y <= currentYear + 5; y++) {
-    out.push({ label: `Fall ${y}`,   type: "Fall"   as SemesterType, year: y });
-    out.push({ label: `Spring ${y}`, type: "Spring" as SemesterType, year: y });
-    out.push({ label: `Summer ${y}`, type: "Summer" as SemesterType, year: y });
-    out.push({ label: `Winter ${y}`, type: "Winter" as SemesterType, year: y });
+    out.push({ label: `Fall ${y}`,   type: "Fall",   year: y });
+    out.push({ label: `Winter ${y}`, type: "Winter", year: y });
+    out.push({ label: `Spring ${y}`, type: "Spring", year: y });
+    out.push({ label: `Summer ${y}`, type: "Summer", year: y });
   }
   return out;
-})();
+}
+
+const ALL_SEMESTERS = buildSemesterOptions();
 
 // ─── Custom Course Node ───────────────────────────────────────────────────────
 
-function CourseNode({ data, selected }: { data: CourseData & { onDelete: (id: string) => void }; selected?: boolean }) {
-  const sc = SEMESTER_COLORS[data.semester] || SEMESTER_COLORS.Fall;
+function CourseNode({
+  data,
+  selected,
+  semColors,
+  graphDark,
+}: {
+  data: CourseData & { onDelete: (id: string) => void };
+  selected?: boolean;
+  semColors?: Record<SemesterType, { bg: string; border: string; text: string; badge: string }>;
+  graphDark?: boolean;
+}) {
+  const palette = semColors ?? DEFAULT_SEMESTER_COLORS;
+  const sc = palette[data.semester] || palette.Fall;
   const cardColor = data.cardColor || sc.bg;
   const cardTextColor = data.cardTextColor || sc.text || "#ffffff";
   const pillColor = data.pillColor || getDeptColor(data.courseId);
   const pillTextColor = data.pillTextColor || "#ffffff";
 
+  const lightNodeBg = LIGHT_SEMESTER_BACKGROUNDS[data.semester] || cardColor;
+  const darkNodeBg = cardColor;
+
   return (
     <div
       style={{
-        background: `linear-gradient(135deg, ${cardColor} 0%, rgba(15,23,42,0.96) 100%)`,
-        border: `1.5px solid ${selected ? "#ffffff" : sc.border}`,
+        background: graphDark === false ? lightNodeBg : darkNodeBg,
+        border: `2px solid ${selected ? (graphDark === false ? "#0f172a" : "#ffffff") : sc.border}`,
         borderRadius: 14,
         padding: "10px 14px",
         width: 300,
         cursor: "grab",
-        boxShadow: selected
-          ? `0 0 0 2px rgba(255,255,255,0.35), 0 12px 32px rgba(0,0,0,0.48)`
-          : `0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05) inset`,
-        transition: "box-shadow 0.2s, border-color 0.2s",
+        boxShadow: "none",
+        transition: "border-color 0.2s, background 0.2s",
         position: "relative",
         userSelect: "none",
       }}
@@ -104,7 +128,7 @@ function CourseNode({ data, selected }: { data: CourseData & { onDelete: (id: st
       <Handle
         type="target"
         position={Position.Top}
-        style={{ background: "#ffffff", width: 10, height: 10, border: "2px solid rgba(255,255,255,0.28)" }}
+        style={{ background: graphDark === false ? "#333" : "#ffffff", width: 10, height: 10, border: "2px solid rgba(255,255,255,0.28)" }}
       />
 
       <button
@@ -112,9 +136,9 @@ function CourseNode({ data, selected }: { data: CourseData & { onDelete: (id: st
         title="Remove course"
         style={{
           position: "absolute", top: 6, right: 6,
-          background: "rgba(255,255,255,0.08)", border: "none",
+          background: graphDark === false ? "rgba(15,23,42,0.08)" : "rgba(255,255,255,0.08)", border: "none",
           borderRadius: 6, width: 20, height: 20,
-          color: "rgba(255,255,255,0.50)", fontSize: 13, cursor: "pointer",
+          color: graphDark === false ? "rgba(15,23,42,0.55)" : "rgba(255,255,255,0.50)", fontSize: 13, cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
           transition: "background 0.15s, color 0.15s",
           lineHeight: 1,
@@ -135,15 +159,15 @@ function CourseNode({ data, selected }: { data: CourseData & { onDelete: (id: st
           {data.courseId || "???"}
         </span>
         {data.units > 0 && (
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.70)", fontWeight: 700 }}>
+          <span style={{ fontSize: 10, color: graphDark === false ? "rgba(0,0,0,0.60)" : "rgba(255,255,255,0.70)", fontWeight: 700 }}>
             {data.units}u
           </span>
         )}
         {data.tag && (
           <span style={{
             fontSize: 9, padding: "1px 5px",
-            background: "rgba(255,255,255,0.10)", borderRadius: 4,
-            color: "rgba(255,255,255,0.72)", fontWeight: 700, letterSpacing: "0.05em",
+            background: graphDark === false ? `${pillColor}1f` : "rgba(255,255,255,0.10)", borderRadius: 4,
+            color: graphDark === false ? "rgba(15,23,42,0.72)" : "rgba(255,255,255,0.72)", fontWeight: 700, letterSpacing: "0.05em",
           }}>
             {data.tag.toUpperCase()}
           </span>
@@ -151,7 +175,7 @@ function CourseNode({ data, selected }: { data: CourseData & { onDelete: (id: st
       </div>
 
       <div style={{
-        fontSize: 12.5, color: cardTextColor, fontWeight: 800,
+        fontSize: 12.5, color: graphDark === false ? "#1a1a2e" : cardTextColor, fontWeight: 800,
         lineHeight: 1.35, marginBottom: 6, paddingRight: 16,
       }}>
         {data.courseName || "Untitled Course"}
@@ -159,10 +183,10 @@ function CourseNode({ data, selected }: { data: CourseData & { onDelete: (id: st
 
       <div style={{
         display: "inline-flex", alignItems: "center", gap: 4,
-        background: `${sc.badge}22`,
-        border: `1px solid ${sc.badge}55`,
+        background: graphDark === false ? `${sc.badge}20` : `${sc.badge}22`,
+        border: `1px solid ${graphDark === false ? sc.badge : `${sc.badge}55`}`,
         borderRadius: 6, padding: "2px 7px",
-        fontSize: 10, color: cardTextColor, fontWeight: 700,
+        fontSize: 10, color: graphDark === false ? "#1a1a2e" : cardTextColor, fontWeight: 700,
       }}>
         {data.semester} {data.year}
       </div>
@@ -170,16 +194,16 @@ function CourseNode({ data, selected }: { data: CourseData & { onDelete: (id: st
       <Handle
         type="source"
         position={Position.Bottom}
-        style={{ background: "#ffffff", width: 10, height: 10, border: "2px solid rgba(255,255,255,0.28)" }}
+        style={{ background: graphDark === false ? "#333" : "#ffffff", width: 10, height: 10, border: "2px solid rgba(255,255,255,0.28)" }}
       />
     </div>
   );
 }
 
+// nodeTypes must be defined outside component to avoid re-registration
 const nodeTypes = { course: CourseNode };
 
 // ─── Main BYO Planner Component ───────────────────────────────────────────────
-
 
 let _idCounter = 1;
 function genId() { return `course-${Date.now()}-${_idCounter++}`; }
@@ -325,6 +349,7 @@ const css = `
   .byop-course-pill:hover { background: rgba(255,255,255,0.10); }
 
   /* React Flow overrides */
+  .react-flow__node { box-shadow: none !important; }
   .react-flow__controls { background: rgba(255,255,255,0.07) !important; border: 1px solid rgba(255,255,255,0.12) !important; border-radius: 10px !important; }
   .react-flow__controls-button { background: transparent !important; border-bottom: 1px solid rgba(255,255,255,0.09) !important; fill: rgba(255,255,255,0.72) !important; }
   .react-flow__controls-button:hover { background: rgba(255,255,255,0.10) !important; }
@@ -332,22 +357,29 @@ const css = `
   .react-flow__edge-path { stroke: rgba(255,255,255,0.95) !important; stroke-width: 2.4 !important; }
   .react-flow__edge.animated path { stroke-dasharray: 6 6; }
   .react-flow__connection-line { stroke: rgba(255,255,255,0.95) !important; stroke-width: 2.4 !important; }
+
+  /* Graph light mode */
+  .graph-light .react-flow__edge-path { stroke: rgba(30,30,60,0.80) !important; }
+  .graph-light .react-flow__connection-line { stroke: rgba(30,30,60,0.80) !important; }
+  .graph-light .react-flow__controls { background: rgba(255,255,255,0.85) !important; border-color: rgba(0,0,0,0.14) !important; }
+  .graph-light .react-flow__controls-button { fill: rgba(0,0,0,0.60) !important; border-bottom-color: rgba(0,0,0,0.08) !important; }
+  .graph-light .react-flow__minimap { border-color: rgba(0,0,0,0.12) !important; }
 `;
 
-// ─── Inner canvas component (needs useReactFlow inside provider) ──────────────
+// ─── Inner canvas component ───────────────────────────────────────────────────
 
 function PlannerCanvas({
   courses,
   onDeleteCourse,
-  includeWinter,
-  includeSummer,
   graphRef,
+  graphDark,
+  semColors,
 }: {
   courses: CourseData[];
   onDeleteCourse: (id: string) => void;
-  includeWinter: boolean;
-  includeSummer: boolean;
   graphRef?: React.RefObject<HTMLDivElement | null>;
+  graphDark: boolean;
+  semColors: Record<SemesterType, { bg: string; border: string; text: string; badge: string }>;
 }) {
   const { fitView } = useReactFlow();
 
@@ -361,8 +393,8 @@ function PlannerCanvas({
   const H_GAP = 34;
   const ROW_GAP = 36;
 
-  // Build semester order
-
+  // Build semester combos sorted: Fall→Winter→Spring→Summer within same year, ascending year
+  // Then reverse so earliest is at BOTTOM (largest Y) and latest at TOP (smallest Y)
   const combos = useMemo(() => {
     const set = new Set<string>();
     courses.forEach((c) => set.add(`${c.semester}-${c.year}`));
@@ -370,27 +402,31 @@ function PlannerCanvas({
       const y = new Date().getFullYear();
       set.add(`Fall-${y}`); set.add(`Spring-${y}`);
     }
-    return Array.from(set).sort((a, b) => {
-      const [sa, ya] = a.split("-");
-      const [sb, yb] = b.split("-");
-      const order: Record<string, number> = { Winter: 0, Spring: 1, Summer: 2, Fall: 3 };
+    const sorted = Array.from(set).sort((a, b) => {
+      const [sa, ya] = a.split("-") as [SemesterType, string];
+      const [sb, yb] = b.split("-") as [SemesterType, string];
       if (ya !== yb) return Number(ya) - Number(yb);
-      return (order[sa] ?? 0) - (order[sb] ?? 0);
+      return (SEM_ORDER[sa] ?? 0) - (SEM_ORDER[sb] ?? 0);
     });
+    // Reverse: latest at top (y=0 = top of screen), earliest at bottom
+    return sorted.reverse();
   }, [courses]);
-
 
   // Build lane background nodes
   const laneNodes: Node[] = useMemo(() => {
     let runningY = 0;
     return combos.map((key) => {
       const [sem, yr] = key.split("-") as [SemesterType, string];
-      const sc = SEMESTER_COLORS[sem] || SEMESTER_COLORS.Fall;
+      const sc = semColors[sem] || DEFAULT_SEMESTER_COLORS.Fall;
       const inLane = courses.filter((c) => c.semester === sem && String(c.year) === yr);
       const totalUnits = inLane.reduce((s, c) => s + (c.units || 0), 0);
-      const cols = Math.max(1, Math.min(3, Math.ceil(Math.sqrt(inLane.length || 1))));
+      const cols = inLane.length <= 1 ? 1 : inLane.length <= 4 ? 2 : 3;
       const rows = Math.max(1, Math.ceil((inLane.length || 1) / cols));
       const laneH = Math.max(250, START_Y + rows * NODE_H + (rows - 1) * ROW_GAP + 46);
+
+      const graphBg = graphDark
+        ? `linear-gradient(180deg, ${sc.bg}dd 0%, rgba(10,10,20,0.72) 100%)`
+        : LIGHT_SEMESTER_BACKGROUNDS[sem] || "#f8fbff";
 
       const laneNode = {
         id: `lane-${key}`,
@@ -401,10 +437,10 @@ function PlannerCanvas({
         data: {
           label: (
             <div style={{ textAlign: "left" }}>
-              <div style={{ fontWeight: 950, fontSize: 15, color: sc.text, letterSpacing: "0.04em" }}>
+              <div style={{ fontWeight: 950, fontSize: 15, color: graphDark ? sc.text : sc.border, letterSpacing: "0.04em" }}>
                 {sem.toUpperCase()} {yr}
               </div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.44)", fontWeight: 700, marginTop: 3 }}>
+              <div style={{ fontSize: 11, color: graphDark ? "rgba(255,255,255,0.44)" : "rgba(0,0,0,0.44)", fontWeight: 700, marginTop: 3 }}>
                 {totalUnits} units
               </div>
             </div>
@@ -413,31 +449,30 @@ function PlannerCanvas({
         style: {
           width: LANE_W,
           height: laneH,
-          background: `linear-gradient(180deg, ${sc.bg}dd 0%, rgba(10,10,20,0.62) 100%)`,
-          border: `1px solid ${sc.border}55`,
+          background: graphBg,
+          border: `2px solid ${sc.border}`,
           borderRadius: 24,
           padding: "18px 18px 16px",
           pointerEvents: "none",
+          boxShadow: "none",
         },
       };
       runningY += laneH + LANE_PAD;
       return laneNode;
     });
-  }, [combos, courses]);
+  }, [combos, courses, graphDark, semColors]);
 
-  // Build course nodes
+  // Build course positions
   const coursePositions = useMemo(() => {
     const positions = new Map<string, { x: number; y: number }>();
-    const laneY = new Map<string, number>();
     let runningY = 0;
 
     combos.forEach((key) => {
-      const inLane = courses.filter((c) => `${c.semester}-${c.year}` === key);
-      const cols = Math.max(1, Math.min(3, Math.ceil(Math.sqrt(inLane.length || 1))));
+      const [sem, yr] = key.split("-") as [SemesterType, string];
+      const inLane = courses.filter((c) => c.semester === sem && String(c.year) === yr);
+      const cols = inLane.length <= 1 ? 1 : inLane.length <= 4 ? 2 : 3;
       const rows = Math.max(1, Math.ceil((inLane.length || 1) / cols));
       const laneH = Math.max(250, START_Y + rows * NODE_H + (rows - 1) * ROW_GAP + 46);
-      laneY.set(key, runningY);
-      runningY += laneH + LANE_PAD;
 
       inLane.forEach((c, index) => {
         const col = index % cols;
@@ -446,9 +481,10 @@ function PlannerCanvas({
         const startX = LANE_X + SIDE_PAD + Math.max(0, (LANE_W - SIDE_PAD * 2 - totalRowWidth) / 2);
         positions.set(c.id, {
           x: startX + col * (NODE_W + H_GAP),
-          y: runningY - (laneH + LANE_PAD) + START_Y + row * (NODE_H + ROW_GAP),
+          y: runningY + START_Y + row * (NODE_H + ROW_GAP),
         });
       });
+      runningY += laneH + LANE_PAD;
     });
     return positions;
   }, [courses, combos]);
@@ -462,11 +498,11 @@ function PlannerCanvas({
       id: c.id,
       type: "course",
       position: coursePositions.get(c.id) ?? { x: 100, y: 100 },
-      data: { ...c, onDelete: onDeleteCourse },
+      data: { ...c, onDelete: onDeleteCourse, semColors, graphDark },
       zIndex: 10,
     }));
     setNodes([...laneNodes, ...courseNodes]);
-  }, [courses, laneNodes, coursePositions, onDeleteCourse, setNodes]);
+  }, [courses, laneNodes, coursePositions, onDeleteCourse, setNodes, semColors, graphDark]);
 
   useEffect(() => {
     setTimeout(() => fitView({ padding: 0.1, duration: 400 }), 80);
@@ -474,20 +510,30 @@ function PlannerCanvas({
 
   const onConnect = useCallback(
     (params: Connection) => {
+      if (!params.source || !params.target) return;
+
+      const sourceNode = nodes.find((n) => n.id === params.source);
+      const targetNode = nodes.find((n) => n.id === params.target);
+      const sourceY = sourceNode?.position?.y ?? 0;
+      const targetY = targetNode?.position?.y ?? 0;
+      const shouldSwap = sourceY < targetY;
+
       setEdges((eds) =>
         addEdge(
           {
             ...params,
+            source: shouldSwap ? params.target : params.source,
+            target: shouldSwap ? params.source : params.target,
             type: "smoothstep",
             animated: true,
-            style: { stroke: "rgba(255,255,255,0.95)", strokeWidth: 2.6 },
-            markerEnd: { type: MarkerType.ArrowClosed, color: "rgba(255,255,255,0.95)", width: 20, height: 20 },
+            style: { stroke: graphDark ? "rgba(255,255,255,0.95)" : "rgba(30,30,80,0.80)", strokeWidth: 2.6 },
+            markerEnd: { type: MarkerType.ArrowClosed, color: graphDark ? "rgba(255,255,255,0.95)" : "rgba(30,30,80,0.80)", width: 20, height: 20 },
           },
           eds
         )
       );
     },
-    [setEdges]
+    [setEdges, graphDark, nodes]
   );
 
   const onEdgeClick = useCallback(
@@ -496,6 +542,9 @@ function PlannerCanvas({
     },
     [setEdges]
   );
+
+  const graphBgColor = graphDark ? "#090d1a" : "#e8edf5";
+  const bgColor = graphDark ? "#1a2235" : "#c8d0e0";
 
   if (courses.length === 0) {
     return (
@@ -509,34 +558,36 @@ function PlannerCanvas({
           gap: 18,
           padding: 40,
           position: "relative",
+          background: graphBgColor,
         }}
       >
         <div
           aria-hidden
           style={{
             position: "absolute", inset: 0,
-            backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)",
+            backgroundImage: `radial-gradient(circle, ${graphDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} 1px, transparent 1px)`,
             backgroundSize: "28px 28px", pointerEvents: "none",
           }}
         />
         <div style={{
           width: 68, height: 68, borderRadius: 18,
-          background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.14)",
+          background: graphDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)",
+          border: `1px solid ${graphDark ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.14)"}`,
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={graphDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.40)"} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/>
             <rect x="9" y="15" width="6" height="6" rx="1"/>
             <path d="M6 9v3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V9"/><line x1="12" y1="12" x2="12" y2="15"/>
           </svg>
         </div>
         <div style={{ textAlign: "center", position: "relative" }}>
-          <p style={{ margin: 0, fontSize: 20, fontWeight: 950, color: "rgba(255,255,255,0.78)" }}>
+          <p style={{ margin: 0, fontSize: 20, fontWeight: 950, color: graphDark ? "rgba(255,255,255,0.78)" : "rgba(0,0,0,0.70)" }}>
             No courses yet
           </p>
-          <p style={{ margin: "8px 0 0", fontSize: 14, color: "rgba(255,255,255,0.38)", maxWidth: 320, lineHeight: 1.65 }}>
+          <p style={{ margin: "8px 0 0", fontSize: 14, color: graphDark ? "rgba(255,255,255,0.38)" : "rgba(0,0,0,0.40)", maxWidth: 320, lineHeight: 1.65 }}>
             Add courses on the left panel. Then drag{" "}
-            <strong style={{ color: "rgba(255,255,255,0.60)" }}>handles</strong> between nodes to create prerequisite arrows.
+            <strong style={{ color: graphDark ? "rgba(255,255,255,0.60)" : "rgba(0,0,0,0.60)" }}>handles</strong> between nodes to create prerequisite arrows.
           </p>
         </div>
       </div>
@@ -544,7 +595,7 @@ function PlannerCanvas({
   }
 
   return (
-    <div ref={graphRef} style={{ width: "100%", height: "100%" }}>
+    <div ref={graphRef} style={{ width: "100%", height: "100%" }} className={graphDark ? "" : "graph-light"}>
     <ReactFlow
       nodes={nodes}
       edges={edges}
@@ -557,20 +608,20 @@ function PlannerCanvas({
       fitViewOptions={{ padding: 0.18 }}
       proOptions={{ hideAttribution: true }}
       deleteKeyCode={null}
-      style={{ background: "#090d1a" }}
+      style={{ background: graphBgColor }}
     >
-      <Background color="#1a2235" gap={22} size={1} />
+      <Background color={bgColor} gap={22} size={1} />
       <Controls />
       <MiniMap
         nodeColor={(n) => n.id.startsWith("lane-") ? "rgba(255,255,255,0.03)" : "#A80532"}
-        maskColor="rgba(0,0,0,0.60)"
-        style={{ background: "#0a0f1e", border: "1px solid rgba(255,255,255,0.10)", borderRadius: 10 }}
+        maskColor={graphDark ? "rgba(0,0,0,0.60)" : "rgba(200,210,230,0.60)"}
+        style={{ background: graphDark ? "#0a0f1e" : "#d0d8e8", border: `1px solid ${graphDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`, borderRadius: 10 }}
       />
       <Panel position="bottom-center">
         <div style={{
-          background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)",
-          border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20,
-          padding: "6px 14px", fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 600,
+          background: graphDark ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.75)", backdropFilter: "blur(8px)",
+          border: `1px solid ${graphDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, borderRadius: 20,
+          padding: "6px 14px", fontSize: 11, color: graphDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)", fontWeight: 600,
         }}>
           Drag node handles to connect prerequisites · Click an edge to remove it
         </div>
@@ -585,11 +636,14 @@ function PlannerCanvas({
 export default function BYOPlanner() {
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [form, setForm] = useState({ ...EMPTY_FORM });
-  const [includeWinter, setIncludeWinter] = useState(false);
-  const [includeSummer, setIncludeSummer] = useState(false);
   const [connectMode, setConnectMode] = useState<"prereq-chain" | "independent">("prereq-chain");
+  const [graphDark, setGraphDark] = useState(true);
 
-  // Queue-chain: track last added course id for auto-prereq-chaining
+  // Semester block colors (user-customizable)
+  const [semColors, setSemColors] = useState<Record<SemesterType, { bg: string; border: string; text: string; badge: string }>>({
+    ...DEFAULT_SEMESTER_COLORS,
+  });
+
   const lastAddedId = useRef<string | null>(null);
   const graphRef = useRef<HTMLDivElement>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -601,7 +655,7 @@ export default function BYOPlanner() {
   const handleAddCourse = () => {
     if (!form.courseId.trim()) return;
     const newId = genId();
-    const defaultCard = SEMESTER_COLORS[form.semester] || SEMESTER_COLORS.Fall;
+    const defaultCard = semColors[form.semester] || DEFAULT_SEMESTER_COLORS.Fall;
     const newCourse: CourseData = {
       id: newId,
       courseId: (form.courseId ?? "").trim().toUpperCase(),
@@ -623,7 +677,7 @@ export default function BYOPlanner() {
       lastAddedId.current = null;
     }
 
-    const nextDefault = SEMESTER_COLORS[form.semester] || SEMESTER_COLORS.Fall;
+    const nextDefault = semColors[form.semester] || DEFAULT_SEMESTER_COLORS.Fall;
     setForm((prev) => ({
       ...prev,
       courseId: "",
@@ -657,7 +711,7 @@ export default function BYOPlanner() {
       await load("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
       const h2c = (window as any).html2canvas;
       const { jsPDF } = (window as any).jspdf;
-      const canvas = await h2c(el, { backgroundColor: "#090d1a", scale: 2, useCORS: true, logging: false });
+      const canvas = await h2c(el, { backgroundColor: graphDark ? "#090d1a" : "#e8edf5", scale: 2, useCORS: true, logging: false });
       const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a3" });
       const pw = pdf.internal.pageSize.getWidth();
       const ph = pdf.internal.pageSize.getHeight();
@@ -672,7 +726,7 @@ export default function BYOPlanner() {
     } finally {
       setPdfLoading(false);
     }
-  }, [courses.length]);
+  }, [courses.length, graphDark]);
 
   const totalUnits = courses.reduce((s, c) => s + (c.units || 0), 0);
   const semGroups = useMemo(() => {
@@ -684,13 +738,14 @@ export default function BYOPlanner() {
     return m;
   }, [courses]);
 
-  const visibleSemesters = useMemo(() => {
-    return CSUN_SEMESTERS.filter((s) => {
-      if (s.type === "Winter" && !includeWinter) return false;
-      if (s.type === "Summer" && !includeSummer) return false;
-      return true;
-    });
-  }, [includeWinter, includeSummer]);
+  const updateSemColor = (sem: SemesterType, field: "bg" | "border" | "text" | "badge", value: string) => {
+    setSemColors((prev) => ({
+      ...prev,
+      [sem]: { ...prev[sem], [field]: value },
+    }));
+  };
+
+  const [showSemColorPicker, setShowSemColorPicker] = useState<SemesterType | null>(null);
 
   return (
     <ReactFlowProvider>
@@ -735,7 +790,7 @@ export default function BYOPlanner() {
               transition: "color 0.14s",
             }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.90)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 3 3 15l6 1 1 5 5-8"/><path d="M9 9l5.5 5.5"/>
             </svg>
             Smart Planner
@@ -751,7 +806,8 @@ export default function BYOPlanner() {
               Build Your Own
             </span>
             <span style={{
-              background: "rgba(255,255,255,0.13)", border: "1px solid rgba(255,255,255,0.26)",
+              background: "rgba(255,255,255,0.13)",
+              border: "1px solid rgba(255,255,255,0.26)",
               color: "#fff", borderRadius: 999, padding: "2px 8px",
               fontSize: 10, fontWeight: 800, letterSpacing: "0.07em",
             }}>
@@ -759,18 +815,18 @@ export default function BYOPlanner() {
             </span>
           </div>
 
-          <Link
-            href="/academics/smart-planner"
-            className="byop-ghost-btn"
-            style={{ textDecoration: "none" }}
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6"/>
-            </svg>
-            Dynamic Builder
-          </Link>
-
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
+            {/* Graph Dark/Light toggle */}
+            <button
+              onClick={() => setGraphDark((d) => !d)}
+              style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 11px", background:"rgba(255,255,255,0.10)", border:"1px solid rgba(255,255,255,0.22)", borderRadius:999, cursor:"pointer", color:"rgba(255,255,255,0.82)", fontSize:11, fontWeight:700, transition:"all 0.15s" }}
+              title={graphDark ? "Switch graph to light" : "Switch graph to dark"}
+            >
+              {graphDark
+                ? <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>}
+              Graph {graphDark ? "Light" : "Dark"}
+            </button>
             {courses.length > 0 && (
               <span style={{ fontSize: 12, color: "rgba(255,255,255,0.50)", fontWeight: 600 }}>
                 {courses.length} course{courses.length !== 1 ? "s" : ""} · {totalUnits} units
@@ -801,7 +857,6 @@ export default function BYOPlanner() {
           {/* ── LEFT PANEL ── */}
           <div className="byop-panel">
 
-            {/* Section: Add Course */}
             <div>
               <p className="byop-section-title">Add Course</p>
             </div>
@@ -857,7 +912,7 @@ export default function BYOPlanner() {
               </div>
             </div>
 
-            {/* Semester dropdown */}
+            {/* Semester dropdown — includes all semesters including Winter/Summer */}
             <div>
               <label className="byop-label">Semester</label>
               <select
@@ -869,24 +924,12 @@ export default function BYOPlanner() {
                   handleFormChange("year", Number(yr));
                 }}
               >
-                {visibleSemesters.map((s) => (
+                {ALL_SEMESTERS.map((s) => (
                   <option key={`${s.type}-${s.year}`} value={`${s.type}-${s.year}`}>
                     {s.label}
                   </option>
                 ))}
               </select>
-            </div>
-
-            {/* Optional semester toggles */}
-            <div style={{ display: "flex", gap: 10 }}>
-              <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, color: "rgba(255,255,255,0.70)", fontWeight: 600 }}>
-                <input type="checkbox" checked={includeWinter} onChange={(e) => setIncludeWinter(e.target.checked)} style={{ accentColor: "#fff" }} />
-                Winter
-              </label>
-              <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, color: "rgba(255,255,255,0.70)", fontWeight: 600 }}>
-                <input type="checkbox" checked={includeSummer} onChange={(e) => setIncludeSummer(e.target.checked)} style={{ accentColor: "#fff" }} />
-                Summer
-              </label>
             </div>
 
             {/* Link mode */}
@@ -915,86 +958,100 @@ export default function BYOPlanner() {
               </p>
             </div>
 
-            {/* Appearance */}
+            {/* Course Appearance */}
             <div>
               <label className="byop-label">Course Colors</label>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <div>
-                  <label className="byop-label" style={{ marginBottom: 6 }}>Card Color</label>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <input
-                      type="color"
-                      value={form.cardColor ?? "#1a0a3e"}
-                      onChange={(e) => handleFormChange("cardColor", e.target.value)}
-                      style={{ width: 42, height: 32, border: "none", background: "transparent", padding: 0, cursor: "pointer" }}
-                    />
-                    <input
-                      className="byop-field"
-                      value={form.cardColor ?? "#1a0a3e"}
-                      onChange={(e) => handleFormChange("cardColor", e.target.value || "#1a0a3e")}
-                      placeholder="#1a0a3e"
-                      style={{ fontSize: 12, padding: "7px 10px" }}
-                    />
+                {(["cardColor", "cardTextColor", "pillColor", "pillTextColor"] as const).map((field) => (
+                  <div key={field}>
+                    <label className="byop-label" style={{ marginBottom: 6 }}>
+                      {field === "cardColor" ? "Card Color" : field === "cardTextColor" ? "Card Text" : field === "pillColor" ? "Pill Color" : "Pill Text"}
+                    </label>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <input
+                        type="color"
+                        value={(form as any)[field] ?? "#ffffff"}
+                        onChange={(e) => handleFormChange(field, e.target.value)}
+                        style={{ width: 42, height: 32, border: "none", background: "transparent", padding: 0, cursor: "pointer" }}
+                      />
+                      <input
+                        className="byop-field"
+                        value={(form as any)[field] ?? "#ffffff"}
+                        onChange={(e) => handleFormChange(field, e.target.value || "#ffffff")}
+                        style={{ fontSize: 12, padding: "7px 10px" }}
+                      />
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <label className="byop-label" style={{ marginBottom: 6 }}>Card Text</label>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <input
-                      type="color"
-                      value={form.cardTextColor ?? "#e9ddff"}
-                      onChange={(e) => handleFormChange("cardTextColor", e.target.value)}
-                      style={{ width: 42, height: 32, border: "none", background: "transparent", padding: 0, cursor: "pointer" }}
-                    />
-                    <input
-                      className="byop-field"
-                      value={form.cardTextColor ?? "#e9ddff"}
-                      onChange={(e) => handleFormChange("cardTextColor", e.target.value || "#e9ddff")}
-                      placeholder="#e9ddff"
-                      style={{ fontSize: 12, padding: "7px 10px" }}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="byop-label" style={{ marginBottom: 6 }}>Pill Color</label>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <input
-                      type="color"
-                      value={form.pillColor ?? getDeptColor(form.courseId || "DEFAULT")}
-                      onChange={(e) => handleFormChange("pillColor", e.target.value)}
-                      style={{ width: 42, height: 32, border: "none", background: "transparent", padding: 0, cursor: "pointer" }}
-                    />
-                    <input
-                      className="byop-field"
-                      value={form.pillColor ?? getDeptColor(form.courseId || "DEFAULT")}
-                      onChange={(e) => handleFormChange("pillColor", e.target.value || getDeptColor(form.courseId || "DEFAULT"))}
-                      placeholder="#7c3aed"
-                      style={{ fontSize: 12, padding: "7px 10px" }}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="byop-label" style={{ marginBottom: 6 }}>Pill Text</label>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <input
-                      type="color"
-                      value={form.pillTextColor ?? "#ffffff"}
-                      onChange={(e) => handleFormChange("pillTextColor", e.target.value)}
-                      style={{ width: 42, height: 32, border: "none", background: "transparent", padding: 0, cursor: "pointer" }}
-                    />
-                    <input
-                      className="byop-field"
-                      value={form.pillTextColor ?? "#ffffff"}
-                      onChange={(e) => handleFormChange("pillTextColor", e.target.value || "#ffffff")}
-                      placeholder="#ffffff"
-                      style={{ fontSize: 12, padding: "7px 10px" }}
-                    />
-                  </div>
-                </div>
+                ))}
               </div>
-              <p style={{ fontSize: 10, color: "rgba(255,255,255,0.32)", margin: "6px 0 0", lineHeight: 1.5 }}>
-                Card colors style the whole course card. Pill colors only style the course ID badge.
-              </p>
+            </div>
+
+            {/* Semester block colors */}
+            <div>
+              <label className="byop-label">Semester Block Colors</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {(["Fall", "Winter", "Spring", "Summer"] as SemesterType[]).map((sem) => (
+                  <div key={sem} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <button
+                      onClick={() => setShowSemColorPicker(showSemColorPicker === sem ? null : sem)}
+                      style={{
+                        flex: 1,
+                        display: "flex", alignItems: "center", gap: 8,
+                        background: `${semColors[sem].bg}cc`,
+                        border: `1.5px solid ${semColors[sem].border}`,
+                        borderRadius: 8, padding: "6px 10px",
+                        cursor: "pointer", color: semColors[sem].text,
+                        fontSize: 11, fontWeight: 800,
+                        transition: "opacity 0.14s",
+                      }}
+                    >
+                      <span style={{ width: 12, height: 12, borderRadius: 3, background: semColors[sem].border, flexShrink: 0 }} />
+                      {sem}
+                      <svg style={{ marginLeft: "auto" }} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points={showSemColorPicker === sem ? "18 15 12 9 6 15" : "6 9 12 15 18 9"}/></svg>
+                    </button>
+                  </div>
+                ))}
+
+                {/* Color picker panel for selected semester */}
+                {showSemColorPicker && (
+                  <div style={{
+                    background: "rgba(0,0,0,0.35)", borderRadius: 10, padding: "10px 12px",
+                    border: "1px solid rgba(255,255,255,0.12)", marginTop: 2,
+                  }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: "rgba(255,255,255,0.50)", textTransform: "uppercase", marginBottom: 8 }}>
+                      {showSemColorPicker} Colors
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                      {([["bg", "Background"], ["border", "Border"]] as [keyof typeof DEFAULT_SEMESTER_COLORS.Fall, string][]).map(([field, label]) => (
+                        <div key={field}>
+                          <label className="byop-label" style={{ marginBottom: 4 }}>{label}</label>
+                          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                            <input
+                              type="color"
+                              value={semColors[showSemColorPicker][field]}
+                              onChange={(e) => updateSemColor(showSemColorPicker, field, e.target.value)}
+                              style={{ width: 36, height: 28, border: "none", background: "transparent", padding: 0, cursor: "pointer" }}
+                            />
+                            <input
+                              className="byop-field"
+                              value={semColors[showSemColorPicker][field]}
+                              onChange={(e) => updateSemColor(showSemColorPicker, field, e.target.value)}
+                              style={{ fontSize: 11, padding: "5px 8px" }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      className="byop-ghost-btn"
+                      onClick={() => setSemColors((prev) => ({ ...prev, [showSemColorPicker]: { ...DEFAULT_SEMESTER_COLORS[showSemColorPicker] } }))}
+                      style={{ marginTop: 8, fontSize: 10, padding: "4px 10px" }}
+                    >
+                      Reset to default
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Add button */}
@@ -1026,9 +1083,9 @@ export default function BYOPlanner() {
                         marginBottom: 4, marginTop: 6,
                       }}>{sem}</div>
                       {cs.map((c) => {
-                        const sc = SEMESTER_COLORS[c.semester] || SEMESTER_COLORS.Fall;
+                        const sc = semColors[c.semester] || DEFAULT_SEMESTER_COLORS.Fall;
                         return (
-                          <div key={c.id} className="byop-course-pill" style={{ background: `${c.cardColor || sc.bg}55`, borderColor: `${(SEMESTER_COLORS[c.semester] || SEMESTER_COLORS.Fall).border}55` }}>
+                          <div key={c.id} className="byop-course-pill" style={{ background: `${c.cardColor || sc.bg}88`, borderColor: `${sc.border}88` }}>
                             <span style={{
                               background: c.pillColor || getDeptColor(c.courseId),
                               color: c.pillTextColor || "#fff", borderRadius: 5, padding: "1px 6px",
@@ -1074,9 +1131,9 @@ export default function BYOPlanner() {
             <PlannerCanvas
               courses={courses}
               onDeleteCourse={handleDeleteCourse}
-              includeWinter={includeWinter}
-              includeSummer={includeSummer}
               graphRef={graphRef}
+              graphDark={graphDark}
+              semColors={semColors}
             />
           </div>
         </div>

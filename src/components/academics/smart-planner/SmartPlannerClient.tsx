@@ -123,40 +123,32 @@ function getDeptColor(key: string): string {
   const dept = key.replace(/-.*/, "").toUpperCase().slice(0, 4);
   return DEPT_COLORS[dept] ?? DEPT_COLORS.DEFAULT;
 }
-function getLevelBg(levelBand: number): string {
-  if (levelBand >= 500) return "rgba(12,16,36,0.97)";
-  if (levelBand >= 400) return "rgba(14,18,38,0.96)";
-  if (levelBand >= 300) return "rgba(16,20,40,0.95)";
-  if (levelBand >= 200) return "rgba(18,22,42,0.94)";
-  return "rgba(12,15,32,0.93)";
+
+// ─── Tier palette — semester-aware, always dark, no fill ──────────────────────
+function getTierPalette(label: string, _idx: number) {
+  const l = label.toLowerCase();
+  if (l.includes("fall"))   return { border: "#7c3aed", textColor: "#c4b5fd" };
+  if (l.includes("spring")) return { border: "#16a34a", textColor: "#86efac" };
+  if (l.includes("summer")) return { border: "#d97706", textColor: "#fcd34d" };
+  if (l.includes("winter")) return { border: "#0284c7", textColor: "#7dd3fc" };
+  return { border: "#6b7280", textColor: "#d1d5db" };
 }
 
-// ─── Tier band colors (Year 1 = warm, Senior = cool) ─────────────────────────
-// We flip the visual order (Year 1 bottom), so visually the first tier rendered
-// is at the largest Y, but color-wise tier 0 = Year 1 warm, tier 7 = cool.
-
-const TIER_BG = [
-  "rgba(168,60,10,0.16)",   // Y1S1 – warm amber
-  "rgba(160,40,20,0.15)",   // Y1S2 – warm crimson
-  "rgba(120,30,60,0.14)",   // Y2S1
-  "rgba(90,20,90,0.13)",    // Y2S2
-  "rgba(50,20,120,0.12)",   // Y3S1
-  "rgba(20,30,140,0.11)",   // Y3S2
-  "rgba(10,40,160,0.10)",   // Y4S1
-  "rgba(5,50,180,0.09)",    // Y4S2 – deep blue
-];
-const TIER_BORDER = [
-  "rgba(220,90,30,0.28)",
-  "rgba(210,60,50,0.24)",
-  "rgba(170,40,100,0.20)",
-  "rgba(130,30,140,0.18)",
-  "rgba(70,40,180,0.15)",
-  "rgba(40,60,210,0.13)",
-  "rgba(20,80,230,0.11)",
-  "rgba(10,100,255,0.10)",
-];
-
-// ─── Custom Course Node ───────────────────────────────────────────────────────
+// dept color → dark bg tint for card
+function getDeptBg(color: string): string {
+  return color + "22"; // ~13% opacity tint
+}
+// dept color → light pastel bg
+const DEPT_LIGHT_BG: Record<string, string> = {
+  "#7c3aed": "#5100ff", "#16a34a": "#00ff4c", "#0284c7": "#0095ff",
+  "#d97706": "#ff9900", "#dc2626": "#ff0000", "#9333ea": "#9500ff",
+  "#0d9488": "#00ffee", "#b45309": "#ff4800", "#ea580c": "#ff5900",
+  "#6b21a8": "#6a00ff", "#0e7490": "#00d9ff", "#475569": "#f1f5f9",
+  "#6b7280": "#5579c2",
+};
+function getDeptLightBg(color: string): string {
+  return DEPT_LIGHT_BG[color] ?? "#f3f4f6";
+}
 
 type CourseNodeData = {
   nodeKey: string;
@@ -166,99 +158,65 @@ type CourseNodeData = {
   semesterLabel: string;
   tierIndex: number;
   onDelete: (id: string) => void;
+  graphDark: boolean;
 };
 
-function SmartCourseNode({
-  id,
-  data,
-  selected,
-}: {
-  id: string;
-  data: CourseNodeData;
-  selected?: boolean;
-}) {
+function SmartCourseNode({ id, data, selected }: { id: string; data: CourseNodeData; selected?: boolean }) {
   const pillColor = getDeptColor(data.nodeKey);
-  const cardBg = getLevelBg(data.levelBand);
+  const isDark = data.graphDark !== false;
   const parts = data.nodeKey.split("-");
   const sub = parts[0];
   const cat = parts.slice(1).join(" ");
+  const cardBg = isDark ? getDeptBg(pillColor) : getDeptLightBg(pillColor);
+  const handleColor = isDark ? "#fff" : "#333";
 
   return (
-    <div
-      style={{
-        background: `linear-gradient(135deg, ${cardBg} 0%, rgba(6,10,26,0.98) 100%)`,
-        border: `1.5px solid ${selected ? "#ffffff" : `${pillColor}80`}`,
-        borderRadius: 14,
-        padding: "10px 13px 9px",
-        width: 215,
-        cursor: "grab",
-        boxShadow: selected
-          ? `0 0 0 2px rgba(255,255,255,0.28), 0 12px 32px rgba(0,0,0,0.60)`
-          : `0 8px 24px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.03) inset`,
-        transition: "box-shadow 0.2s, border-color 0.2s",
-        userSelect: "none",
-        position: "relative",
-      }}
-    >
-      {/* All four handles for free connect */}
-      <Handle type="target" position={Position.Top}    style={{ background:"#fff", width:10, height:10, border:"2px solid rgba(255,255,255,0.22)" }} />
-      <Handle type="source" position={Position.Bottom} style={{ background:"#fff", width:10, height:10, border:"2px solid rgba(255,255,255,0.22)" }} />
-      <Handle type="target" position={Position.Left}   style={{ background:"#fff", width:8,  height:8,  border:"2px solid rgba(255,255,255,0.18)", top:"50%" }} id="l-in" />
-      <Handle type="source" position={Position.Right}  style={{ background:"#fff", width:8,  height:8,  border:"2px solid rgba(255,255,255,0.18)", top:"50%" }} id="r-out" />
+    <div style={{
+      background: cardBg,
+      border: `2px solid ${selected ? (isDark ? "#ffffff" : "#0f172a") : pillColor}`,
+      borderRadius: 14, padding: "10px 14px", width: 215,
+      cursor: "grab", boxShadow: "none", transition: "border-color 0.2s, background 0.2s",
+      userSelect: "none", position: "relative",
+    }}>
+      <Handle type="target" position={Position.Top}    style={{ background: handleColor, width:10, height:10, border:"2px solid rgba(255,255,255,0.28)" }} />
+      <Handle type="source" position={Position.Bottom} style={{ background: handleColor, width:10, height:10, border:"2px solid rgba(255,255,255,0.28)" }} />
+      <Handle type="target" position={Position.Left}   style={{ background: handleColor, width:8,  height:8,  border:"2px solid rgba(255,255,255,0.28)", top:"50%" }} id="l-in" />
+      <Handle type="source" position={Position.Right}  style={{ background: handleColor, width:8,  height:8,  border:"2px solid rgba(255,255,255,0.28)", top:"50%" }} id="r-out" />
 
-      {/* Delete button */}
-      <button
-        onClick={(e) => { e.stopPropagation(); data.onDelete(id); }}
-        title="Remove course from plan"
-        style={{
-          position: "absolute", top: 6, right: 6,
-          background: "rgba(255,255,255,0.07)", border: "none",
-          borderRadius: 5, width: 18, height: 18,
-          color: "rgba(255,255,255,0.42)", fontSize: 12, cursor: "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          lineHeight: 1, transition: "background 0.14s, color 0.14s",
-          padding: 0,
-        }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.25)";
-          (e.currentTarget as HTMLButtonElement).style.color = "#f87171";
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.07)";
-          (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.42)";
-        }}
+      <button onClick={(e) => { e.stopPropagation(); data.onDelete(id); }} title="Remove" style={{
+        position:"absolute", top:6, right:6,
+        background: isDark ? "rgba(255,255,255,0.10)" : "rgba(15,23,42,0.08)", border:"none",
+        borderRadius:6, width:20, height:20, color: isDark ? "rgba(255,255,255,0.50)" : "rgba(15,23,42,0.55)",
+        fontSize:13, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
+        lineHeight:1, transition:"background 0.14s, color 0.14s", padding:0,
+      }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background="rgba(239,68,68,0.25)"; (e.currentTarget as HTMLButtonElement).style.color="#f87171"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = isDark ? "rgba(255,255,255,0.10)" : "rgba(15,23,42,0.08)"; (e.currentTarget as HTMLButtonElement).style.color = isDark ? "rgba(255,255,255,0.50)" : "rgba(15,23,42,0.55)"; }}
       >×</button>
 
-      {/* Pill + units */}
       <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:5, paddingRight:14 }}>
         <span style={{
           background: pillColor, color: "#fff",
-          borderRadius: 6, padding: "2px 7px",
-          fontSize: 10, fontWeight: 800, letterSpacing: "0.05em", whiteSpace: "nowrap",
-        }}>
-          {sub} {cat}
-        </span>
+          borderRadius:6, padding:"2px 7px", fontSize:10, fontWeight:800, letterSpacing:"0.05em", whiteSpace:"nowrap",
+        }}>{sub} {cat}</span>
         {data.units != null && (
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.60)", fontWeight: 700 }}>
+          <span style={{ fontSize:10, color: isDark ? "rgba(255,255,255,0.88)" : "rgba(0,0,0,0.60)", fontWeight:700 }}>
             {data.units}u
           </span>
         )}
       </div>
 
-      {/* Title */}
-      <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.88)", fontWeight: 800, lineHeight: 1.35, marginBottom: 6, minHeight: 15 }}>
+      <div style={{ fontSize:11.5, color: isDark ? "rgba(255,255,255,0.94)" : "#1a1a2e", fontWeight:800, lineHeight:1.35, marginBottom:6, minHeight:15 }}>
         {data.title ?? ""}
       </div>
 
-      {/* Semester badge */}
       <div style={{
-        display: "inline-flex", alignItems: "center",
-        background: `${pillColor}18`, border: `1px solid ${pillColor}44`,
-        borderRadius: 6, padding: "2px 7px",
-        fontSize: 9.5, color: "rgba(255,255,255,0.55)", fontWeight: 700, letterSpacing: "0.03em",
-      }}>
-        {data.semesterLabel}
-      </div>
+        display:"inline-flex", alignItems:"center",
+        background: isDark ? `${pillColor}22` : `${pillColor}20`,
+        border: `1px solid ${isDark ? `${pillColor}55` : pillColor}`,
+        borderRadius:6, padding:"2px 7px",
+        fontSize:9.5, color: isDark ? "rgba(255,255,255,0.80)" : "#1a1a2e", fontWeight:700, letterSpacing:"0.03em",
+      }}>{data.semesterLabel}</div>
     </div>
   );
 }
@@ -267,28 +225,40 @@ const nodeTypes = { smartCourse: SmartCourseNode };
 
 // ─── Layout (INVERTED: Year 1 at bottom, Senior at top) ──────────────────────
 
-const LANE_W   = 920;
+const LANE_W   = 1160;
 const LANE_X   = 20;
-const LANE_PAD = 22;
-const NODE_W   = 215;
-const NODE_H   = 108;
-const START_Y  = 58;
-const SIDE_PAD = 32;
-const H_GAP    = 26;
-const ROW_GAP  = 26;
+const LANE_PAD = 34;
+const NODE_W   = 230;
+const NODE_H   = 118;
+const START_Y  = 66;
+const SIDE_PAD = 42;
+const H_GAP    = 42;
+const ROW_GAP  = 34;
+
+// light bg per semester label
+function getTierLightBg(label: string): string {
+  const l = label.toLowerCase();
+  if (l.includes("fall"))   return "#f4efff";
+  if (l.includes("spring")) return "#effcf3";
+  if (l.includes("summer")) return "#fff7eb";
+  if (l.includes("winter")) return "#eef8ff";
+  return "#f1f5f9";
+}
 
 function buildLayout(
   raw: SkillTreeResponse,
   deletedKeys: Set<string>,
-  onDelete: (id: string) => void
+  onDelete: (id: string) => void,
+  semColorOverrides?: Record<string, {bg:string;border:string;textColor:string}>,
+  graphDark?: boolean
 ): { rfNodes: Node[]; rfEdges: Edge[] } {
+  const isDark = graphDark !== false;
   const tiers = raw.semesters.slice().sort((a, b) => a.tierIndex - b.tierIndex);
   const maxTier = tiers[tiers.length - 1]?.tierIndex ?? 0;
 
   const rfNodes: Node[] = [];
   const rfEdges: Edge[] = [];
 
-  // Pre-compute heights so we can place tiers
   const tierHeights = new Map<number, number>();
   for (const t of tiers) {
     const active = raw.nodes.filter((n) => n.tierIndex === t.tierIndex && !deletedKeys.has(n.key));
@@ -297,15 +267,8 @@ function buildLayout(
     tierHeights.set(t.tierIndex, Math.max(190, START_Y + rows * NODE_H + (rows - 1) * ROW_GAP + 38));
   }
 
-  // Compute Y offsets — INVERTED: tier 0 (Year 1) is at the largest Y.
-  // We stack from bottom by reversing the tier order for Y placement.
   const tierYMap = new Map<number, number>();
-  let totalHeight = 0;
-  for (const t of tiers) {
-    totalHeight += (tierHeights.get(t.tierIndex) ?? 200) + LANE_PAD;
-  }
   let runningY = 0;
-  // Walk tiers from last → first so the LAST tier (senior year) is at Y=0 (top)
   for (let i = tiers.length - 1; i >= 0; i--) {
     const t = tiers[i];
     tierYMap.set(t.tierIndex, runningY);
@@ -315,43 +278,42 @@ function buildLayout(
   for (const t of tiers) {
     const laneY = tierYMap.get(t.tierIndex) ?? 0;
     const laneH = tierHeights.get(t.tierIndex) ?? 200;
-    const tiDisplayIdx = maxTier - t.tierIndex; // visual depth index (0=senior)
-    const bg     = TIER_BG[tiDisplayIdx % TIER_BG.length] ?? TIER_BG[0];
-    const border = TIER_BORDER[tiDisplayIdx % TIER_BORDER.length] ?? TIER_BORDER[0];
+    const tiDisplayIdx = maxTier - t.tierIndex;
+    const defaultPalette = getTierPalette(t.label, tiDisplayIdx);
+    const override = semColorOverrides?.[t.label.split(" ")[0]] ?? semColorOverrides?.[t.label];
+    const border = override?.border ?? defaultPalette.border;
+    const textColor = override?.textColor ?? defaultPalette.textColor;
     const active = raw.nodes.filter((n) => n.tierIndex === t.tierIndex && !deletedKeys.has(n.key));
 
-    // Tier lane background
+    const laneBg = isDark ? "transparent" : getTierLightBg(t.label);
+
     rfNodes.push({
       id: `tier-${t.tierIndex}`,
       type: "default",
       position: { x: LANE_X, y: laneY },
-      selectable: false,
-      draggable: false,
+      selectable: false, draggable: false,
       data: {
         label: (
-          <div style={{ textAlign: "left" }}>
-            <div style={{ fontWeight: 950, fontSize: 13.5, color: "rgba(255,255,255,0.82)", letterSpacing: "0.05em" }}>
+          <div style={{ textAlign:"left" }}>
+            <div style={{ fontWeight:950, fontSize:13.5, color: isDark ? textColor : border, letterSpacing:"0.05em", textTransform:"uppercase" }}>
               {t.label.toUpperCase()}
             </div>
-            <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.38)", fontWeight: 700, marginTop: 2 }}>
+            <div style={{ fontSize:10.5, color: isDark ? `${textColor}88` : "rgba(0,0,0,0.44)", fontWeight:700, marginTop:2 }}>
               {t.totalUnits} units
             </div>
           </div>
         ),
       },
       style: {
-        width: LANE_W,
-        height: laneH,
-        background: `linear-gradient(160deg, ${bg} 0%, rgba(6,8,20,0.62) 100%)`,
-        border: `1px solid ${border}`,
-        borderRadius: 22,
-        padding: "14px 16px 12px",
-        pointerEvents: "none",
+        width: LANE_W, height: laneH,
+        background: laneBg,
+        border: `2px solid ${border}`,
+        borderRadius: 24, padding:"18px 18px 16px",
+        pointerEvents:"none", boxShadow:"none",
       },
       zIndex: 0,
     });
 
-    // Course nodes inside this tier
     const cols = Math.max(1, Math.min(4, Math.ceil(Math.sqrt(active.length || 1))));
     const totalRowWidth = cols * NODE_W + (cols - 1) * H_GAP;
     const startX = LANE_X + SIDE_PAD + Math.max(0, (LANE_W - SIDE_PAD * 2 - totalRowWidth) / 2);
@@ -362,25 +324,17 @@ function buildLayout(
       rfNodes.push({
         id: n.key,
         type: "smartCourse",
-        position: {
-          x: startX + col * (NODE_W + H_GAP),
-          y: laneY + START_Y + row * (NODE_H + ROW_GAP),
-        },
+        position: { x: startX + col * (NODE_W + H_GAP), y: laneY + START_Y + row * (NODE_H + ROW_GAP) },
         data: {
-          nodeKey: n.key,
-          title: n.title ?? null,
-          units: n.units ?? null,
-          levelBand: n.levelBand,
-          semesterLabel: n.semesterLabel,
-          tierIndex: n.tierIndex,
-          onDelete,
+          nodeKey: n.key, title: n.title ?? null, units: n.units ?? null,
+          levelBand: n.levelBand, semesterLabel: n.semesterLabel,
+          tierIndex: n.tierIndex, onDelete, graphDark: isDark,
         } as CourseNodeData,
         zIndex: 10,
       });
     });
   }
 
-  // Edges — skip any involving deleted nodes
   const nodeSet = new Set(rfNodes.map((nd) => nd.id));
   for (const e of raw.edges) {
     const from = normalizeCourseKey(e.from);
@@ -388,20 +342,13 @@ function buildLayout(
     if (!nodeSet.has(from) || !nodeSet.has(to)) continue;
     const fromTier = raw.nodes.find((n) => n.key === from)?.tierIndex ?? 0;
     const toTier   = raw.nodes.find((n) => n.key === to)?.tierIndex ?? 0;
-    // In original data higher tier = later semester, prereq goes from lower→higher tier.
-    // In our inverted display lower tier is drawn lower (larger Y).
-    // Edge direction: source (prereq, lower tier, larger Y) → target (dependent, higher tier, smaller Y).
     if (toTier <= fromTier) continue;
     rfEdges.push({
-      id: `${from}->${to}`,
-      source: from,
-      target: to,
-      sourceHandle: null,
-      targetHandle: null,
-      type: "smoothstep",
-      animated: true,
-      style: { stroke: "rgba(255,255,255,0.70)", strokeWidth: 2 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: "rgba(255,255,255,0.70)", width: 16, height: 16 },
+      id: `${from}->${to}`, source: from, target: to,
+      sourceHandle: null, targetHandle: null,
+      type: "smoothstep", animated: true,
+      style: { stroke: isDark ? "rgba(255,255,255,0.70)" : "rgba(31,41,55,0.70)", strokeWidth: 2 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: isDark ? "rgba(255,255,255,0.70)" : "rgba(31,41,55,0.70)", width: 16, height: 16 },
     });
   }
 
@@ -515,7 +462,15 @@ const css = `
   }
   .sp-elec-field-row { display: grid; grid-template-columns: 1fr 2fr 64px; gap: 7px; margin-top: 10px; }
 
+  /* Graph light mode */
+  .graph-light .react-flow__edge-path { stroke: rgba(30,30,60,0.85) !important; }
+  .graph-light .react-flow__connection-line { stroke: rgba(30,30,60,0.85) !important; }
+  .graph-light .react-flow__controls { background: rgba(255,255,255,0.96) !important; border-color: rgba(0,0,0,0.14) !important; }
+  .graph-light .react-flow__controls-button { fill: rgba(0,0,0,0.60) !important; border-bottom-color: rgba(0,0,0,0.08) !important; }
+  .graph-light .react-flow__minimap { border-color: rgba(0,0,0,0.12) !important; }
+
   /* ReactFlow overrides */
+  .react-flow__node { box-shadow: none !important; }
   .react-flow__controls { background: rgba(255,255,255,0.07) !important; border: 1px solid rgba(255,255,255,0.12) !important; border-radius: 10px !important; }
   .react-flow__controls-button { background: transparent !important; border-bottom: 1px solid rgba(255,255,255,0.08) !important; fill: rgba(255,255,255,0.70) !important; }
   .react-flow__controls-button:hover { background: rgba(255,255,255,0.09) !important; }
@@ -533,11 +488,15 @@ function PlannerCanvas({
   deletedKeys,
   onDeleteNode,
   graphRef,
+  graphDark,
+  semColorOverrides,
 }: {
   raw: SkillTreeResponse | null;
   deletedKeys: Set<string>;
   onDeleteNode: (key: string) => void;
   graphRef?: React.RefObject<HTMLDivElement | null>;
+  graphDark?: boolean;
+  semColorOverrides?: Record<string, {bg:string;border:string;textColor:string}>;
 }) {
   const { fitView } = useReactFlow();
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -545,7 +504,7 @@ function PlannerCanvas({
 
   useEffect(() => {
     if (!raw) { setNodes([]); setEdges([]); return; }
-    const { rfNodes, rfEdges } = buildLayout(raw, deletedKeys, onDeleteNode);
+    const { rfNodes, rfEdges } = buildLayout(raw, deletedKeys, onDeleteNode, semColorOverrides, graphDark);
     setNodes(rfNodes);
     setEdges(rfEdges);
   }, [raw, deletedKeys, onDeleteNode, setNodes, setEdges]);
@@ -596,26 +555,20 @@ function PlannerCanvas({
   }
 
   return (
-    <div ref={graphRef} id="rf-graph-capture" style={{ height:"100%", background:"#06080e" }}>
+    <div ref={graphRef} id="rf-graph-capture" style={{ height:"100%", background: graphDark === false ? "#e8edf5" : "#06080e" }} className={graphDark === false ? "graph-light" : ""}>
       <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onEdgeClick={onEdgeClick}
-        nodeTypes={nodeTypes}
-        fitView
-        fitViewOptions={{ padding: 0.12 }}
-        proOptions={{ hideAttribution: true }}
-        connectionMode={"loose" as any}
+        nodes={nodes} edges={edges}
+        onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
+        onConnect={onConnect} onEdgeClick={onEdgeClick}
+        nodeTypes={nodeTypes} fitView fitViewOptions={{ padding: 0.12 }}
+        proOptions={{ hideAttribution: true }} connectionMode={"loose" as any}
       >
-        <Background color="#131828" gap={22} size={1} />
+        <Background color={graphDark === false ? "#c8d0e0" : "#131828"} gap={22} size={1} />
         <Controls />
         <MiniMap
-          nodeColor={(n) => n.id.startsWith("tier-") ? "rgba(255,255,255,0.04)" : getDeptColor(n.id)}
-          maskColor="rgba(0,0,0,0.72)"
-          style={{ background:"#06080e" }}
+          nodeColor={(n) => n.id.startsWith("tier-") ? (graphDark === false ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.04)") : getDeptColor(n.id)}
+          maskColor={graphDark === false ? "rgba(232,237,245,0.72)" : "rgba(0,0,0,0.72)"}
+          style={{ background: graphDark === false ? "#e8edf5" : "#06080e" }}
         />
       </ReactFlow>
     </div>
@@ -638,6 +591,8 @@ export default function SmartPlannerClient() {
   const [includeWinter, setIncludeWinter] = useState(false);
   const [completedText, setCompletedText] = useState("");
   const completedCourses = useMemo(() => parseCompletedInput(completedText), [completedText]);
+  const [graphDark, setGraphDark] = useState(true);
+  const [semColors, setSemColors] = useState<Record<string, {bg:string;border:string;textColor:string}>>({});
 
   const [raw, setRaw] = useState<SkillTreeResponse | null>(null);
   const [deletedKeys, setDeletedKeys] = useState<Set<string>>(new Set());
@@ -655,6 +610,7 @@ export default function SmartPlannerClient() {
 
   const graphRef = useRef<HTMLDivElement>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [showSemColorPicker, setShowSemColorPicker] = useState<string | null>(null);
   const latestQuery = useRef(0);
 
   // Major search
@@ -791,54 +747,66 @@ export default function SmartPlannerClient() {
   return (
     <ReactFlowProvider>
       <style>{css}</style>
-
-      <div style={{ minHeight:"100vh", background:BG, fontFamily:"'DM Sans', system-ui, sans-serif" }}>
+      <div style={{ minHeight:"100vh", background: BG, fontFamily:"'DM Sans', system-ui, sans-serif" }}>
 
         {/* ── Top Bar ── */}
         <div style={{
           position:"sticky", top:0, zIndex:40,
-          borderBottom:"1px solid rgba(255,255,255,0.11)",
-          background:"rgba(100,0,28,0.74)", backdropFilter:"blur(16px)",
+          borderBottom: "1px solid rgba(255,255,255,0.11)",
+          background: "rgba(100,0,28,0.74)", backdropFilter:"blur(16px)",
           padding:"0 24px", display:"flex", alignItems:"center", gap:12, height:54,
         }}>
-          <Link href="/academics" style={{ display:"inline-flex", alignItems:"center", gap:5, color:"rgba(255,255,255,0.76)", textDecoration:"none", fontSize:12, fontWeight:700, padding:"4px 11px", border:"1px solid rgba(255,255,255,0.20)", borderRadius:999, transition:"background 0.14s" }}>
+          <Link href="/academics" style={{ display:"inline-flex", alignItems:"center", gap:5, color: "rgba(255,255,255,0.76)", textDecoration:"none", fontSize:12, fontWeight:700, padding:"4px 11px", border: "1px solid rgba(255,255,255,0.20)", borderRadius:999, transition:"background 0.14s" }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             Academics
           </Link>
-          <span style={{ color:"rgba(255,255,255,0.20)", fontSize:15 }}>/</span>
+          <span style={{ color: "rgba(255,255,255,0.20)", fontSize:15 }}>/</span>
           <div style={{ display:"flex", alignItems:"center", gap:7 }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.86)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 3 3 15l6 1 1 5 5-8"/><path d="M9 9l5.5 5.5"/>
             </svg>
-            <span style={{ fontWeight:950, fontSize:15, color:"#fff", letterSpacing:"0.01em" }}>Smart Planner</span>
-            <span style={{ background:"rgba(255,255,255,0.13)", border:"1px solid rgba(255,255,255,0.25)", color:"#fff", borderRadius:999, padding:"2px 8px", fontSize:9, fontWeight:800, letterSpacing:"0.07em" }}>BETA</span>
+            <span style={{ fontWeight:950, fontSize:15, color: "#fff", letterSpacing:"0.01em" }}>Smart Planner</span>
+            <span style={{ background: "rgba(255,255,255,0.13)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", borderRadius:999, padding:"2px 8px", fontSize:9, fontWeight:800, letterSpacing:"0.07em" }}>BETA</span>
           </div>
-          <Link href="/academics/smart-planner/build-your-own" style={{ display:"inline-flex", alignItems:"center", gap:6, color:"#fff", textDecoration:"none", fontSize:12, fontWeight:800, padding:"5px 13px", background:"rgba(255,255,255,0.10)", border:"1px solid rgba(255,255,255,0.24)", borderRadius:999, letterSpacing:"0.02em", transition:"background 0.14s", marginLeft: raw ? undefined : "auto" }}>
+          {/* Always-visible Build Your Own button */}
+          <Link href="/academics/smart-planner/build-your-own" style={{ display:"inline-flex", alignItems:"center", gap:6, color: "#fff", textDecoration:"none", fontSize:12, fontWeight:800, padding:"5px 13px", background: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.24)", borderRadius:999, letterSpacing:"0.02em", transition:"background 0.14s" }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
             Build Your Own
           </Link>
-          {raw && (
-            <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:12 }}>
-              <span style={{ fontSize:11.5, color:"rgba(255,255,255,0.50)", fontWeight:600 }}>{raw.majorName} · {raw.catalogYear}</span>
-              <button className="sp-ghost-btn" onClick={savePdf} disabled={pdfLoading}>
-                {pdfLoading
-                  ? <span style={{ width:11, height:11, border:"2px solid rgba(255,255,255,0.28)", borderTopColor:"#fff", borderRadius:"50%", display:"inline-block", animation:"sp-spin 0.7s linear infinite" }}/>
-                  : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>}
-                {pdfLoading ? "Exporting…" : "Save PDF"}
-              </button>
-            </div>
-          )}
+          <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:12 }}>
+            <button
+              onClick={() => setGraphDark((d) => !d)}
+              style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 11px", background:"rgba(255,255,255,0.10)", border:"1px solid rgba(255,255,255,0.22)", borderRadius:999, cursor:"pointer", color:"rgba(255,255,255,0.82)", fontSize:11, fontWeight:700, transition:"all 0.15s" }}
+              title={graphDark ? "Switch graph to light" : "Switch graph to dark"}
+            >
+              {graphDark
+                ? <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>}
+              Graph {graphDark ? "Light" : "Dark"}
+            </button>
+            {raw && (
+              <>
+                <span style={{ fontSize:11.5, color: "rgba(255,255,255,0.50)", fontWeight:600 }}>{raw.majorName} · {raw.catalogYear}</span>
+                <button className="sp-ghost-btn" onClick={savePdf} disabled={pdfLoading}>
+                  {pdfLoading
+                    ? <span style={{ width:11, height:11, border:"2px solid rgba(255,255,255,0.28)", borderTopColor:"#fff", borderRadius:"50%", display:"inline-block", animation:"sp-spin 0.7s linear infinite" }}/>
+                    : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>}
+                  {pdfLoading ? "Exporting…" : "Save PDF"}
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         {/* ── Two-column layout ── */}
         <div style={{ display:"grid", gridTemplateColumns:"355px 1fr", height:"calc(100vh - 54px)" }}>
 
           {/* ════════ LEFT SIDEBAR ════════ */}
-          <div style={{ borderRight:"1px solid rgba(255,255,255,0.09)", overflowY:"auto", padding:"18px 17px 32px", display:"flex", flexDirection:"column", gap:0, scrollbarWidth:"thin", scrollbarColor:"rgba(255,255,255,0.17) transparent" }}>
+          <div style={{ borderRight: "1px solid rgba(255,255,255,0.09)", overflowY:"auto", padding:"18px 17px 32px", display:"flex", flexDirection:"column", gap:0, scrollbarWidth:"thin", scrollbarColor: "rgba(255,255,255,0.17) transparent" }}>
 
             <div style={{ marginBottom:18 }}>
-              <p style={{ margin:0, fontSize:21, fontWeight:950, color:"#fff", letterSpacing:"-0.02em", lineHeight:1.2 }}>Degree Roadmap Builder</p>
-              <p style={{ margin:"5px 0 0", fontSize:12.5, color:"rgba(255,255,255,0.52)", lineHeight:1.6 }}>
+              <p style={{ margin:0, fontSize:21, fontWeight:950, color: "#fff", letterSpacing:"-0.02em", lineHeight:1.2 }}>Degree Roadmap Builder</p>
+              <p style={{ margin:"5px 0 0", fontSize:12.5, color: "rgba(255,255,255,0.52)", lineHeight:1.6 }}>
                 Generate a semester-by-semester prerequisite graph. Year 1 at the bottom, senior year at the top.
               </p>
             </div>
@@ -948,6 +916,68 @@ export default function SmartPlannerClient() {
               </div>
             )}
 
+            {/* Semester Block Colors */}
+            <div style={{ marginBottom: 12 }}>
+              <span className="sp-label">Semester Block Colors</span>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                {(["Fall", "Winter", "Spring", "Summer"] as const).map((sem) => {
+                  const defaultColors: Record<string, {bg:string;border:string;textColor:string}> = {
+                    Fall:   {bg:"rgba(124,58,237,0.18)",  border:"rgba(167,139,250,0.70)", textColor:"#c4b5fd"},
+                    Winter: {bg:"rgba(2,132,199,0.18)",   border:"rgba(125,211,252,0.65)", textColor:"#7dd3fc"},
+                    Spring: {bg:"rgba(22,163,74,0.18)",   border:"rgba(134,239,172,0.70)", textColor:"#86efac"},
+                    Summer: {bg:"rgba(217,119,6,0.18)",   border:"rgba(252,211,77,0.65)",  textColor:"#fcd34d"},
+                  };
+                  const current = semColors[sem] || defaultColors[sem];
+                  return (
+                    <div key={sem}>
+                      <button
+                        onClick={() => setShowSemColorPicker(showSemColorPicker === sem ? null : sem)}
+                        style={{
+                          width: "100%", display: "flex", alignItems: "center", gap: 8,
+                          background: `${current.bg}`, border: `1.5px solid ${current.border}`,
+                          borderRadius: 8, padding: "5px 10px", cursor: "pointer",
+                          color: current.textColor, fontSize: 11, fontWeight: 800,
+                          transition: "opacity 0.14s", fontFamily: "inherit",
+                        }}
+                      >
+                        <span style={{ width: 10, height: 10, borderRadius: 3, background: current.border, flexShrink: 0 }} />
+                        {sem}
+                        <svg style={{ marginLeft: "auto" }} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points={showSemColorPicker === sem ? "18 15 12 9 6 15" : "6 9 12 15 18 9"}/></svg>
+                      </button>
+                      {showSemColorPicker === sem && (
+                        <div style={{ background:"rgba(0,0,0,0.30)", borderRadius:9, padding:"10px 11px", border:"1px solid rgba(255,255,255,0.12)", marginTop:3 }}>
+                          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+                            {([["bg","Background"],["border","Border"],["textColor","Text"]] as [string,string][]).map(([field, label]) => (
+                              <div key={field} style={{ gridColumn: field === "textColor" ? "1 / -1" : "auto" }}>
+                                <span className="sp-label" style={{ marginBottom:3 }}>{label}</span>
+                                <div style={{ display:"flex", gap:5, alignItems:"center" }}>
+                                  <input
+                                    type="color"
+                                    value={(current as any)[field] || "#ffffff"}
+                                    onChange={(e) => setSemColors((prev) => ({...prev, [sem]: {...(prev[sem] || defaultColors[sem]), [field]: e.target.value}}))}
+                                    style={{ width:32, height:26, border:"none", background:"transparent", padding:0, cursor:"pointer" }}
+                                  />
+                                  <input
+                                    className="sp-field"
+                                    value={(current as any)[field] || ""}
+                                    onChange={(e) => setSemColors((prev) => ({...prev, [sem]: {...(prev[sem] || defaultColors[sem]), [field]: e.target.value}}))}
+                                    style={{ fontSize:11, padding:"5px 8px" }}
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <button className="sp-ghost-btn" onClick={() => setSemColors((prev) => { const n={...prev}; delete n[sem]; return n; })} style={{ marginTop:7, fontSize:10, padding:"3px 9px" }}>Reset</button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <hr className="sp-divider"/>
+
             <button className="sp-build-btn" onClick={onBuild} disabled={loading||testLoading||!majorInput.trim()||!catalogYear.trim()}>
               {loading ? (
                 <><span style={{ width:12, height:12, border:"2.5px solid rgba(255,255,255,0.28)", borderTopColor:"#fff", borderRadius:"50%", display:"inline-block", animation:"sp-spin 0.7s linear infinite" }}/>Building roadmap…</>
@@ -1036,6 +1066,8 @@ export default function SmartPlannerClient() {
               deletedKeys={deletedKeys}
               onDeleteNode={handleDeleteNode}
               graphRef={graphRef}
+              graphDark={graphDark}
+              semColorOverrides={semColors}
             />
           </div>
         </div>
