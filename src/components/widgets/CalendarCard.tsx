@@ -234,14 +234,26 @@ export default function CalendarCard({
       setPopOpen(false);
       onDayClick(k);
     };
-    
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        setPopOpen(false);
+        onDayClick(k);
+      }
+    };
+
     return (
       <Box
+        role="button"
+        tabIndex={0}
+        aria-label={`${d.format("MMMM D, YYYY")}${colors.length ? `, ${colors.length} event${colors.length > 1 ? "s" : ""}` : ""}`}
         data-day-cell="1"
         data-day-key={k}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onClick={handleClick}
+        onKeyDown={handleKeyDown}
         sx={{
         position: "relative",
         aspectRatio: "1 / 1",
@@ -300,21 +312,21 @@ export default function CalendarCard({
           <Typography fontWeight={800}>{title}</Typography>
           <Stack direction="row" alignItems="center" spacing={0.5}>
             <Typography fontWeight={700}>{month.format("MMMM YYYY")}</Typography>
-            <IconButton size="small" aria-label="Prev" onClick={() => setMonth(m => m.subtract(1, "month"))}>
-              <ChevronLeftIcon fontSize="small" />
+            <IconButton size="small" aria-label="Previous month" onClick={() => setMonth(m => m.subtract(1, "month"))}>
+              <ChevronLeftIcon fontSize="small" aria-hidden="true" />
             </IconButton>
               <IconButton
                 size="small" aria-label="Return to today" onClick={() => setMonth(dayjs().startOf("month"))} title="Return to current month">
-                <ReplayIcon fontSize="small" />
+                <ReplayIcon fontSize="small" aria-hidden="true" />
               </IconButton>
-            <IconButton size="small" aria-label="Next" onClick={() => setMonth(m => m.add(1, "month"))}>
-              <ChevronRightIcon fontSize="small" />
+            <IconButton size="small" aria-label="Next month" onClick={() => setMonth(m => m.add(1, "month"))}>
+              <ChevronRightIcon fontSize="small" aria-hidden="true" />
             </IconButton>
-            <IconButton size="small" aria-label="Settings" onClick={openMenu}>
-              <MoreVertIcon fontSize="small" />
+            <IconButton size="small" aria-label="Calendar settings" onClick={openMenu}>
+              <MoreVertIcon fontSize="small" aria-hidden="true" />
             </IconButton>
-            <IconButton size="small" aria-label="Close" onClick={onClose}>
-                <CloseIcon fontSize="small" />
+            <IconButton size="small" aria-label="Close calendar" onClick={onClose}>
+                <CloseIcon fontSize="small" aria-hidden="true" />
             </IconButton>
           </Stack>
         </Stack>
@@ -438,8 +450,8 @@ export default function CalendarCard({
                       {formatRange(ev.start, ev.end)} {ev.time ? `• ${ev.time}` : ""}
                     </Typography>
                   </Stack>
-                  <IconButton size="small" aria-label="Delete" onClick={() => deleteEvent(ev.id)}>
-                    <CloseIcon fontSize="small" />
+                  <IconButton size="small" aria-label={`Delete event: ${ev.title}`} onClick={() => deleteEvent(ev.id)}>
+                    <CloseIcon fontSize="small" aria-hidden="true" />
                   </IconButton>
                 </Box>
               ))}
@@ -505,22 +517,22 @@ export default function CalendarCard({
       >
         <MenuItem disableRipple>
           <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography variant="body2" sx={{ minWidth: 90 }}>Accent</Typography>
-            <input type="color" value={accent} onChange={(e) => setAccent(e.target.value)}
+            <Typography component="label" htmlFor="cal-color-accent" variant="body2" sx={{ minWidth: 90 }}>Accent</Typography>
+            <input id="cal-color-accent" type="color" aria-label="Accent color" value={accent} onChange={(e) => setAccent(e.target.value)}
               style={{ width: 28, height: 28, border: "none", background: "transparent", cursor: "pointer" }} />
           </Stack>
         </MenuItem>
         <MenuItem disableRipple>
           <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography variant="body2" sx={{ minWidth: 90 }}>Surface</Typography>
-            <input type="color" value={surface} onChange={(e) => setSurface(e.target.value)}
+            <Typography component="label" htmlFor="cal-color-surface" variant="body2" sx={{ minWidth: 90 }}>Surface</Typography>
+            <input id="cal-color-surface" type="color" aria-label="Surface color" value={surface} onChange={(e) => setSurface(e.target.value)}
               style={{ width: 28, height: 28, border: "none", background: "transparent", cursor: "pointer" }} />
           </Stack>
         </MenuItem>
         <MenuItem disableRipple>
           <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography variant="body2" sx={{ minWidth: 90 }}>Text</Typography>
-            <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)}
+            <Typography component="label" htmlFor="cal-color-text" variant="body2" sx={{ minWidth: 90 }}>Text</Typography>
+            <input id="cal-color-text" type="color" aria-label="Text color" value={textColor} onChange={(e) => setTextColor(e.target.value)}
               style={{ width: 28, height: 28, border: "none", background: "transparent", cursor: "pointer" }} />
           </Stack>
         </MenuItem>

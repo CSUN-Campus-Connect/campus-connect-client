@@ -20,6 +20,7 @@ export default function ServicesSearch({ search, onChange, resultCount }: Props)
           value={search}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Search services, equipment, spaces..."
+          inputProps={{ "aria-label": "Search services, equipment, or spaces" }}
           fullWidth
           variant="outlined"
           size="small"

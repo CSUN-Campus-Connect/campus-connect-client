@@ -182,15 +182,16 @@ function RsvpModal({ event, onClose, onConfirm }: {
                   <p style={{ fontSize:13, color:"var(--text-secondary)", lineHeight:1.6, marginTop:10, marginBottom:0 }}>{event.description}</p>
                 )}
               </div>
-              <button onClick={onClose} style={{ flexShrink:0, width:28, height:28, borderRadius:"50%", border:"none", background:"var(--bg-elevated)", color:"var(--text-muted)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16 }}>×</button>
+              <button aria-label="Close" onClick={onClose} style={{ flexShrink:0, width:28, height:28, borderRadius:"50%", border:"none", background:"var(--bg-elevated)", color:"var(--text-muted)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16 }} aria-hidden={undefined}>×</button>
             </div>
 
             <div style={{ borderTop:"1px solid var(--border-subtle)", paddingTop:16 }}>
               <div style={{ fontFamily:"var(--font-display)", fontSize:14, fontWeight:600, color:"var(--text-primary)", marginBottom:14 }}>Confirm your spot</div>
               <form onSubmit={handleSubmit} style={{ display:"flex", flexDirection:"column", gap:12 }}>
                 <div>
-                  <label style={{ fontSize:12, fontWeight:600, color:"var(--text-secondary)", display:"block", marginBottom:5 }}>Full Name</label>
+                  <label htmlFor="rsvp-name" style={{ fontSize:12, fontWeight:600, color:"var(--text-secondary)", display:"block", marginBottom:5 }}>Full Name</label>
                   <input
+                    id="rsvp-name"
                     className="form-input"
                     type="text"
                     placeholder="Your full name"
@@ -201,8 +202,9 @@ function RsvpModal({ event, onClose, onConfirm }: {
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize:12, fontWeight:600, color:"var(--text-secondary)", display:"block", marginBottom:5 }}>CSUN Email</label>
+                  <label htmlFor="rsvp-email" style={{ fontSize:12, fontWeight:600, color:"var(--text-secondary)", display:"block", marginBottom:5 }}>CSUN Email</label>
                   <input
+                    id="rsvp-email"
                     className="form-input"
                     type="email"
                     placeholder="name@my.csun.edu"
@@ -349,15 +351,21 @@ export function EventsPage({ onToast }: EventsPageProps) {
 
             {/* Title — clickable to open CSUN page */}
             <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:10 }}>
-              <h3
-                onClick={() => window.open(ev.csunUrl ?? "https://news.csun.edu/events", "_blank", "noreferrer")}
-                style={{ fontFamily:"var(--font-display)", fontSize:15, fontWeight:700, color:"var(--text-primary)", margin:"0 0 6px", lineHeight:1.35, cursor:"pointer" }}
-                onMouseEnter={e => { e.currentTarget.style.color = "var(--csun-red)"; e.currentTarget.style.textDecoration = "underline"; }}
-                onMouseLeave={e => { e.currentTarget.style.color = "var(--text-primary)"; e.currentTarget.style.textDecoration = "none"; }}
-              >
-                {ev.title}
+              <h3 style={{ fontFamily:"var(--font-display)", fontSize:15, fontWeight:700, color:"var(--text-primary)", margin:"0 0 6px", lineHeight:1.35 }}>
+                <a
+                  href={ev.csunUrl ?? "https://news.csun.edu/events"}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ color:"inherit", textDecoration:"none" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--csun-red)"; (e.currentTarget as HTMLElement).style.textDecoration = "underline"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "inherit"; (e.currentTarget as HTMLElement).style.textDecoration = "none"; }}
+                >
+                  {ev.title}
+                </a>
               </h3>
-              <svg width="13" height="13" fill="none" stroke="var(--text-muted)" strokeWidth="2" viewBox="0 0 24 24" style={{ flexShrink:0, marginTop:3, cursor:"pointer" }} onClick={() => window.open(ev.csunUrl ?? "https://news.csun.edu/events", "_blank", "noreferrer")}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              <a href={ev.csunUrl ?? "https://news.csun.edu/events"} target="_blank" rel="noreferrer" aria-label={`Open ${ev.title} on CSUN website`} style={{ flexShrink:0, marginTop:3 }}>
+                <svg width="13" height="13" fill="none" stroke="var(--text-muted)" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </a>
             </div>
 
             {/* Description */}
@@ -389,6 +397,6 @@ export function EventsPage({ onToast }: EventsPageProps) {
   );
 }
 
-const CalIcon   = () => <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>;
-const ClockIcon = () => <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
-const PinIcon   = () => <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>;
+const CalIcon   = () => <svg aria-hidden="true" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>;
+const ClockIcon = () => <svg aria-hidden="true" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
+const PinIcon   = () => <svg aria-hidden="true" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>;

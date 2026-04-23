@@ -98,14 +98,14 @@ export default function MarketplaceSettingsPage() {
           tint="rose"
           icon={<LocalOfferOutlinedIcon fontSize="small" />}
           title="Allow offers"
-          action={<SettingsToggle checked={allowOffers} onChange={setAllowOffers} />}
+          action={<SettingsToggle checked={allowOffers} onChange={setAllowOffers} inputProps={{ "aria-label": "Allow offers" }} />}
         />
         <SettingsRow
           divider
           tint="blue"
           icon={<ContactMailOutlinedIcon fontSize="small" />}
           title="Show contact info"
-          action={<SettingsToggle checked={showContactInfo} onChange={setShowContactInfo} />}
+          action={<SettingsToggle checked={showContactInfo} onChange={setShowContactInfo} inputProps={{ "aria-label": "Show contact info to buyers" }} />}
         />
         <SettingsRow
           divider
@@ -132,7 +132,7 @@ export default function MarketplaceSettingsPage() {
           icon={<SellOutlinedIcon fontSize="small" />}
           title="Auto mark as sold"
           description="When a buyer confirms pickup or payment."
-          action={<SettingsToggle checked={autoMarkSold} onChange={setAutoMarkSold} />}
+          action={<SettingsToggle checked={autoMarkSold} onChange={setAutoMarkSold} inputProps={{ "aria-label": "Auto mark as sold" }} />}
         />
       </SettingsCard>
 
@@ -244,7 +244,7 @@ export default function MarketplaceSettingsPage() {
           tint="cyan"
           icon={<BookmarkBorderOutlinedIcon fontSize="small" />}
           title="Saved searches"
-          action={<SettingsToggle checked={savedSearches} onChange={setSavedSearches} />}
+          action={<SettingsToggle checked={savedSearches} onChange={setSavedSearches} inputProps={{ "aria-label": "Saved searches" }} />}
         />
       </SettingsCard>
 
@@ -255,27 +255,27 @@ export default function MarketplaceSettingsPage() {
           tint="orange"
           icon={<MarkEmailUnreadOutlinedIcon fontSize="small" />}
           title="New messages"
-          action={<SettingsToggle checked={notifyMessages} onChange={setNotifyMessages} />}
+          action={<SettingsToggle checked={notifyMessages} onChange={setNotifyMessages} inputProps={{ "aria-label": "New message notifications" }} />}
         />
         <SettingsRow
           divider
           tint="green"
           icon={<TrendingDownOutlinedIcon fontSize="small" />}
           title="Price drops"
-          action={<SettingsToggle checked={notifyPriceDrops} onChange={setNotifyPriceDrops} />}
+          action={<SettingsToggle checked={notifyPriceDrops} onChange={setNotifyPriceDrops} inputProps={{ "aria-label": "Price drop notifications" }} />}
         />
         <SettingsRow
           divider
           tint="cyan"
           icon={<AddShoppingCartOutlinedIcon fontSize="small" />}
           title="New listings"
-          action={<SettingsToggle checked={notifyNewListings} onChange={setNotifyNewListings} />}
+          action={<SettingsToggle checked={notifyNewListings} onChange={setNotifyNewListings} inputProps={{ "aria-label": "New listings notifications" }} />}
         />
         <SettingsRow
           tint="amber"
           icon={<NotificationsActiveOutlinedIcon fontSize="small" />}
           title="Item sold alerts"
-          action={<SettingsToggle checked={itemSoldAlerts} onChange={setItemSoldAlerts} />}
+          action={<SettingsToggle checked={itemSoldAlerts} onChange={setItemSoldAlerts} inputProps={{ "aria-label": "Item sold alerts" }} />}
         />
       </SettingsCard>
 
@@ -308,7 +308,7 @@ export default function MarketplaceSettingsPage() {
           tint="slate"
           icon={<PersonOutlineIcon fontSize="small" />}
           title="Show profile on listings"
-          action={<SettingsToggle checked={showProfileOnListings} onChange={setShowProfileOnListings} />}
+          action={<SettingsToggle checked={showProfileOnListings} onChange={setShowProfileOnListings} inputProps={{ "aria-label": "Show profile on listings" }} />}
         />
         <SettingsRow
           divider
@@ -325,7 +325,7 @@ export default function MarketplaceSettingsPage() {
           tint="rose"
           icon={<FlagOutlinedIcon fontSize="small" />}
           title="Report listing shortcut"
-          action={<SettingsToggle checked={reportListingShortcut} onChange={setReportListingShortcut} />}
+          action={<SettingsToggle checked={reportListingShortcut} onChange={setReportListingShortcut} inputProps={{ "aria-label": "Report listing shortcut" }} />}
         />
       </SettingsCard>
 
@@ -358,13 +358,13 @@ export default function MarketplaceSettingsPage() {
           tint="violet"
           icon={<SmartphoneOutlinedIcon fontSize="small" />}
           title="Enable in-app payments"
-          action={<SettingsToggle checked={enableInAppPayments} onChange={setEnableInAppPayments} />}
+          action={<SettingsToggle checked={enableInAppPayments} onChange={setEnableInAppPayments} inputProps={{ "aria-label": "Enable in-app payments" }} />}
         />
         <SettingsRow
           tint="blue"
           icon={<ReceiptLongOutlinedIcon fontSize="small" />}
           title="Transaction history"
-          action={<SettingsToggle checked={transactionHistory} onChange={setTransactionHistory} />}
+          action={<SettingsToggle checked={transactionHistory} onChange={setTransactionHistory} inputProps={{ "aria-label": "Transaction history" }} />}
         />
       </SettingsCard>
 
@@ -396,7 +396,7 @@ export default function MarketplaceSettingsPage() {
           tint="brand"
           icon={<SchoolOutlinedIcon fontSize="small" />}
           title="Campus-only trading"
-          action={<SettingsToggle checked={campusOnlyTrading} onChange={setCampusOnlyTrading} />}
+          action={<SettingsToggle checked={campusOnlyTrading} onChange={setCampusOnlyTrading} inputProps={{ "aria-label": "Campus-only trading" }} />}
         />
       </SettingsCard>
 
@@ -407,13 +407,13 @@ export default function MarketplaceSettingsPage() {
           tint="amber"
           icon={<StarOutlineOutlinedIcon fontSize="small" />}
           title="Show seller rating"
-          action={<SettingsToggle checked={showSellerRating} onChange={setShowSellerRating} />}
+          action={<SettingsToggle checked={showSellerRating} onChange={setShowSellerRating} inputProps={{ "aria-label": "Show seller rating" }} />}
         />
         <SettingsRow
           tint="cyan"
           icon={<RateReviewOutlinedIcon fontSize="small" />}
           title="Allow buyer reviews"
-          action={<SettingsToggle checked={allowBuyerReviews} onChange={setAllowBuyerReviews} />}
+          action={<SettingsToggle checked={allowBuyerReviews} onChange={setAllowBuyerReviews} inputProps={{ "aria-label": "Allow buyer reviews" }} />}
         />
       </SettingsCard>
     </Box>

@@ -258,6 +258,7 @@ export default function CourseCard({
           <Button
             size="small"
             variant="text"
+            aria-label="Set card color"
             onClick={(e) => setColorAnchor(e.currentTarget)}
             sx={{
               minWidth: 28,
@@ -290,6 +291,10 @@ export default function CourseCard({
           {ALL_CARD_COLORS.map((c) => (
             <Tooltip key={c.value} title={c.label} placement="top">
               <Box
+                role="button"
+                aria-label={`Set card color to ${c.label}`}
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { onColorChange(c.value as CardColorValue); setColorAnchor(null); } }}
                 onClick={() => { onColorChange(c.value as CardColorValue); setColorAnchor(null); }}
                 sx={{
                   width: 24, height: 24, borderRadius: 1.5, cursor: "pointer",

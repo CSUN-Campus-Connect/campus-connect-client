@@ -121,15 +121,15 @@ export default function StartQuest({
         </Typography>
 
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ alignItems: "stretch" }}>
-          <Select value={partyIdx} onChange={e => setPartyIdx(Number(e.target.value))} sx={{ flex: 1 }}>
+          <Select value={partyIdx} onChange={e => setPartyIdx(Number(e.target.value))} inputProps={{ "aria-label": "Select party" }} sx={{ flex: 1 }}>
             {parties.map((p, i) => <MenuItem key={i} value={i}>{p.name}</MenuItem>)}
           </Select>
 
-          <Select value={exercise} onChange={e => setExercise(String(e.target.value))} sx={{ flex: 2 }}>
+          <Select value={exercise} onChange={e => setExercise(String(e.target.value))} inputProps={{ "aria-label": "Select exercise" }} sx={{ flex: 2 }}>
             {LIFTS.map(l => <MenuItem key={l} value={l}>{l}</MenuItem>)}
           </Select>
 
-          <Select value={goal} onChange={e => setGoal(e.target.value as GoalType)} sx={{ flex: 1.5 }}>
+          <Select value={goal} onChange={e => setGoal(e.target.value as GoalType)} inputProps={{ "aria-label": "Select goal type" }} sx={{ flex: 1.5 }}>
             {goalChoices.map(g => <MenuItem key={g} value={g}>{GOAL_LABEL[g]}</MenuItem>)}
           </Select>
 

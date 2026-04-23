@@ -559,7 +559,7 @@ export default function SmartPlannerClient() {
             }}
           >
             {/* left-arrow */}
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
             Academics
@@ -570,7 +570,7 @@ export default function SmartPlannerClient() {
           {/* Title */}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {/* tree icon */}
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.90)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.90)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 3 3 15l6 1 1 5 5-8"/><path d="M9 9l5.5 5.5"/>
             </svg>
             <span style={{ fontWeight: 950, fontSize: 16, color: "#fff", letterSpacing: "0.01em" }}>
@@ -656,6 +656,7 @@ export default function SmartPlannerClient() {
               <span className="sp-label">Major</span>
               <input
                 className="sp-field"
+                aria-label="Search major"
                 value={majorInput}
                 onChange={(e) => { setMajorInput(e.target.value); setShowMajorDropdown(true); }}
                 onFocus={() => setShowMajorDropdown(true)}
@@ -697,7 +698,7 @@ export default function SmartPlannerClient() {
             {/* ── Catalog Year ── */}
             <div style={{ marginBottom: 14 }}>
               <span className="sp-label">Catalog Year</span>
-              <input className="sp-field" value={catalogYear} onChange={(e) => setCatalogYear(e.target.value)} placeholder="e.g. 2023" />
+              <input className="sp-field" aria-label="Catalog year" value={catalogYear} onChange={(e) => setCatalogYear(e.target.value)} placeholder="e.g. 2023" />
             </div>
 
             {/* ── Pace ── */}
@@ -713,7 +714,7 @@ export default function SmartPlannerClient() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
               <div>
                 <span className="sp-label">Start Term</span>
-                <select className="sp-field" value={startTerm} onChange={(e) => setStartTerm(e.target.value as any)} style={{ padding: "8px 10px" }}>
+                <select className="sp-field" aria-label="Start term" value={startTerm} onChange={(e) => setStartTerm(e.target.value as any)} style={{ padding: "8px 10px" }}>
                   {["Fall", "Spring", "Summer", "Winter"].map((t) => <option key={t}>{t}</option>)}
                 </select>
               </div>
@@ -722,6 +723,7 @@ export default function SmartPlannerClient() {
                 <input
                   className="sp-field"
                   type="number"
+                  aria-label="Start year"
                   value={startYear}
                   onChange={(e) => setStartYear(parseInt(e.target.value || String(new Date().getFullYear()), 10))}
                 />
@@ -741,6 +743,7 @@ export default function SmartPlannerClient() {
               <span className="sp-label">Completed Courses</span>
               <textarea
                 className="sp-field"
+                aria-label="Completed courses, comma or newline separated"
                 value={completedText}
                 onChange={(e) => setCompletedText(e.target.value)}
                 placeholder={"COMP 110, MATH 150A\n(comma or newline separated)"}
@@ -913,6 +916,7 @@ export default function SmartPlannerClient() {
                 </div>
                 <button
                   onClick={() => setShowElectiveModal(false)}
+                  aria-label="Close elective chooser"
                   style={{ background: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 8, width: 32, height: 32, cursor: "pointer", color: "rgba(255,255,255,0.75)", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}
                 >×</button>
               </div>
@@ -920,6 +924,7 @@ export default function SmartPlannerClient() {
               <input
                 className="sp-field"
                 type="text"
+                aria-label="Filter electives"
                 placeholder="Filter electives…"
                 value={electiveSearchQuery}
                 onChange={(e) => setElectiveSearchQuery(e.target.value)}
@@ -942,6 +947,7 @@ export default function SmartPlannerClient() {
                       <input
                         className="sp-field"
                         type="text"
+                        aria-label={`Course code for ${elective.label}`}
                         placeholder="e.g. COMP 524"
                         value={selectedElectives[elective.id] || ""}
                         onChange={(e) => setSelectedElectives({ ...selectedElectives, [elective.id]: e.target.value })}

@@ -122,7 +122,7 @@ export default function ClubCard({
             letterSpacing: "0.04em",
           }}
         >
-          <CategoryIcon category={club.category} size={10} />
+          <CategoryIcon aria-hidden category={club.category} size={10} />
           {club.category}
         </span>
         <div
@@ -237,6 +237,7 @@ export default function ClubCard({
             href={club.href}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={`View ${club.name} on CSUN website (opens in new tab)`}
             style={{
               width: 34,
               height: 34,
@@ -250,7 +251,7 @@ export default function ClubCard({
               textDecoration: "none",
             }}
           >
-            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg aria-hidden="true" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"

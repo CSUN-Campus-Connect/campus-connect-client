@@ -201,6 +201,7 @@ function DeleteAccountSection() {
                     size="small"
                     fullWidth
                     autoComplete="off"
+                    inputProps={{ "aria-label": "Type DELETE to confirm account deletion" }}
                     sx={{
                       ...textFieldSx,
                       "& input": { fontFamily: "monospace" },
@@ -221,6 +222,7 @@ function DeleteAccountSection() {
                     size="small"
                     fullWidth
                     autoComplete="current-password"
+                    inputProps={{ "aria-label": "Password to confirm account deletion" }}
                     sx={{
                       ...textFieldSx,
                       "& .MuiOutlinedInput-root.Mui-focused fieldset": {
@@ -457,6 +459,7 @@ export default function AccountPage() {
                   error={!!errors.currentPassword}
                   helperText={errors.currentPassword}
                   sx={textFieldSx}
+                  inputProps={{ "aria-label": "Current password" }}
                 />
               </Box>
 
@@ -474,6 +477,7 @@ export default function AccountPage() {
                   error={!!errors.newPassword}
                   helperText={errors.newPassword}
                   sx={textFieldSx}
+                  inputProps={{ "aria-label": "New password" }}
                 />
               </Box>
 
@@ -491,6 +495,7 @@ export default function AccountPage() {
                   error={!!errors.confirmNewPassword}
                   helperText={errors.confirmNewPassword}
                   sx={textFieldSx}
+                  inputProps={{ "aria-label": "Confirm new password" }}
                 />
               </Box>
 

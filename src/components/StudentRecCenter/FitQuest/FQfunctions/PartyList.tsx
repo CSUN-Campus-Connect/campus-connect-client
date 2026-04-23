@@ -72,7 +72,9 @@ export default function PartyList({
                   onMouseLeave={() => setHoverIdx(null)}
                   onClick={() => deleteParty(idx)}
                   role="button"
-                  aria-label="Disband party"
+                  tabIndex={0}
+                  aria-label={`Disband party: ${p.name}`}
+                  onKeyDown={(e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); deleteParty(idx); } }}
                   sx={{
                     position: "absolute",
                     top: 8,
@@ -291,7 +293,7 @@ function QuestDialog({
       <DialogContent dividers>
         {partyQuests.length > 1 && (
           <Box sx={{ mb: 1 }}>
-            <Select value={which} onChange={(e) => setWhich(Number(e.target.value))}>
+            <Select value={which} onChange={(e) => setWhich(Number(e.target.value))} inputProps={{ "aria-label": "Select quest" }}>
               {partyQuests.map((q, i) => (
                 <MenuItem key={i} value={i}>
                   {q.exercise} ({GOAL_LABEL[q.goal]})

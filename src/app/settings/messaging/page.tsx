@@ -127,6 +127,7 @@ function FollowersAndBlocksSection({ users, meId }: { users: User[]; meId: ID })
             placeholder="Search by name"
             fullWidth
             size="small"
+            inputProps={{ "aria-label": "Search followers by name" }}
             InputProps={{ sx: { borderRadius: 2 } }}
             sx={{ mb: 1.5 }}
           />
@@ -281,28 +282,28 @@ export default function MessagingSettingsPage() {
           tint="blue"
           icon={<MarkEmailUnreadOutlinedIcon fontSize="small" />}
           title="New messages"
-          action={<SettingsToggle checked={newMessages} onChange={setNewMessages} />}
+          action={<SettingsToggle checked={newMessages} onChange={setNewMessages} inputProps={{ "aria-label": "New messages notifications" }} />}
         />
         <SettingsRow
           divider
           tint="violet"
           icon={<GroupOutlinedIcon fontSize="small" />}
           title="Group messages"
-          action={<SettingsToggle checked={groupMessages} onChange={setGroupMessages} />}
+          action={<SettingsToggle checked={groupMessages} onChange={setGroupMessages} inputProps={{ "aria-label": "Group messages notifications" }} />}
         />
         <SettingsRow
           divider
           tint="orange"
           icon={<PersonAddAltOutlinedIcon fontSize="small" />}
           title="Message requests"
-          action={<SettingsToggle checked={messageRequests} onChange={setMessageRequests} />}
+          action={<SettingsToggle checked={messageRequests} onChange={setMessageRequests} inputProps={{ "aria-label": "Message requests notifications" }} />}
         />
         <SettingsRow
           tint="emerald"
           icon={<DoneAllOutlinedIcon fontSize="small" />}
           title="Read receipts"
           description="Let others know when you have read their messages."
-          action={<SettingsToggle checked={readReceiptsNotif} onChange={setReadReceiptsNotif} />}
+          action={<SettingsToggle checked={readReceiptsNotif} onChange={setReadReceiptsNotif} inputProps={{ "aria-label": "Read receipts notifications" }} />}
         />
       </SettingsCard>
 
@@ -335,14 +336,14 @@ export default function MessagingSettingsPage() {
           icon={<DoneAllOutlinedIcon fontSize="small" />}
           title="Read receipts"
           description="Send read receipts to others."
-          action={<SettingsToggle checked={readReceiptsPrivacy} onChange={setReadReceiptsPrivacy} />}
+          action={<SettingsToggle checked={readReceiptsPrivacy} onChange={setReadReceiptsPrivacy} inputProps={{ "aria-label": "Send read receipts to others" }} />}
         />
         <SettingsRow
           divider
           tint="cyan"
           icon={<VisibilityOutlinedIcon fontSize="small" />}
           title="Typing indicators"
-          action={<SettingsToggle checked={typingIndicators} onChange={setTypingIndicators} />}
+          action={<SettingsToggle checked={typingIndicators} onChange={setTypingIndicators} inputProps={{ "aria-label": "Typing indicators" }} />}
         />
         <SettingsRow
           tint="red"
@@ -363,27 +364,27 @@ export default function MessagingSettingsPage() {
           tint="slate"
           icon={<KeyboardReturnOutlinedIcon fontSize="small" />}
           title="Enter to send"
-          action={<SettingsToggle checked={enterToSend} onChange={setEnterToSend} />}
+          action={<SettingsToggle checked={enterToSend} onChange={setEnterToSend} inputProps={{ "aria-label": "Enter to send messages" }} />}
         />
         <SettingsRow
           divider
           tint="amber"
           icon={<CloudDownloadOutlinedIcon fontSize="small" />}
           title="Media auto-download"
-          action={<SettingsToggle checked={mediaAutoDownload} onChange={setMediaAutoDownload} />}
+          action={<SettingsToggle checked={mediaAutoDownload} onChange={setMediaAutoDownload} inputProps={{ "aria-label": "Media auto-download" }} />}
         />
         <SettingsRow
           divider
           tint="blue"
           icon={<HistoryOutlinedIcon fontSize="small" />}
           title="Save chat history"
-          action={<SettingsToggle checked={saveChatHistory} onChange={setSaveChatHistory} />}
+          action={<SettingsToggle checked={saveChatHistory} onChange={setSaveChatHistory} inputProps={{ "aria-label": "Save chat history" }} />}
         />
         <SettingsRow
           tint="violet"
           icon={<ArchiveOutlinedIcon fontSize="small" />}
           title="Archive inactive chats"
-          action={<SettingsToggle checked={archiveInactive} onChange={setArchiveInactive} />}
+          action={<SettingsToggle checked={archiveInactive} onChange={setArchiveInactive} inputProps={{ "aria-label": "Archive inactive chats" }} />}
         />
       </SettingsCard>
 
@@ -394,20 +395,20 @@ export default function MessagingSettingsPage() {
           tint="rose"
           icon={<MailOutlineIcon fontSize="small" />}
           title="Allow group invites"
-          action={<SettingsToggle checked={allowGroupInvites} onChange={setAllowGroupInvites} />}
+          action={<SettingsToggle checked={allowGroupInvites} onChange={setAllowGroupInvites} inputProps={{ "aria-label": "Allow group invites" }} />}
         />
         <SettingsRow
           divider
           tint="orange"
           icon={<NotificationsOffOutlinedIcon fontSize="small" />}
           title="Mute group notifications"
-          action={<SettingsToggle checked={muteGroupNotifications} onChange={setMuteGroupNotifications} />}
+          action={<SettingsToggle checked={muteGroupNotifications} onChange={setMuteGroupNotifications} inputProps={{ "aria-label": "Mute group notifications" }} />}
         />
         <SettingsRow
           tint="cyan"
           icon={<PreviewOutlinedIcon fontSize="small" />}
           title="Show group previews"
-          action={<SettingsToggle checked={showGroupPreviews} onChange={setShowGroupPreviews} />}
+          action={<SettingsToggle checked={showGroupPreviews} onChange={setShowGroupPreviews} inputProps={{ "aria-label": "Show group previews" }} />}
         />
       </SettingsCard>
 
@@ -418,20 +419,20 @@ export default function MessagingSettingsPage() {
           tint="green"
           icon={<FilterAltOutlinedIcon fontSize="small" />}
           title="Filter spam messages"
-          action={<SettingsToggle checked={filterSpam} onChange={setFilterSpam} />}
+          action={<SettingsToggle checked={filterSpam} onChange={setFilterSpam} inputProps={{ "aria-label": "Filter spam messages" }} />}
         />
         <SettingsRow
           divider
           tint="sky"
           icon={<PersonAddAltOutlinedIcon fontSize="small" />}
           title="Allow message requests"
-          action={<SettingsToggle checked={allowMessageRequests} onChange={setAllowMessageRequests} />}
+          action={<SettingsToggle checked={allowMessageRequests} onChange={setAllowMessageRequests} inputProps={{ "aria-label": "Allow message requests" }} />}
         />
         <SettingsRow
           tint="red"
           icon={<ReportProblemOutlinedIcon fontSize="small" />}
           title="Report / block shortcuts"
-          action={<SettingsToggle checked={reportBlockShortcuts} onChange={setReportBlockShortcuts} />}
+          action={<SettingsToggle checked={reportBlockShortcuts} onChange={setReportBlockShortcuts} inputProps={{ "aria-label": "Report and block shortcuts" }} />}
         />
       </SettingsCard>
 

@@ -66,7 +66,11 @@ function MarketCard({
 }) {
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`View listing: ${item.title}, ${item.price}`}
       onClick={() => onToast(`Opening listing: ${item.title}`, "info")}
+      onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToast(`Opening listing: ${item.title}`, "info"); } }}
       style={{
         background:"var(--bg-surface)", border:"1px solid var(--border-subtle)",
         borderRadius:"var(--radius-lg)", overflow:"hidden",
@@ -78,7 +82,7 @@ function MarketCard({
     >
       {/* Placeholder image area */}
       <div style={{ height:110, background:"var(--bg-elevated)", display:"flex", alignItems:"center", justifyContent:"center", borderBottom:"1px solid var(--border-subtle)" }}>
-        <svg width="36" height="36" fill="none" stroke="currentColor" strokeWidth="1.3" viewBox="0 0 24 24" style={{ color:"var(--text-muted)", opacity:.4 }}>
+        <svg aria-hidden="true" width="36" height="36" fill="none" stroke="currentColor" strokeWidth="1.3" viewBox="0 0 24 24" style={{ color:"var(--text-muted)", opacity:.4 }}>
           <rect x="2" y="7" width="20" height="14" rx="2"/>
           <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
         </svg>

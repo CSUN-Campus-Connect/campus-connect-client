@@ -71,6 +71,7 @@ export function ModalShell({ title, onClose, children, width = 560, noPad = fals
           </h3>
           <button
             onClick={onClose}
+            aria-label="Close"
             style={{
               width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--border)',
               background: 'transparent', display: 'grid', placeItems: 'center',
@@ -79,7 +80,7 @@ export function ModalShell({ title, onClose, children, width = 560, noPad = fals
             onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
-            <CloseIcon />
+            <CloseIcon aria-hidden="true" />
           </button>
         </div>
 
@@ -161,6 +162,7 @@ export function CommentModal({ post, currentUser, onClose, onCommentPosted }) {
             value={text}
             onChange={e => setText(e.target.value)}
             onKeyDown={handleKeyDown}
+            aria-label="Write a reply"
             placeholder="Write a reply... (Cmd+Enter to post)"
             autoFocus
             maxLength={300}
@@ -275,6 +277,7 @@ export function RepostModal({ post, onClose, onRepost }) {
       <textarea
         value={comment}
         onChange={e => setComment(e.target.value)}
+        aria-label="Add a comment to your repost (optional)"
         placeholder="Add a comment... (optional)"
         maxLength={500}
         style={{

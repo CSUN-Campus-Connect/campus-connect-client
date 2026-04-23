@@ -24,6 +24,7 @@ export const StickyNoteWidget: React.FC<{ id: string; onDelete?: () => void }> =
           value={text}
           onChange={(e)=>setText(e.target.value)}
           placeholder="Write something and it will stick…"
+          inputProps={{ "aria-label": "Sticky note content" }}
           multiline
           minRows={6}
           fullWidth

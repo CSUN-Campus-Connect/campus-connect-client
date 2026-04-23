@@ -182,6 +182,7 @@ const MarketplaceCard: React.FC<MarketplaceCardProps> = ({
             e.stopPropagation();
             onToggleFavorite(item.id);
           }}
+          aria-label={isFavorite ? `Remove ${item.title} from favorites` : `Add ${item.title} to favorites`}
           style={{
             position: 'absolute',
             top: '0.75rem',
@@ -211,14 +212,15 @@ const MarketplaceCard: React.FC<MarketplaceCardProps> = ({
             el.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.2)';
           }}
         >
-          <svg 
-            width="20" 
-            height="20" 
+          <svg
+            aria-hidden="true"
+            width="20"
+            height="20"
             viewBox="0 0 24 24"
-            fill={isFavorite ? '#A80532' : 'none'} 
-            stroke={isFavorite ? '#A80532' : '#6B7280'} 
-            strokeWidth="2" 
-            strokeLinecap="round" 
+            fill={isFavorite ? '#A80532' : 'none'}
+            stroke={isFavorite ? '#A80532' : '#6B7280'}
+            strokeWidth="2"
+            strokeLinecap="round"
             strokeLinejoin="round"
           >
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -353,7 +355,7 @@ const MarketplaceCard: React.FC<MarketplaceCardProps> = ({
           onMouseEnter={(e) => (e.target as HTMLElement).style.background = '#8B0428'}
           onMouseLeave={(e) => (e.target as HTMLElement).style.background = '#A80532'}
         >
-          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
           Contact Seller

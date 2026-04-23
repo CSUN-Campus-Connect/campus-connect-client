@@ -122,6 +122,7 @@ export default function StudentRecCenterHomePage() {
           <video
             src="../videos/hero-src.mp4"
             autoPlay muted loop playsInline
+            aria-hidden="true"
             style={{
               position: "absolute", inset: 0, width: "100%", height: "100%",
               objectFit: "cover",
@@ -133,6 +134,7 @@ export default function StudentRecCenterHomePage() {
           <video
             src="../videos/hero-src.mp4"
             autoPlay muted loop playsInline
+            aria-hidden="true"
             style={{
               position: "absolute", inset: 0, width: "100%", height: "100%",
               objectFit: "contain",

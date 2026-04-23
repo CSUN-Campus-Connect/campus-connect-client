@@ -142,7 +142,12 @@ export default function Carousel({ slides }: { slides: Slide[] }) {
         {slides.map((_, i) => (
           <motion.div
             key={i}
+            role="button"
+            tabIndex={0}
+            aria-label={`Go to slide ${i + 1} of ${count}`}
+            aria-current={i === current ? "true" : undefined}
             onClick={() => setCurrent(i)}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setCurrent(i); } }}
             animate={{
               width: i === current ? 22 : 7,
               backgroundColor: i === current ? "#ffffff" : "rgba(255,255,255,0.32)",

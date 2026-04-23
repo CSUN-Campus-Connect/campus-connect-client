@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -16,7 +15,6 @@ const smooth: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 export default function LoginPage() {
   const router = useRouter();
-
   React.useEffect(() => {
     const user = localStorage.getItem('user');
     const token = localStorage.getItem('token');
@@ -50,7 +48,6 @@ export default function LoginPage() {
     setErrors({});
     setShowResendButton(false);
     setResendSuccess(false);
-
     try {
       loginSchema.parse(loginData);
     } catch (error) {
@@ -63,7 +60,6 @@ export default function LoginPage() {
         return;
       }
     }
-
     setIsSubmitting(true);
     try {
       const response = await api.post<{ token: string; user: PublicUser }>('/api/v1/users/login', loginData);
@@ -95,12 +91,15 @@ export default function LoginPage() {
       <AnimatePresence>
         {isLoading && (
           <motion.div
+            role="status"
+            aria-label="Signing in, please wait"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center gap-10"
           >
-            {/* Wordmark */}
+            {/* Wordmark — decorative in this context */}
             <motion.div
+              aria-hidden="true"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: smooth }}
@@ -110,25 +109,21 @@ export default function LoginPage() {
               <span className="text-[13px] font-light tracking-wide text-[#999]">Toro Campus Connect</span>
             </motion.div>
 
-            {/* Three-dot pulse */}
-            <div className="flex items-center gap-3">
+            {/* Three-dot pulse — decorative */}
+            <div aria-hidden="true" className="flex items-center gap-3">
               {[0, 1, 2].map((i) => (
                 <motion.span
                   key={i}
                   className="w-1.5 h-1.5 rounded-full bg-[#CC0033]"
                   animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8] }}
-                  transition={{
-                    duration: 1.1,
-                    repeat: Infinity,
-                    delay: i * 0.18,
-                    ease: 'easeInOut',
-                  }}
+                  transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.18, ease: 'easeInOut' }}
                 />
               ))}
             </div>
 
-            {/* Animated red line sweeping in from left */}
+            {/* Animated red line — decorative */}
             <motion.div
+              aria-hidden="true"
               className="absolute bottom-0 left-0 h-[3px] bg-[#CC0033]"
               initial={{ width: 0 }}
               animate={{ width: '100%' }}
@@ -138,7 +133,7 @@ export default function LoginPage() {
         )}
       </AnimatePresence>
 
-      {/* Top bar — mirrors landing page */}
+      {/* Top bar */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -154,7 +149,7 @@ export default function LoginPage() {
         </Link>
       </motion.div>
 
-      {/* Main content — editorial split */}
+      {/* Main content */}
       <div className="flex-1 flex flex-col md:flex-row max-w-6xl mx-auto w-full px-6 md:px-14 py-16 md:py-24 gap-16 md:gap-24">
 
         {/* LEFT — headline editorial block */}
@@ -167,7 +162,6 @@ export default function LoginPage() {
             <p className="text-[11px] font-semibold tracking-[0.15em] text-[#CC0033] uppercase mb-6">
               Welcome back
             </p>
-
             <div className="overflow-hidden mb-1">
               <motion.h1
                 initial={{ y: '110%' }}
@@ -198,7 +192,6 @@ export default function LoginPage() {
                 awaits.
               </motion.h1>
             </div>
-
             <motion.p
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -217,10 +210,10 @@ export default function LoginPage() {
           transition={{ duration: 0.9, delay: 0.3, ease: smooth }}
           className="flex flex-col justify-center md:w-[55%]"
         >
-
-          {/* Error banner */}
+          {/* Error banner — role="alert" announces it to screen readers immediately */}
           {errors.general && (
             <motion.div
+              role="alert"
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               className="mb-6 px-4 py-3 border border-[#CC0033]/30 bg-[#CC0033]/5 text-[13px] text-[#CC0033]"
@@ -239,8 +232,10 @@ export default function LoginPage() {
             </motion.div>
           )}
 
+          {/* Success banner — role="status" announces politely without interrupting */}
           {resendSuccess && (
             <motion.div
+              role="status"
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               className="mb-6 px-4 py-3 border border-[#111]/10 bg-[#FAFAF7] text-[13px] text-[#555]"
@@ -249,34 +244,50 @@ export default function LoginPage() {
             </motion.div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-0">
+          <form onSubmit={handleSubmit} aria-label="Sign in" noValidate className="flex flex-col gap-0">
 
             {/* Email */}
             <div className="border-t border-[#eee] pt-5 pb-5">
-              <label className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2">
+              <label
+                htmlFor="login-email"
+                className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2"
+              >
                 Email
               </label>
               <input
+                id="login-email"
                 type="email"
+                autoComplete="email"
                 placeholder="your.name@my.csun.edu"
                 value={loginData.email}
                 onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                aria-describedby={errors.email ? 'login-email-error' : undefined}
+                aria-invalid={!!errors.email}
                 className="w-full bg-transparent text-[15px] font-light text-[#111] placeholder-[#ccc] border-0 border-b border-[#e0e0e0] focus:border-[#CC0033] focus:outline-none pb-2 transition-colors duration-200"
               />
               {errors.email && (
-                <p className="mt-2 text-[12px] text-[#CC0033]">{errors.email}</p>
+                <p id="login-email-error" role="alert" className="mt-2 text-[12px] text-[#CC0033]">
+                  {errors.email}
+                </p>
               )}
             </div>
 
             {/* Password */}
             <div className="border-t border-[#eee] pt-5 pb-5">
-              <label className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2">
+              <label
+                htmlFor="login-password"
+                className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2"
+              >
                 Password
               </label>
               <PasswordField
+                id="login-password"
                 value={loginData.password}
                 onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                 placeholder="••••••••"
+                aria-describedby={errors.password ? 'login-password-error' : undefined}
+                aria-invalid={!!errors.password}
+                autoComplete="current-password"
                 style={{
                   width: '100%',
                   background: 'transparent',
@@ -291,7 +302,9 @@ export default function LoginPage() {
                 }}
               />
               {errors.password && (
-                <p className="mt-2 text-[12px] text-[#CC0033]">{errors.password}</p>
+                <p id="login-password-error" role="alert" className="mt-2 text-[12px] text-[#CC0033]">
+                  {errors.password}
+                </p>
               )}
             </div>
 
@@ -305,19 +318,18 @@ export default function LoginPage() {
               >
                 Forgot password?
               </Link>
-
               <motion.button
                 type="submit"
                 disabled={isSubmitting}
+                aria-busy={isSubmitting}
                 whileHover={{ x: 3 }}
                 whileTap={{ scale: 0.98 }}
                 className="group inline-flex items-center gap-3 bg-[#111] text-white px-8 py-4 text-[13px] font-semibold hover:bg-[#CC0033] transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'Signing in…' : 'Sign in'}
-                <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                <ArrowRight aria-hidden="true" className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
               </motion.button>
             </div>
-
           </form>
 
           <p className="mt-10 text-[13px] text-[#aaa] font-light">
@@ -326,21 +338,19 @@ export default function LoginPage() {
               Create an account
             </Link>
           </p>
-
         </motion.div>
       </div>
 
-      {/* Bottom strip — mirrors landing footer */}
+      {/* Bottom strip */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 0.8 }}
-        className="px-6 md:px-14 py-6 border-t border-black/[0.04] flex items-center justify-between"
+        className="px-6 md:px-14 py-6 border-t border-black/4 flex items-center justify-between"
       >
         <p className="text-[11px] text-[#ccc] font-light">© 2026 CampusConnect. COMP 490 Senior Design.</p>
         <p className="text-[11px] text-[#ccc] font-light">Not affiliated with CSUN.</p>
       </motion.div>
-
     </div>
   );
 }

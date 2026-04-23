@@ -63,27 +63,27 @@ export default function AcademicSettingsPage() {
           tint="blue"
           icon={<AssignmentOutlinedIcon fontSize="small" />}
           title="Assignment reminders"
-          action={<SettingsToggle checked={assignmentReminders} onChange={setAssignmentReminders} />}
+          action={<SettingsToggle checked={assignmentReminders} onChange={setAssignmentReminders} inputProps={{ "aria-label": "Assignment reminders" }} />}
         />
         <SettingsRow
           divider
           tint="violet"
           icon={<QuizOutlinedIcon fontSize="small" />}
           title="Exam reminders"
-          action={<SettingsToggle checked={examReminders} onChange={setExamReminders} />}
+          action={<SettingsToggle checked={examReminders} onChange={setExamReminders} inputProps={{ "aria-label": "Exam reminders" }} />}
         />
         <SettingsRow
           divider
           tint="green"
           icon={<GradingOutlinedIcon fontSize="small" />}
           title="Grade alerts"
-          action={<SettingsToggle checked={gradeAlerts} onChange={setGradeAlerts} />}
+          action={<SettingsToggle checked={gradeAlerts} onChange={setGradeAlerts} inputProps={{ "aria-label": "Grade alerts" }} />}
         />
         <SettingsRow
           tint="orange"
           icon={<EventNoteOutlinedIcon fontSize="small" />}
           title="Registration deadlines"
-          action={<SettingsToggle checked={registrationDeadlines} onChange={setRegistrationDeadlines} />}
+          action={<SettingsToggle checked={registrationDeadlines} onChange={setRegistrationDeadlines} inputProps={{ "aria-label": "Registration deadlines notifications" }} />}
         />
       </SettingsCard>
 
@@ -161,7 +161,7 @@ export default function AcademicSettingsPage() {
           tint="slate"
           icon={<VisibilityOffOutlinedIcon fontSize="small" />}
           title="Hide completed courses"
-          action={<SettingsToggle checked={hideCompletedCourses} onChange={setHideCompletedCourses} />}
+          action={<SettingsToggle checked={hideCompletedCourses} onChange={setHideCompletedCourses} inputProps={{ "aria-label": "Hide completed courses" }} />}
         />
       </SettingsCard>
 
@@ -192,7 +192,7 @@ export default function AcademicSettingsPage() {
           tint="cyan"
           icon={<CalendarMonthOutlinedIcon fontSize="small" />}
           title="Calendar sync"
-          action={<SettingsToggle checked={calendarSync} onChange={setCalendarSync} />}
+          action={<SettingsToggle checked={calendarSync} onChange={setCalendarSync} inputProps={{ "aria-label": "Calendar sync" }} />}
         />
       </SettingsCard>
 
@@ -203,13 +203,13 @@ export default function AcademicSettingsPage() {
           tint="brand"
           icon={<SchoolOutlinedIcon fontSize="small" />}
           title="GPA tracker"
-          action={<SettingsToggle checked={gpaTracker} onChange={setGpaTracker} />}
+          action={<SettingsToggle checked={gpaTracker} onChange={setGpaTracker} inputProps={{ "aria-label": "GPA tracker" }} />}
         />
         <SettingsRow
           tint="red"
           icon={<TrendingDownOutlinedIcon fontSize="small" />}
           title="Low grade alerts"
-          action={<SettingsToggle checked={lowGradeAlerts} onChange={setLowGradeAlerts} />}
+          action={<SettingsToggle checked={lowGradeAlerts} onChange={setLowGradeAlerts} inputProps={{ "aria-label": "Low grade alerts" }} />}
         />
       </SettingsCard>
 
@@ -220,13 +220,13 @@ export default function AcademicSettingsPage() {
           tint="slate"
           icon={<VisibilityOffOutlinedIcon fontSize="small" />}
           title="Show courses publicly"
-          action={<SettingsToggle checked={showCoursesPublicly} onChange={setShowCoursesPublicly} />}
+          action={<SettingsToggle checked={showCoursesPublicly} onChange={setShowCoursesPublicly} inputProps={{ "aria-label": "Show courses publicly" }} />}
         />
         <SettingsRow
           tint="green"
           icon={<ShareOutlinedIcon fontSize="small" />}
           title="Share study availability"
-          action={<SettingsToggle checked={shareStudyAvailability} onChange={setShareStudyAvailability} />}
+          action={<SettingsToggle checked={shareStudyAvailability} onChange={setShareStudyAvailability} inputProps={{ "aria-label": "Share study availability" }} />}
         />
       </SettingsCard>
     </Box>

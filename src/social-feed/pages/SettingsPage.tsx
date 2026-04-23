@@ -8,7 +8,7 @@
 //   - Account actions
 // =============================================================================
 
-import { useState, useRef, ChangeEvent } from "react";
+import React, { useState, useRef, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "../context/ThemeContext";
 import { useProfile } from "../hooks/useProfile";
@@ -254,6 +254,7 @@ function BlockedAccountsPanel({
     <div style={{ padding: 20, animation: "fadeUp 220ms ease both" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
         <button
+          aria-label="Back to settings"
           onClick={onBack}
           style={{ width: 34, height: 34, borderRadius: "50%", border: "none", background: "transparent", color: "var(--text-secondary)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
           onMouseEnter={e => (e.currentTarget.style.background = "var(--bg-elevated)")}
@@ -267,7 +268,7 @@ function BlockedAccountsPanel({
 
       {blockedUsers.length === 0 ? (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "40vh", textAlign: "center", gap: 12 }}>
-          <svg width="48" height="48" fill="none" stroke="var(--text-muted)" strokeWidth="1.3" viewBox="0 0 24 24" style={{ opacity: 0.5 }}>
+          <svg aria-hidden="true" width="48" height="48" fill="none" stroke="var(--text-muted)" strokeWidth="1.3" viewBox="0 0 24 24" style={{ opacity: 0.5 }}>
             <circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
           </svg>
           <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>No blocked accounts</div>
@@ -282,7 +283,7 @@ function BlockedAccountsPanel({
               display: "flex", alignItems: "center", gap: 14, padding: "14px 16px",
               borderBottom: i < blockedUsers.length - 1 ? "1px solid var(--border-subtle)" : "none",
             }}>
-              {/* Avatar */}
+              {/* Avatar  */}
               <div style={{
                 width: 44, height: 44, borderRadius: "50%", background: "var(--bg-elevated)",
                 border: "1px solid var(--border-subtle)", display: "flex", alignItems: "center",
@@ -296,6 +297,7 @@ function BlockedAccountsPanel({
                 <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>Blocked · their posts are hidden</div>
               </div>
               <button
+                aria-label={`Unblock ${u.name}`}
                 onClick={() => onUnblock(u.id)}
                 style={{
                   padding: "7px 16px", borderRadius: 99, border: "1px solid var(--border-medium)",
@@ -334,7 +336,7 @@ function EditProfilePanel({
     const reader = new FileReader();
     reader.onload = ev => { if (ev.target?.result) setAvatarPreview(ev.target.result as string); };
     reader.readAsDataURL(file);
-    e.target.value = ""; // reset so same file can be re-picked
+    e.target.value = "";
   }
 
   const initials = `${(form.firstName[0] ?? "?").toUpperCase()}${(form.lastName[0] ?? "").toUpperCase()}`;
@@ -346,10 +348,10 @@ function EditProfilePanel({
       <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:24 }}>
         <button
           onClick={onBack}
+          aria-label="Back to settings"
           style={{ width:34, height:34, borderRadius:"50%", border:"none", background:"transparent", color:"var(--text-secondary)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", transition:"background 150ms" }}
           onMouseEnter={e => (e.currentTarget.style.background = "var(--bg-elevated)")}
           onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-          aria-label="Back to settings"
         >
           <ChevronLeftIcon />
         </button>
@@ -378,21 +380,28 @@ function EditProfilePanel({
         />
         {/* Avatar circle */}
         <div
+          role="button"
+          tabIndex={0}
+          aria-label="Change profile photo"
           className="avatar"
           style={{ width:72, height:72, fontSize:24, flexShrink:0, cursor:"pointer", position:"relative", overflow:"hidden" }}
           onClick={() => fileInputRef.current?.click()}
-          title="Click to change photo"
+          onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInputRef.current?.click(); } }}
         >
           {avatarPreview
             ? <img src={avatarPreview} alt="Profile preview" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
             : <span className="avatar-initials">{initials}</span>
           }
-          {/* hover overlay hint */}
-          <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.35)", display:"flex", alignItems:"center", justifyContent:"center", opacity:0, transition:"opacity 150ms" }}
+          {/* hover overlay — decorative */}
+          <div
+            style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.35)", display:"flex", alignItems:"center", justifyContent:"center", opacity:0, transition:"opacity 150ms" }}
             onMouseEnter={e => (e.currentTarget.style.opacity = "1")}
             onMouseLeave={e => (e.currentTarget.style.opacity = "0")}
           >
-            <svg width="20" height="20" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <svg aria-hidden="true" width="20" height="20" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
           </div>
         </div>
         <div>
@@ -506,10 +515,20 @@ function SettingsItem({
   toggleChecked?: boolean;
   onToggle?: () => void;
 }) {
-  const isClickable = !!onClick || !!onToggle;
+  const isClickable = !!onClick || (toggle && !!onToggle);
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if ((e.key === "Enter" || e.key === " ") && isClickable) {
+      e.preventDefault();
+      toggle ? onToggle?.() : onClick?.();
+    }
+  };
   return (
     <div
+      role={isClickable ? "button" : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      aria-label={isClickable ? (toggle ? `${label}: ${toggleChecked ? "on" : "off"}` : label) : undefined}
       onClick={toggle ? onToggle : onClick}
+      onKeyDown={handleKeyDown}
       style={{
         display:"flex", alignItems:"center", gap:12, padding:"14px 16px",
         borderBottom:"1px solid var(--border-subtle)",
@@ -529,13 +548,13 @@ function SettingsItem({
         {sub && <div style={{ fontSize:12, color:"var(--text-muted)", marginTop:1 }}>{sub}</div>}
       </div>
       {toggle && (
-        <label className="toggle-switch" style={{ flexShrink:0 }} onClick={e => e.stopPropagation()}>
-          <input type="checkbox" checked={toggleChecked} onChange={onToggle} />
+        <label aria-hidden="true" className="toggle-switch" style={{ flexShrink:0 }} onClick={e => e.stopPropagation()}>
+          <input type="checkbox" tabIndex={-1} checked={toggleChecked} onChange={onToggle} />
           <span className="toggle-slider" />
         </label>
       )}
       {chevron && !toggle && (
-        <svg width="16" height="16" fill="none" stroke="var(--text-muted)" strokeWidth="2" viewBox="0 0 24 24">
+        <svg aria-hidden="true" width="16" height="16" fill="none" stroke="var(--text-muted)" strokeWidth="2" viewBox="0 0 24 24">
           <polyline points="9 18 15 12 9 6"/>
         </svg>
       )}
@@ -544,26 +563,27 @@ function SettingsItem({
 }
 
 function FormField({ label, children, style }: { label: string; children: React.ReactNode; style?: React.CSSProperties }) {
+  const fieldId = `settings-field-${label.toLowerCase().replace(/\s+/g, "-")}`;
   return (
     <div style={style}>
-      <label className="form-label">{label}</label>
-      {children}
+      <label htmlFor={fieldId} className="form-label">{label}</label>
+      {React.cloneElement(children as React.ReactElement<{ id?: string }>, { id: fieldId })}
     </div>
   );
 }
 
 // ── Icon components ───────────────────────────────────────────────────────────
 const i = { width:18, height:18, fill:"none", stroke:"currentColor", strokeWidth:"1.7", strokeLinecap:"round" as const, strokeLinejoin:"round" as const };
-const UserIcon       = () => <svg {...i} viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
-const MailIcon       = () => <svg {...i} viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>;
-const LockIcon       = () => <svg {...i} viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
-const SunIcon        = () => <svg {...i} viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>;
-const GridIcon       = () => <svg {...i} viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>;
-const BellIcon       = () => <svg {...i} viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>;
-const RepostIcon     = () => <svg {...i} viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>;
-const ShieldIcon     = () => <svg {...i} viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
-const BlockIcon      = () => <svg {...i} viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>;
-const LogoutIcon     = () => <svg {...i} viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
-const ChevronLeftIcon= () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>;
-const PortalIcon     = () => <svg {...i} viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>;
-const CanvasIcon     = () => <svg {...i} viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;
+const UserIcon        = () => <svg aria-hidden="true" {...i} viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+const MailIcon        = () => <svg aria-hidden="true" {...i} viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>;
+const LockIcon        = () => <svg aria-hidden="true" {...i} viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
+const SunIcon         = () => <svg aria-hidden="true" {...i} viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>;
+const GridIcon        = () => <svg aria-hidden="true" {...i} viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>;
+const BellIcon        = () => <svg aria-hidden="true" {...i} viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>;
+const RepostIcon      = () => <svg aria-hidden="true" {...i} viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>;
+const ShieldIcon      = () => <svg aria-hidden="true" {...i} viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
+const BlockIcon       = () => <svg aria-hidden="true" {...i} viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>;
+const LogoutIcon      = () => <svg aria-hidden="true" {...i} viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
+const ChevronLeftIcon = () => <svg aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>;
+const PortalIcon      = () => <svg aria-hidden="true" {...i} viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>;
+const CanvasIcon      = () => <svg aria-hidden="true" {...i} viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;

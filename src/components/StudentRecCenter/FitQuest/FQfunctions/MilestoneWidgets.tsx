@@ -102,15 +102,15 @@ export function StrengthEntry({
         >
           Entry
         </Button>
-        <IconButton aria-label="reset" onClick={onReset} sx={{ color: "#fff" }}>
-          <RestartAltIcon />
+        <IconButton aria-label="Reset all strength entries" onClick={onReset} sx={{ color: "#fff" }}>
+          <RestartAltIcon aria-hidden="true" />
         </IconButton>
         <IconButton
-          aria-label="delete last"
+          aria-label="Delete last strength entry"
           onClick={onDeleteLast}
           sx={{ color: "#fff" }}
         >
-          <DeleteIcon />
+          <DeleteIcon aria-hidden="true" />
         </IconButton>
       </Stack>
 
@@ -126,7 +126,7 @@ export function StrengthEntry({
           overflow: "hidden",
         }}
       >
-        <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H}>
+        <svg role="img" aria-label={`Strength progress chart: target ${targetW} weight × ${targetR} reps, ${pts.length} log entries`} viewBox={`0 0 ${W} ${H}`} width={W} height={H}>
           <line x1={pad} y1={H - pad} x2={W - pad} y2={H - pad} stroke="white" opacity="0.6" />
           <line x1={pad} y1={H - pad} x2={pad} y2={pad} stroke="white" opacity="0.6" />
           <text x={W - pad} y={H - 6} fill="white" fontSize="10">reps →</text>

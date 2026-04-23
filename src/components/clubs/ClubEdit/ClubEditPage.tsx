@@ -198,11 +198,11 @@ function MemberRow({ member, onKick, onBlock, onRoleChange }: {
         </div>
       ) : (
         <div style={{ display: 'flex', gap: 6 }}>
-          <button title="Remove member" onClick={() => setConfirm('kick')} disabled={member.role === 'President'}
+          <button aria-label={`Remove ${member.name} from club`} onClick={() => setConfirm('kick')} disabled={member.role === 'President'}
             style={{ background: 'rgba(210,32,48,0.1)', border: '1px solid rgba(210,32,48,0.3)', color: '#D22030', borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', opacity: member.role === 'President' ? 0.3 : 1 }}>
             <TrashIcon />
           </button>
-          <button title={member.blocked ? 'Unblock' : 'Block'} onClick={() => setConfirm('block')} disabled={member.role === 'President'}
+          <button aria-label={member.blocked ? `Unblock ${member.name}` : `Block ${member.name}`} onClick={() => setConfirm('block')} disabled={member.role === 'President'}
             style={{ background: 'rgba(255,160,0,0.1)', border: '1px solid rgba(255,160,0,0.3)', color: '#FFA000', borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', opacity: member.role === 'President' ? 0.3 : 1 }}>
             <BanIcon />
           </button>
@@ -482,7 +482,7 @@ export default function ClubEditPage({ club, members: initialMembers, onSave, on
                         {(form.card?.chips ?? []).map(chip => (
                           <span key={chip} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: accentColor + '22', border: `1px solid ${accentColor}55`, borderRadius: 99, padding: '3px 10px', fontSize: 12, fontWeight: 700, color: accentColor }}>
                             {chip}
-                            <button onClick={() => removeChip(chip)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: accentColor, display: 'flex', alignItems: 'center', opacity: 0.7 }}>
+                            <button onClick={() => removeChip(chip)} aria-label={`Remove ${chip} tag`} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: accentColor, display: 'flex', alignItems: 'center', opacity: 0.7 }}>
                               <XIcon />
                             </button>
                           </span>

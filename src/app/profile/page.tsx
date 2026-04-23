@@ -291,6 +291,7 @@ function Composer({ onPost }: { onPost: (p: Partial<Post>) => void }) {
       <Stack spacing={1.25}>
         <TextField
           placeholder="Share something with campus…"
+          inputProps={{ "aria-label": "Share something with campus" }}
           value={text}
           onChange={(e) => setText(e.target.value)}
           multiline
@@ -352,15 +353,16 @@ function Composer({ onPost }: { onPost: (p: Partial<Post>) => void }) {
         )}
         <Stack direction="row" justifyContent="space-between" alignItems="center">
           <Stack direction="row" spacing={1}>
-            <IconButton component="label" sx={{ color: dark ? "#fff" : "#111" }}>
-              <AddPhotoAlternateIcon />
+            <IconButton component="label" aria-label="Add photo" sx={{ color: dark ? "#fff" : "#111" }}>
+              <AddPhotoAlternateIcon aria-hidden="true" />
               <input hidden type="file" accept="image/*" multiple onChange={addImage} />
             </IconButton>
             <IconButton
               onClick={() => setPollOn((v) => !v)}
+              aria-label={pollOn ? "Remove poll" : "Add poll"}
               sx={{ color: dark ? "#fff" : "#111" }}
             >
-              <PollIcon />
+              <PollIcon aria-hidden="true" />
             </IconButton>
           </Stack>
           <Button variant="contained" onClick={submit} endIcon={<SendIcon />} sx={btn}>
@@ -472,6 +474,7 @@ function PostCard({
             <TextField
               value={editText}
               onChange={(e) => setEditText(e.target.value)}
+              inputProps={{ "aria-label": "Edit post content" }}
               multiline
               fullWidth
               sx={inputSx}
@@ -538,6 +541,7 @@ function PostCard({
             size="small"
             fullWidth
             placeholder="Write a comment…"
+            inputProps={{ "aria-label": "Write a comment" }}
             value={reply}
             onChange={(e) => setReply(e.target.value)}
             sx={inputSx}

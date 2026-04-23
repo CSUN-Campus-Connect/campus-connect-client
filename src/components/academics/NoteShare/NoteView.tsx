@@ -388,7 +388,7 @@ export default function NoteView({
               </Button>
             </Stack>
 
-            <IconButton onClick={onClose} sx={{ color: "rgba(255,255,255,0.85)" }}>
+            <IconButton onClick={onClose} aria-label="Close folder" sx={{ color: "rgba(255,255,255,0.85)" }}>
               <CloseIcon />
             </IconButton>
           </Stack>

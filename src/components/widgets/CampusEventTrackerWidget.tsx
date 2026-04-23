@@ -279,6 +279,7 @@ export const CampusEventTrackerWidget: React.FC<Props> = ({ onDelete }) => {
               onChange={(e) =>
                 setOnlyWeek((e.target as any).value === "week")
               }
+              inputProps={{ "aria-label": "Event time range filter" }}
             >
               <MenuItem value="week">This Week</MenuItem>
               <MenuItem value="all">All Upcoming</MenuItem>

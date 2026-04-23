@@ -43,7 +43,11 @@ export const CanvasAssignmentsWidget: React.FC<{ onDelete?: () => void }> = ({ o
               const total = c.done + c.left;
               return (
                 <Grid key={c.id} item xs={12} sm={4}>
-                  <Box sx={{ height: 200 }}>
+                  <Box
+                    role="img"
+                    aria-label={`${c.name}: ${c.done} of ${c.done + c.left} assignments completed`}
+                    sx={{ height: 200 }}
+                  >
                     <Doughnut
                       data={{ labels: ["Done", "Remaining"], datasets: [{ data: [c.done, c.left], backgroundColor: ["#22c55e", "#e71717ff"] }] }}
                       options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }}

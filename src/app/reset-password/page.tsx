@@ -149,6 +149,7 @@ function ResetPasswordForm() {
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: "15px" }}>
                 <PasswordField
+                  aria-label="New password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="New Password"
@@ -179,6 +180,7 @@ function ResetPasswordForm() {
 
               <div style={{ marginBottom: "20px" }}>
                 <PasswordField
+                  aria-label="Confirm new password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm New Password"

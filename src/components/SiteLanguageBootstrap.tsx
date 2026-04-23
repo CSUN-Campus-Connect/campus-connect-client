@@ -8,7 +8,7 @@ export default function SiteLanguageBootstrap() {
       <div
         id="google_translate_element"
         style={{ position: "absolute", width: 0, height: 0, overflow: "hidden", clip: "rect(0,0,0,0)" }}
-        aria-hidden
+        inert
       />
       <Script id="google-translate-init" strategy="beforeInteractive">
         {`

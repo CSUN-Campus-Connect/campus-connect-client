@@ -192,6 +192,7 @@ function ReportTab() {
               </Typography>
             </Box>
             <Switch checked={isAnonymous} onChange={(e) => setIsAnonymous(e.target.checked)}
+              inputProps={{ "aria-label": "Enable anonymous reporting" }}
               sx={{ "& .MuiSwitch-switchBase.Mui-checked": { color: "#b08800" }, "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { bgcolor: "#b08800" } }} />
           </Box>
           {isAnonymous && (
@@ -219,9 +220,14 @@ function ReportTab() {
           <CardContent sx={{ p: 3 }}>
             <Typography variant="h6" fontWeight={600} gutterBottom>What are you reporting?</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Select the category that best describes your concern.</Typography>
-            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 1.5 }}>
+            <Box role="radiogroup" aria-label="Report type" sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 1.5 }}>
               {REPORT_TYPES.map((type) => (
-                <Card key={type.value} onClick={() => updateForm("reportType", type.value)}
+                <Card key={type.value}
+                  role="radio"
+                  aria-checked={form.reportType === type.value}
+                  tabIndex={0}
+                  onClick={() => updateForm("reportType", type.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); updateForm("reportType", type.value); } }}
                   sx={{ cursor: "pointer", borderRadius: 2, transition: "all 0.15s", border: form.reportType === type.value ? "2px solid #A80532" : "1px solid #e0e0e0", bgcolor: form.reportType === type.value ? "#fef2f3" : "#fff", "&:hover": { borderColor: "#A80532", bgcolor: "#fef8f8" } }}>
                   <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
                     <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>{type.label}</Typography>
@@ -366,7 +372,7 @@ function MyReportsTab() {
                 <Typography variant="caption" color="text.secondary">{selected.caseNumber}</Typography>
                 <Typography variant="h6" fontWeight={600}>{selected.title}</Typography>
               </Box>
-              <Button size="small" onClick={() => setSelected(null)} sx={{ color: "#999", minWidth: "auto" }}>✕</Button>
+              <Button size="small" onClick={() => setSelected(null)} aria-label="Close report details" sx={{ color: "#999", minWidth: "auto" }}>✕</Button>
             </Box>
 
             <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>

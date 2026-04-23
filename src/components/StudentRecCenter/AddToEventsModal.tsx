@@ -132,9 +132,10 @@ export default function AddToEventsModal({
                     onClick={handleClose}
                     size="small"
                     disabled={loading}
+                    aria-label="Close"
                     sx={{ color: "rgba(255,255,255,0.35)", "&:hover": { color: "#fff", bgcolor: "rgba(255,255,255,0.08)" } }}
                   >
-                    <CloseIcon fontSize="small" />
+                    <CloseIcon fontSize="small" aria-hidden="true" />
                   </IconButton>
                 </Box>
 
@@ -145,6 +146,7 @@ export default function AddToEventsModal({
                 <TextField
                   fullWidth
                   placeholder="yourid@my.csun.edu"
+                  inputProps={{ "aria-label": "Your CSUN email address" }}
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setError(""); }}
                   onKeyDown={(e) => e.key === "Enter" && handleSubmit()}

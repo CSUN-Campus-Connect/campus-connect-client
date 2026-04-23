@@ -34,7 +34,6 @@ import PersonIcon from "@mui/icons-material/Person";
 import SettingsIcon from "@mui/icons-material/Settings";
 import ShieldIcon from "@mui/icons-material/Shield";
 
-
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 
 type SidebarProps = {
@@ -46,7 +45,7 @@ const SRCIcon: React.ReactNode = (
   <Box
     component="img"
     src="/cards/SRCcard.png"
-    alt="SRC"
+    alt=""
     sx={{
       width: 40,
       height: 40,
@@ -58,15 +57,15 @@ const SRCIcon: React.ReactNode = (
 );
 
 const navItems: { label: string; icon: React.ReactNode; href?: string }[] = [
-  { label: "Home", icon: <HomeIcon />, href: "/dashboard" },
-  { label: "Social", icon: <GroupsIcon />, href: "/social" },
-  { label: "Messages", icon: <MailOutlineIcon />, href: "/messages" },
-  { label: "Events", icon: <EventIcon />, href: "/events" },
-  { label: "Clubs", icon: <Diversity3Icon />, href: "/clubs" },
-  { label: "Academics", icon: <SchoolIcon />, href: "/academics" },
-  { label: "Marketplace", icon: <StorefrontIcon />, href: "/marketplace" },
-  { label: "Safety", icon: <ShieldIcon />, href: "/security" },
-  { label: "SRC", icon: SRCIcon, href: "/StudentRecCenter" },
+  { label: "Home",        icon: <HomeIcon aria-hidden="true" />,        href: "/dashboard" },
+  { label: "Social",      icon: <GroupsIcon aria-hidden="true" />,      href: "/social" },
+  { label: "Messages",    icon: <MailOutlineIcon aria-hidden="true" />, href: "/messages" },
+  { label: "Events",      icon: <EventIcon aria-hidden="true" />,       href: "/events" },
+  { label: "Clubs",       icon: <Diversity3Icon aria-hidden="true" />,  href: "/clubs" },
+  { label: "Academics",   icon: <SchoolIcon aria-hidden="true" />,      href: "/academics" },
+  { label: "Marketplace", icon: <StorefrontIcon aria-hidden="true" />,  href: "/marketplace" },
+  { label: "Safety",      icon: <ShieldIcon aria-hidden="true" />,      href: "/security" },
+  { label: "SRC",         icon: SRCIcon,                                href: "/StudentRecCenter" },
 ];
 
 const containerVariants = {
@@ -130,6 +129,7 @@ export default function DashboardSidebar({ drawerWidth, onLogout }: SidebarProps
     >
       <IconButton
         onClick={onLogout}
+        aria-label="Log out"
         sx={{
           position: "absolute",
           top: 8,
@@ -141,12 +141,13 @@ export default function DashboardSidebar({ drawerWidth, onLogout }: SidebarProps
           "&:hover": { bgcolor: "rgba(255,255,255,0.12)" },
         }}
       >
-        <LogoutIcon />
+        <LogoutIcon aria-hidden="true" />
       </IconButton>
 
       <IconButton
         component={Link}
         href="/settings"
+        aria-label="Go to settings"
         sx={{
           position: "absolute",
           top: 8,
@@ -158,7 +159,7 @@ export default function DashboardSidebar({ drawerWidth, onLogout }: SidebarProps
           "&:hover": { bgcolor: "rgba(255,255,255,0.12)" },
         }}
       >
-        <SettingsIcon />
+        <SettingsIcon aria-hidden="true" />
       </IconButton>
 
       <Box sx={{ pt: 4.5, px: 2, pb: 1 }}>
@@ -187,6 +188,8 @@ export default function DashboardSidebar({ drawerWidth, onLogout }: SidebarProps
         style={{ overflow: "hidden" }}
       >
         <List
+          component="nav"
+          aria-label="Main navigation"
           sx={{
             px: 0,
             mt: 1,
@@ -223,7 +226,7 @@ export default function DashboardSidebar({ drawerWidth, onLogout }: SidebarProps
           href="/profile"
           fullWidth
           startIcon={
-            <Avatar sx={{ bgcolor: "#e11d48" }}>
+            <Avatar aria-hidden="true" sx={{ bgcolor: "#e11d48" }}>
               <PersonIcon />
             </Avatar>
           }
@@ -310,6 +313,7 @@ function DockRow({
             "&:hover": { bgcolor: "rgba(255,255,255,0.06)" },
           }}
           selected={active}
+          aria-current={active ? "page" : undefined}
         >
           <ListItemIcon
             sx={{
