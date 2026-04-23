@@ -1,449 +1,169 @@
 'use client';
 
-/**
- * ============================================================================
- * MARKETPLACE FAVORITES PAGE - CampusConnect
- * ============================================================================
- * 
- * Displays all items the user has favorited
- * Quick access to saved listings
- * Theme: CSUN Red (#A80532) with glassmorphism design
- */
+// ============================================================================
+// Marketplace Favorites Page — Revamped
+// Uses real API. Shows loading/error/empty states cleanly.
+// No emojis.
+// ============================================================================
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { useAuthorize } from '@/lib/useAuthorize';
-import MarketplaceCard from '@/components/marketplace/MarketplaceCard';
-import { LoadingState, ErrorState, EmptyState } from '@/components/marketplace/MarketplaceStates';
+import MarketplaceCard from '../components/MarketplaceCard';
+import ContactSellerModal from '../components/ContactSellerModal';
+import { LoadingState, ErrorState } from '../components/MarketplaceStates';
+import { MarketplaceListing } from '../types/marketplace.types';
+import { API_BASE } from '../constants/marketplace.constants';
 
-interface Seller {
-  id: string;
-  firstName: string;
-  lastName: string;
-  profilePicture: string | null;
+function BackIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+  );
 }
 
-interface MarketplaceListing {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  originalPrice: number | null;
-  images: string[];
-  condition: string;
-  category: string;
-  location: string;
-  views: number;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  seller: Seller;
-  _count?: { favoritedBy: number };
-}
-
-const FavoritesPage = () => {
-  const [favorites, setFavorites] = useState<MarketplaceListing[]>([]);
-  const [favoriteIds, setFavoriteIds] = useState(new Set<string>());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [showContactModal, setShowContactModal] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<MarketplaceListing | null>(null);
-  const [contactMessage, setContactMessage] = useState('');
-  const [sendingMessage, setSendingMessage] = useState(false);
-
+export default function FavoritesPage() {
   const router = useRouter();
   const { auth, token, user, loading: authLoading } = useAuthorize();
 
-  // Require authentication
+  const [favorites, setFavorites]   = useState<MarketplaceListing[]>([]);
+  const [favIds, setFavIds]         = useState<Set<string>>(new Set());
+  const [loading, setLoading]       = useState(true);
+  const [error, setError]           = useState<string | null>(null);
+  const [retry, setRetry]           = useState(0);
+  const [contactItem, setContactItem] = useState<MarketplaceListing | null>(null);
+
   useEffect(() => {
     if (authLoading) return;
-    
-    if (!auth || !token) {
-      alert('Please log in to view your favorites');
-      router.push('/login');
-    }
+    if (!auth || !token) { alert('Please log in to view your favorites.'); router.push('/login'); }
   }, [auth, token, authLoading, router]);
 
-  // Fetch favorites
   useEffect(() => {
-    const fetchFavorites = async () => {
-      if (!auth || !token) return;
-
+    if (!auth || !token) return;
+    const fetch = async () => {
+      setLoading(true); setError(null);
       try {
-        setLoading(true);
-        setError(null);
-
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/marketplace/favorites`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        setFavorites(response.data);
-        const ids = new Set<string>(response.data.map((listing: MarketplaceListing) => listing.id));
-        setFavoriteIds(ids);
+        const { data } = await axios.get(`${API_BASE}/api/v1/marketplace/favorites`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setFavorites(data);
+        setFavIds(new Set(data.map((l: MarketplaceListing) => l.id)));
       } catch (err: any) {
-        console.error('Error fetching favorites:', err);
-        setError(err.response?.data?.message || 'Failed to load favorites');
+        setError(err.response?.data?.message ?? 'Failed to load favorites');
       } finally {
         setLoading(false);
       }
     };
+    fetch();
+  }, [auth, token, retry]);
 
-    fetchFavorites();
-  }, [auth, token, refreshTrigger]);
-
-  // Toggle favorite
-  const toggleFavorite = async (id: string) => {
-    if (!auth || !token) return;
-
-    // Optimistic update
-    setFavoriteIds(prev => {
-      const newFavorites = new Set(prev);
-      if (newFavorites.has(id)) {
-        newFavorites.delete(id);
-        // Remove from list
-        setFavorites(current => current.filter(item => item.id !== id));
-      } else {
-        newFavorites.add(id);
-      }
-      return newFavorites;
-    });
-
+  const toggleFavorite = useCallback(async (id: string) => {
+    if (!token) return;
+    // Optimistic remove
+    setFavIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
+    setFavorites((prev) => prev.filter((l) => l.id !== id));
     try {
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/marketplace/${id}/favorite`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-    } catch (err) {
-      console.error('Error toggling favorite:', err);
-      // Revert on error
-      setRefreshTrigger(prev => prev + 1);
+      await axios.post(`${API_BASE}/api/v1/marketplace/${id}/favorite`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch {
+      setRetry((r) => r + 1); // revert by refetching
     }
+  }, [token]);
+
+  const handleContact = (item: MarketplaceListing) => setContactItem(item);
+
+  const formatTimeAgo = (ts: string): string => {
+    const diff = Date.now() - new Date(ts).getTime();
+    const m = Math.floor(diff / 60000), h = Math.floor(m / 60), d = Math.floor(h / 24);
+    if (m < 60) return `${m}m ago`;
+    if (h < 24) return `${h}h ago`;
+    if (d < 7)  return `${d}d ago`;
+    return `${Math.floor(d / 7)}w ago`;
   };
 
-  // Contact seller
-  const handleContactSeller = (item: MarketplaceListing) => {
-    setSelectedItem(item);
-    setContactMessage(`Hi! I'm interested in your "${item.title}". Is it still available?`);
-    setShowContactModal(true);
-  };
-
-  // Send message
-  const handleSendMessage = async () => {
-    if (!contactMessage.trim() || !selectedItem || !token) return;
-
-    setSendingMessage(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      alert(`Message sent to ${selectedItem.seller.firstName}! They will contact you via email.`);
-      setShowContactModal(false);
-      setContactMessage('');
-      setSelectedItem(null);
-    } catch (err) {
-      console.error('Error sending message:', err);
-      alert('Failed to send message. Please try again.');
-    } finally {
-      setSendingMessage(false);
-    }
-  };
-
-  // Format time ago
-  const formatTimeAgo = (timestamp: string): string => {
-    const now = new Date();
-    const then = new Date(timestamp);
-    const diffMs = now.getTime() - then.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-    const diffWeeks = Math.floor(diffDays / 7);
-
-    if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
-    if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-    if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
-    return `${diffWeeks} week${diffWeeks !== 1 ? 's' : ''} ago`;
-  };
-
-  if (authLoading || (loading && favorites.length === 0)) {
-    return <LoadingState />;
-  }
+  if (authLoading || (loading && favorites.length === 0)) return (
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(160deg, #A80532 0%, #7a0222 40%, #5a0118 100%)' }}>
+      <LoadingState />
+    </div>
+  );
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #A80532 0%, #8B0428 50%, #6D0320 100%)',
-      position: 'relative'
-    }}>
-      {/* Pattern overlay */}
-      <div style={{ 
-        position: 'fixed', 
-        inset: 0, 
-        backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 50%)',
-        zIndex: 0, 
-        pointerEvents: 'none' 
-      }} />
+    <>
+      <style>{`
+        @keyframes mp-spin { to { transform: rotate(360deg); } }
+        @keyframes mp-orb1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(4%,3%)} }
+        @keyframes mp-orb2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-3%,4%)} }
+        * { box-sizing: border-box; }
+      `}</style>
 
-      {/* Main content */}
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        {/* Back Button */}
-        <button
-          onClick={() => router.push("/marketplace")}
-          style={{
-            position: "fixed",
-            top: "1.5rem",
-            left: "1.5rem",
-            zIndex: 100,
-            background: "rgba(255, 255, 255, 0.98)",
-            padding: "0.75rem 1rem",
-            borderRadius: "12px",
-            border: "2px solid rgba(168, 5, 50, 0.2)",
-            cursor: "pointer",
-            transition: "all 0.3s ease",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            boxShadow: "0 4px 15px rgba(0,0,0,0.15)",
-            fontWeight: "700",
-            fontSize: "0.95rem",
-            color: "#A80532"
-          }}
-          onMouseEnter={(e) => {
-            const el = e.currentTarget as HTMLElement;
-            el.style.background = "#A80532";
-            el.style.color = "white";
-            el.style.transform = "translateX(-5px)";
-          }}
-          onMouseLeave={(e) => {
-            const el = e.currentTarget as HTMLElement;
-            el.style.background = "rgba(255, 255, 255, 0.98)";
-            el.style.color = "#A80532";
-            el.style.transform = "translateX(0)";
-          }}
-        >
-          <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-          Back
-        </button>
+      <div style={{ minHeight: '100vh', position: 'relative', color: '#fff' }}>
+        {/* Background */}
+        <div aria-hidden style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg, #A80532 0%, #7a0222 40%, #5a0118 100%)' }} />
+          <div style={{ position: 'absolute', top: '-15%', left: '-10%', width: '55vw', height: '55vw', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,100,100,0.12) 0%, transparent 60%)', filter: 'blur(40px)', animation: 'mp-orb1 20s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: '50vw', height: '50vw', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,50,50,0.1) 0%, transparent 60%)', filter: 'blur(50px)', animation: 'mp-orb2 25s ease-in-out infinite' }} />
+        </div>
 
-        {/* Hero Section */}
-        <div style={{
-          position: 'relative',
-          background: 'rgba(255, 255, 255, 0.08)',
-          backdropFilter: 'blur(20px)',
-          color: 'white',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
-          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-          padding: '3rem 1.5rem'
-        }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="#A80532" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-              <h1 style={{ 
-                fontSize: '3rem', 
-                fontWeight: '800', 
-                color: 'white', 
-                letterSpacing: '-1px',
-                textShadow: '0 2px 10px rgba(0, 0, 0, 0.2)',
-                margin: 0
-              }}>
-                My Favorites
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {/* Header */}
+          <div style={{ backdropFilter: 'blur(16px)', background: 'rgba(0,0,0,0.2)', borderBottom: '1px solid rgba(255,255,255,0.12)', padding: '1.25rem 2rem', display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button onClick={() => router.push('/marketplace')} style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: '7px 14px', color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+              onMouseEnter={(e) => { (e.currentTarget).style.background = 'rgba(255,255,255,0.2)'; }}
+              onMouseLeave={(e) => { (e.currentTarget).style.background = 'rgba(255,255,255,0.12)'; }}>
+              <BackIcon /> Marketplace
+            </button>
+            <div>
+              <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 800, color: '#fff', margin: 0 }}>
+                Saved Items
               </h1>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', margin: '2px 0 0' }}>
+                {favorites.length} {favorites.length === 1 ? 'item' : 'items'} saved
+              </p>
             </div>
-            <p style={{ 
-              fontSize: '1.125rem', 
-              color: 'rgba(255, 255, 255, 0.95)', 
-              fontWeight: '500',
-              margin: 0
-            }}>
-              {favorites.length} saved {favorites.length === 1 ? 'item' : 'items'}
-            </p>
+          </div>
+
+          {/* Content */}
+          <div style={{ maxWidth: 1280, margin: '0 auto', padding: '2rem 2rem 4rem' }}>
+            {error && <ErrorState error={error} onRetry={() => setRetry((r) => r + 1)} />}
+
+            {!error && favorites.length === 0 && !loading && (
+              <div style={{ textAlign: 'center', paddingTop: '4rem' }}>
+                <div style={{ background: 'rgba(255,255,255,0.07)', border: '2px dashed rgba(255,255,255,0.2)', borderRadius: 20, padding: '3rem 2rem', display: 'inline-block' }}>
+                  <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" style={{ display: 'block', margin: '0 auto 14px' }}>
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                  </svg>
+                  <h3 style={{ color: '#fff', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>No Saved Items</h3>
+                  <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14, marginBottom: 20 }}>Browse the marketplace and tap the heart to save items.</p>
+                  <button onClick={() => router.push('/marketplace')} style={{ background: '#fff', color: '#A80532', border: 'none', borderRadius: 10, padding: '10px 24px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+                    Browse Marketplace
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {!error && favorites.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                {favorites.map((item) => (
+                  <MarketplaceCard
+                    key={item.id}
+                    item={item}
+                    isFavorite={favIds.has(item.id)}
+                    currentUserId={user?.id}
+                    onToggleFavorite={toggleFavorite}
+                    onContactSeller={handleContact}
+                    formatTimeAgo={formatTimeAgo}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Content */}
-        {loading && <LoadingState />}
-        {error && !loading && <ErrorState error={error} onRetry={() => setRefreshTrigger(prev => prev + 1)} />}
-        
-        {!loading && !error && favorites.length === 0 && (
-          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '4rem 1.5rem', textAlign: 'center' }}>
-            <div style={{ 
-              background: 'rgba(255, 255, 255, 0.95)', 
-              borderRadius: '20px', 
-              padding: '3rem 2rem',
-              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)'
-            }}>
-              <svg 
-                width="80" 
-                height="80" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="#A80532" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-                style={{ margin: '0 auto 1.5rem' }}
-              >
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#111827', marginBottom: '1rem' }}>
-                No Favorites Yet
-              </h3>
-              <p style={{ fontSize: '1rem', color: '#6B7280', marginBottom: '2rem' }}>
-                Start browsing the marketplace and click the heart icon to save items you like!
-              </p>
-              <button
-                onClick={() => router.push('/marketplace')}
-                style={{
-                  background: '#A80532',
-                  color: 'white',
-                  padding: '1rem 2rem',
-                  borderRadius: '50px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: '700',
-                  fontSize: '1rem',
-                  transition: 'all 0.3s'
-                }}
-                onMouseEnter={(e) => (e.target as HTMLElement).style.background = '#8B0428'}
-                onMouseLeave={(e) => (e.target as HTMLElement).style.background = '#A80532'}
-              >
-                Browse Marketplace
-              </button>
-            </div>
-          </div>
-        )}
-
-        {!loading && !error && favorites.length > 0 && (
-          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: '1.5rem'
-            }}>
-              {favorites.map((item) => (
-                <MarketplaceCard
-                  key={item.id}
-                  item={item}
-                  isFavorite={favoriteIds.has(item.id)}
-                  onToggleFavorite={toggleFavorite}
-                  onContactSeller={handleContactSeller}
-                  formatTimeAgo={formatTimeAgo}
-                  currentUserId={user?.id}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Contact Seller Modal */}
-        {showContactModal && selectedItem && (
-          <div 
-            style={{
-              position: 'fixed',
-              inset: 0,
-              background: 'rgba(168, 5, 50, 0.7)',
-              backdropFilter: 'blur(8px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 100,
-              padding: '1rem'
-            }}
-            onClick={() => setShowContactModal(false)}
-          >
-            <div 
-              style={{
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 250, 250, 0.98) 100%)',
-                borderRadius: '24px',
-                padding: '2.5rem',
-                maxWidth: '550px',
-                width: '100%',
-                boxShadow: '0 25px 50px rgba(168, 5, 50, 0.4)',
-                border: '2px solid rgba(168, 5, 50, 0.15)'
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '2rem' }}>
-                <div>
-                  <h2 style={{ fontSize: '1.75rem', fontWeight: '800', color: '#A80532', marginBottom: '0.5rem' }}>
-                    Contact Seller
-                  </h2>
-                  <p style={{ color: '#6B7280', fontSize: '0.95rem', fontWeight: '500' }}>
-                    Send a message to <span style={{ color: '#A80532', fontWeight: '700' }}>{selectedItem.seller.firstName} {selectedItem.seller.lastName}</span>
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowContactModal(false)}
-                  style={{
-                    background: 'rgba(168, 5, 50, 0.1)',
-                    border: '2px solid rgba(168, 5, 50, 0.2)',
-                    color: '#A80532',
-                    padding: '0.6rem',
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s'
-                  }}
-                >
-                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
-                  </svg>
-                </button>
-              </div>
-
-              <textarea
-                value={contactMessage}
-                onChange={(e) => setContactMessage(e.target.value)}
-                placeholder="Write your message..."
-                rows={5}
-                style={{
-                  width: '100%',
-                  padding: '1rem',
-                  border: '2px solid rgba(168, 5, 50, 0.2)',
-                  borderRadius: '12px',
-                  fontSize: '1rem',
-                  resize: 'vertical',
-                  fontFamily: 'inherit',
-                  marginBottom: '1.5rem',
-                  background: 'white',
-                  outline: 'none'
-                }}
-              />
-
-              <button
-                onClick={handleSendMessage}
-                disabled={sendingMessage || !contactMessage.trim()}
-                style={{
-                  width: '100%',
-                  background: sendingMessage || !contactMessage.trim() ? '#9CA3AF' : 'linear-gradient(135deg, #A80532 0%, #8B0428 100%)',
-                  color: 'white',
-                  padding: '1rem 2rem',
-                  borderRadius: '50px',
-                  border: 'none',
-                  cursor: sendingMessage || !contactMessage.trim() ? 'not-allowed' : 'pointer',
-                  fontWeight: '700',
-                  fontSize: '1.05rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px'
-                }}
-              >
-                {sendingMessage ? 'Sending...' : 'Send Message'}
-              </button>
-            </div>
-          </div>
-        )}
+        <ContactSellerModal item={contactItem} onClose={() => setContactItem(null)} />
       </div>
-    </div>
+    </>
   );
-};
-
-export default FavoritesPage;
+}
