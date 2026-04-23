@@ -13,6 +13,7 @@ import { z } from 'zod';
 import type { PublicUser } from '../../types/profile';
 
 const smooth: [number, number, number, number] = [0.16, 1, 0.3, 1];
+const GRAY = "#767676";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -94,7 +95,7 @@ export default function RegisterPage() {
       >
         <Link href="/" className="flex items-center gap-3">
           <Image src="/ToroConnectLP.png" alt="Toro Campus Connect" width={32} height={32} className="w-8 h-8" />
-          <span className="text-[13px] font-light tracking-wide text-[#999]">Toro Campus Connect</span>
+          <span className="text-[13px] font-light tracking-wide" style={{ color: GRAY }}>Toro Campus Connect</span>
         </Link>
         <Link href="/login" className="text-[13px] font-semibold text-[#CC0033] hover:underline underline-offset-4">
           Sign in
@@ -148,7 +149,8 @@ export default function RegisterPage() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.6, ease: smooth }}
-              className="text-[14px] text-[#aaa] font-light leading-relaxed max-w-xs"
+              className="text-[14px] font-light leading-relaxed max-w-xs"
+              style={{ color: GRAY }}
             >
               One account. Your feed, clubs, marketplace, events, and everything CSUN in one place.
             </motion.p>
@@ -158,10 +160,10 @@ export default function RegisterPage() {
               transition={{ duration: 0.7, delay: 0.75 }}
               className="mt-8 pt-6 border-t border-[#eee]"
             >
-              <p className="text-[11px] font-semibold tracking-[0.12em] text-[#bbb] uppercase mb-2">
+              <p className="text-[11px] font-semibold tracking-[0.12em] uppercase mb-2" style={{ color: GRAY }}>
                 Password requirements
               </p>
-              <p className="text-[12px] text-[#ccc] font-light leading-relaxed">
+              <p className="text-[12px] font-light leading-relaxed" style={{ color: GRAY }}>
                 8+ characters — uppercase, lowercase,<br />number, special character.
               </p>
             </motion.div>
@@ -195,7 +197,8 @@ export default function RegisterPage() {
                   <div>
                     <label
                       htmlFor="reg-first-name"
-                      className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2"
+                      className="block text-[11px] font-semibold tracking-[0.12em] uppercase mb-2"
+                      style={{ color: GRAY }}
                     >
                       First Name
                     </label>
@@ -219,7 +222,8 @@ export default function RegisterPage() {
                   <div>
                     <label
                       htmlFor="reg-last-name"
-                      className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2"
+                      className="block text-[11px] font-semibold tracking-[0.12em] uppercase mb-2"
+                      style={{ color: GRAY }}
                     >
                       Last Name
                     </label>
@@ -246,7 +250,8 @@ export default function RegisterPage() {
                 <div className="border-t border-[#eee] pt-5 pb-5">
                   <label
                     htmlFor="reg-email"
-                    className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2"
+                    className="block text-[11px] font-semibold tracking-[0.12em] uppercase mb-2"
+                    style={{ color: GRAY }}
                   >
                     CSUN Email
                   </label>
@@ -272,10 +277,11 @@ export default function RegisterPage() {
                 <div className="border-t border-[#eee] pt-5 pb-5">
                   <label
                     htmlFor="reg-phone"
-                    className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2"
+                    className="block text-[11px] font-semibold tracking-[0.12em] uppercase mb-2"
+                    style={{ color: GRAY }}
                   >
                     Phone Number{' '}
-                    <span className="text-[#ccc] normal-case font-light tracking-normal">— optional</span>
+                    <span className="normal-case font-light tracking-normal" style={{ color: GRAY }}>— optional</span>
                   </label>
                   <input
                     id="reg-phone"
@@ -292,8 +298,7 @@ export default function RegisterPage() {
                     aria-invalid={!!errors.phoneNumber}
                     className="w-full bg-transparent text-[15px] font-light text-[#111] placeholder-[#ccc] border-0 border-b border-[#e0e0e0] focus:border-[#CC0033] focus:outline-none pb-2 transition-colors duration-200"
                   />
-                  {/* id="reg-phone-hint" so it's included in aria-describedby */}
-                  <p id="reg-phone-hint" className="mt-2 text-[11px] text-[#ccc] font-light">
+                  <p id="reg-phone-hint" className="mt-2 text-[11px] font-light" style={{ color: GRAY }}>
                     Only used for emergency safety alerts. Never shared or used for marketing.
                   </p>
                   {errors.phoneNumber && (
@@ -307,7 +312,8 @@ export default function RegisterPage() {
                 <div className="border-t border-[#eee] pt-5 pb-5">
                   <label
                     htmlFor="reg-password"
-                    className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2"
+                    className="block text-[11px] font-semibold tracking-[0.12em] uppercase mb-2"
+                    style={{ color: GRAY }}
                   >
                     Password
                   </label>
@@ -343,7 +349,8 @@ export default function RegisterPage() {
                 <div className="border-t border-[#eee] pt-5 pb-5">
                   <label
                     htmlFor="reg-confirm-password"
-                    className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2"
+                    className="block text-[11px] font-semibold tracking-[0.12em] uppercase mb-2"
+                    style={{ color: GRAY }}
                   >
                     Confirm Password
                   </label>
@@ -379,7 +386,7 @@ export default function RegisterPage() {
 
                 {/* Submit */}
                 <div className="flex items-center justify-between mt-8">
-                  <p className="text-[13px] text-[#aaa] font-light">
+                  <p className="text-[13px] font-light" style={{ color: GRAY }}>
                     Already have an account?{' '}
                     <Link href="/login" className="text-[#CC0033] font-semibold hover:underline underline-offset-4">
                       Sign in
@@ -401,7 +408,7 @@ export default function RegisterPage() {
               </form>
             </>
           ) : (
-            /* Success state — role="status" announces politely to screen readers */
+            /* Success state */
             <motion.div
               role="status"
               aria-label="Account created successfully"
@@ -430,12 +437,11 @@ export default function RegisterPage() {
                 </motion.h2>
               </div>
 
-              <p className="text-[14px] text-[#aaa] font-light leading-relaxed mb-10">
+              <p className="text-[14px] font-light leading-relaxed mb-10" style={{ color: GRAY }}>
                 Check your inbox and verify your email to get started.
                 <br />
-                <span className="text-[12px] text-[#ccc]">
+                <span className="text-[12px]" style={{ color: GRAY }}>
                   Heading to login in{' '}
-                  {/* aria-live="polite" announces the countdown to screen readers each second */}
                   <span aria-live="polite" className="text-[#CC0033] font-semibold tabular-nums">
                     {countdown}s
                   </span>…
@@ -464,8 +470,8 @@ export default function RegisterPage() {
         transition={{ duration: 1, delay: 0.8 }}
         className="px-6 md:px-14 py-6 border-t border-black/[0.04] flex items-center justify-between"
       >
-        <p className="text-[11px] text-[#ccc] font-light">© 2026 CampusConnect. COMP 490 Senior Design.</p>
-        <p className="text-[11px] text-[#ccc] font-light">Not affiliated with CSUN.</p>
+        <p className="text-[11px] font-light" style={{ color: GRAY }}>© 2026 CampusConnect. COMP 490 Senior Design.</p>
+        <p className="text-[11px] font-light" style={{ color: GRAY }}>Not affiliated with CSUN.</p>
       </motion.div>
 
     </div>
