@@ -16,6 +16,8 @@ import { MarketplaceListing } from './types/marketplace.types';
 import { CATEGORIES, SORT_OPTIONS, LISTING_TYPES } from './constants/marketplace.constants';
 import { useState } from 'react';
 
+const MUTED = 'rgba(255,255,255,0.9)';
+
 // ── Inline SVG icons ───────────────────────────────────────────────────────────
 
 function SearchIcon() {
@@ -97,7 +99,8 @@ function HeroSection({ favCount, favBtnRef, onFavClick, onBack, onSell, isLogged
           <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: 'clamp(20px, 3vw, 32px)', fontWeight: 800, color: '#fff', margin: 0, letterSpacing: '-0.5px', lineHeight: 1 }}>
             Matador <span style={{ color: '#fca5a5' }}>Marketplace</span>
           </h1>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', margin: '3px 0 0' }}>
+          {/* was rgba(255,255,255,0.65) — too faint, fails contrast */}
+          <p style={{ fontSize: 13, color: MUTED, margin: '3px 0 0' }}>
             Buy and sell with fellow CSUN students
           </p>
         </div>
@@ -194,9 +197,11 @@ function FilterBar({ search, onSearch, category, onCategory, listingType, onList
             onClick={() => onListingType('all')}
             aria-pressed={listingType === 'all'}
             style={{
-              padding: '6px 16px', borderRadius: 20, border: listingType === 'all' ? 'none' : '1px solid rgba(255,255,255,0.25)',
+              padding: '6px 16px', borderRadius: 20,
+              border: listingType === 'all' ? 'none' : '1px solid rgba(255,255,255,0.25)',
               background: listingType === 'all' ? '#fff' : 'rgba(255,255,255,0.08)',
-              color: listingType === 'all' ? '#A80532' : 'rgba(255,255,255,0.8)',
+              /* was rgba(255,255,255,0.8) inactive — bumped to #fff */
+              color: listingType === 'all' ? '#A80532' : '#fff',
               fontWeight: listingType === 'all' ? 700 : 500, fontSize: 12,
               cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s', letterSpacing: '0.2px',
             }}
@@ -213,9 +218,10 @@ function FilterBar({ search, onSearch, category, onCategory, listingType, onList
                 onClick={() => onListingType(type.value)}
                 aria-pressed={active}
                 style={{
-                  padding: '6px 16px', borderRadius: 20, border: active ? 'none' : '1px solid rgba(255,255,255,0.25)',
+                  padding: '6px 16px', borderRadius: 20,
+                  border: active ? 'none' : '1px solid rgba(255,255,255,0.25)',
                   background: active ? '#fff' : 'rgba(255,255,255,0.08)',
-                  color: active ? '#A80532' : 'rgba(255,255,255,0.8)',
+                  color: active ? '#A80532' : '#fff',
                   fontWeight: active ? 700 : 500, fontSize: 12,
                   cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s', letterSpacing: '0.2px',
                 }}
@@ -242,9 +248,10 @@ function FilterBar({ search, onSearch, category, onCategory, listingType, onList
                 onClick={() => onCategory(cat.id)}
                 aria-pressed={active}
                 style={{
-                  padding: '6px 16px', borderRadius: 20, border: active ? 'none' : '1px solid rgba(255,255,255,0.25)',
+                  padding: '6px 16px', borderRadius: 20,
+                  border: active ? 'none' : '1px solid rgba(255,255,255,0.25)',
                   background: active ? '#fff' : 'rgba(255,255,255,0.08)',
-                  color: active ? '#A80532' : 'rgba(255,255,255,0.8)',
+                  color: active ? '#A80532' : '#fff',
                   fontWeight: active ? 700 : 500, fontSize: 12,
                   cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s', letterSpacing: '0.2px',
                 }}
@@ -258,7 +265,7 @@ function FilterBar({ search, onSearch, category, onCategory, listingType, onList
           <span
             aria-live="polite"
             aria-atomic="true"
-            style={{ marginLeft: 'auto', fontSize: 12, color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap', flexShrink: 0 }}
+            style={{ marginLeft: 'auto', fontSize: 12, color: MUTED, whiteSpace: 'nowrap', flexShrink: 0 }}
           >
             {count} {count === 1 ? 'item' : 'items'}
           </span>
