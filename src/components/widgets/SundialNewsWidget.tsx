@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Box, IconButton, Typography, Chip, Skeleton, Divider } from "@mui/material";
+import { Box, IconButton, Typography, Skeleton, Divider, Tooltip } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import NewspaperIcon from "@mui/icons-material/Newspaper";
+import RefreshIcon from "@mui/icons-material/Refresh";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,8 +25,48 @@ interface SundialResponse {
   data: SundialArticle[];
 }
 
+// ─── API ──────────────────────────────────────────────────────────────────────
+
+/**
+ * Fetch all articles — used on initial load and when filter is "all".
+ * Route: GET /api/v1/sundial
+ */
+async function fetchAllArticles(signal: AbortSignal): Promise<SundialArticle[]> {
+  const res = await fetch("/api/v1/sundial", { signal, cache: "no-store" });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json: SundialResponse = await res.json();
+  return json.data;
+}
+
+/**
+ * Fetch articles filtered by category using the date-range endpoint.
+ * We use a wide range (2 years back → today) so it behaves like a category-only filter.
+ * Route: GET /api/v1/sundial/queryByDateRange?rangeStart=...&rangeEnd=...&category=...
+ */
+async function fetchByCategory(
+  category: SundialCategory,
+  signal: AbortSignal
+): Promise<SundialArticle[]> {
+  const rangeEnd = new Date();
+  const rangeStart = new Date();
+  rangeStart.setFullYear(rangeStart.getFullYear() - 2);
+
+  const params = new URLSearchParams({
+    rangeStart: rangeStart.toISOString(),
+    rangeEnd: rangeEnd.toISOString(),
+    category,
+  });
+
+  const res = await fetch(`/api/v1/sundial/queryByDateRange?${params}`, {
+    signal,
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json: SundialResponse = await res.json();
+  return json.data;
+}
+
 // ─── Fallback Data ─────────────────────────────────────────────────────────────
-// Used when API is unavailable (e.g., dev environment before backend merge)
 
 const FALLBACK_ARTICLES: SundialArticle[] = [
   {
@@ -256,21 +297,32 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
   const [loading, setLoading] = React.useState(true);
   const [isFallback, setIsFallback] = React.useState(false);
   const [activeFilter, setActiveFilter] = React.useState<FilterTab>("all");
+  // Increment to trigger a re-fetch manually via the refresh button
+  const [refreshKey, setRefreshKey] = React.useState(0);
 
-  // Fetch from API; fall back gracefully
   React.useEffect(() => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 6000);
 
+    setLoading(true);
+
     (async () => {
       try {
-        const res = await fetch("/api/v1/sundial", { signal: controller.signal });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json: SundialResponse = await res.json();
-        setArticles(json.data);
+        const data =
+          activeFilter === "all"
+            ? await fetchAllArticles(controller.signal)
+            : await fetchByCategory(activeFilter, controller.signal);
+
+        setArticles(data);
         setIsFallback(false);
-      } catch {
-        setArticles(FALLBACK_ARTICLES);
+      } catch (err: any) {
+        // Don't show fallback if the request was intentionally aborted on unmount
+        if (err?.name === "AbortError") return;
+        setArticles(
+          activeFilter === "all"
+            ? FALLBACK_ARTICLES
+            : FALLBACK_ARTICLES.filter((a) => a.category === activeFilter)
+        );
         setIsFallback(true);
       } finally {
         clearTimeout(timeout);
@@ -282,13 +334,11 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
       controller.abort();
       clearTimeout(timeout);
     };
-  }, []);
+    // Re-run whenever the filter tab or refresh button is pressed
+  }, [activeFilter, refreshKey]);
 
-  const filtered =
-    activeFilter === "all" ? articles : articles.filter((a) => a.category === activeFilter);
-
-  const headline = filtered[0] ?? null;
-  const rest = filtered.slice(1);
+  const headline = articles[0] ?? null;
+  const rest = articles.slice(1);
 
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -310,7 +360,6 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
         borderRadius: 1,
         overflow: "hidden",
         fontFamily: "Georgia, serif",
-        // Subtle paper texture via repeating gradient
         backgroundImage:
           "repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(180,160,120,0.07) 28px)",
       }}
@@ -338,13 +387,25 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
               textTransform: "uppercase",
             }}
           >
-            {isFallback ? "★ Toro Connect Launch Edition ★" : `${articles.length} stories today`}
+            {isFallback ? "★ Toro Connect Launch Edition ★" : `${articles.length} stories`}
           </Typography>
-          {onDelete && (
-            <IconButton size="small" onClick={onDelete} sx={{ p: 0.25 }} aria-label="close sundial widget">
-              <CloseIcon sx={{ fontSize: 14 }} />
-            </IconButton>
-          )}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+            <Tooltip title="Refresh articles">
+              <IconButton
+                size="small"
+                onClick={() => setRefreshKey((k) => k + 1)}
+                sx={{ p: 0.25 }}
+                aria-label="refresh sundial articles"
+              >
+                <RefreshIcon sx={{ fontSize: 13 }} />
+              </IconButton>
+            </Tooltip>
+            {onDelete && (
+              <IconButton size="small" onClick={onDelete} sx={{ p: 0.25 }} aria-label="close sundial widget">
+                <CloseIcon sx={{ fontSize: 14 }} />
+              </IconButton>
+            )}
+          </Box>
         </Box>
 
         {/* Big masthead */}
@@ -416,9 +477,17 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
       </Box>
 
       {/* ── Body ── */}
-      <Box sx={{ flex: 1, overflowY: "auto", px: 1.25, py: 1, "&::-webkit-scrollbar": { width: 5 }, "&::-webkit-scrollbar-thumb": { bgcolor: "#c8b99a", borderRadius: 1 } }}>
+      <Box
+        sx={{
+          flex: 1,
+          overflowY: "auto",
+          px: 1.25,
+          py: 1,
+          "&::-webkit-scrollbar": { width: 5 },
+          "&::-webkit-scrollbar-thumb": { bgcolor: "#c8b99a", borderRadius: 1 },
+        }}
+      >
         {loading ? (
-          // Skeleton loading
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
             <Skeleton variant="rectangular" height={14} width="60%" sx={{ bgcolor: "#e8dcc8" }} />
             <Skeleton variant="rectangular" height={90} sx={{ bgcolor: "#e8dcc8" }} />
@@ -435,7 +504,7 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
               </Box>
             ))}
           </Box>
-        ) : filtered.length === 0 ? (
+        ) : articles.length === 0 ? (
           <Box sx={{ textAlign: "center", py: 4, color: "#999" }}>
             <NewspaperIcon sx={{ fontSize: 36, opacity: 0.3 }} />
             <Typography sx={{ fontFamily: "Georgia, serif", fontSize: 12, fontStyle: "italic", mt: 1 }}>
@@ -455,7 +524,15 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
                   borderRadius: 0.5,
                 }}
               >
-                <Typography sx={{ fontFamily: "Georgia, serif", fontSize: "9px", color: "#7a5c00", fontStyle: "italic", textAlign: "center" }}>
+                <Typography
+                  sx={{
+                    fontFamily: "Georgia, serif",
+                    fontSize: "9px",
+                    color: "#7a5c00",
+                    fontStyle: "italic",
+                    textAlign: "center",
+                  }}
+                >
                   ✦ Showing preview content — live Sundial feed connects at launch ✦
                 </Typography>
               </Box>
@@ -465,9 +542,7 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
             {headline && (
               <>
                 <HeadlineArticle article={headline} />
-                {rest.length > 0 && (
-                  <MastheadDivider />
-                )}
+                {rest.length > 0 && <MastheadDivider />}
               </>
             )}
 
