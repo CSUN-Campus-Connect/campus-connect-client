@@ -83,6 +83,15 @@ export interface ListResponse {
     pages: number;
   };
 }
+export interface CreateCriticalPayload {
+  title: string;
+  body: string;
+  location?: string | null;
+  channels: AnnouncementChannel[];
+  testMode: boolean;
+  confirmation: string;
+  overrideRateLimit?: boolean;
+}
 
 // Get JWT from localStorage — adjust the key if your auth stores it elsewhere
 const getToken = (): string | null => {
