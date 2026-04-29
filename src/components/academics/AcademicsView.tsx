@@ -53,7 +53,7 @@ export default function AcademicsView() {
         fontFamily: "'Plus Jakarta Sans', 'DM Sans', sans-serif",
       }}
     >
-      {/* ── Top bar: back button + navbar ── */}
+      {/* ── Top bar: navbar ── */}
       <Box
         sx={{
           px: { xs: 2, md: 4 },
@@ -65,32 +65,6 @@ export default function AcademicsView() {
           flexWrap: "wrap",
         }}
       >
-        {/* Back button */}
-        <Button
-          component={Link}
-          href="/dashboard"
-          variant="outlined"
-          startIcon={<ArrowBackRoundedIcon sx={{ fontSize: 15 }} />}
-          sx={{
-            color: "rgba(255,255,255,0.80)",
-            borderColor: "rgba(255,255,255,0.25)",
-            fontWeight: 700,
-            borderRadius: 999,
-            fontSize: "0.78rem",
-            px: 1.75,
-            py: 0.4,
-            backdropFilter: "blur(8px)",
-            bgcolor: "rgba(255,255,255,0.08)",
-            "&:hover": {
-              bgcolor: "rgba(255,255,255,0.15)",
-              borderColor: "rgba(255,255,255,0.45)",
-            },
-            flexShrink: 0,
-          }}
-          size="small"
-        >
-          Dashboard
-        </Button>
 
         {/* Navbar */}
         <AcademicsNav tab={data.tab} setTab={data.setTab} />

@@ -41,7 +41,7 @@ import {
 } from "../../components/widgets";
 import DashboardSidebar from "../../components/dashboard/sidebar";
 
-const drawerWidth = 220;
+const DRAWER_WIDTH_DEFAULT = 220;
 
 const assignmentsDone = 18;
 type ClassProgress = { name: string; done: number; pending: number };
@@ -63,6 +63,8 @@ const name = profile?.first + " " + profile?.last;
 
 
   
+
+  const [drawerWidth, setDrawerWidth] = React.useState(DRAWER_WIDTH_DEFAULT);
 
   const gridRef = React.useRef<HTMLDivElement>(null);
   const gridInstance = React.useRef<GridStack | null>(null);
@@ -499,6 +501,7 @@ const name = profile?.first + " " + profile?.last;
       <DashboardSidebar
         drawerWidth={drawerWidth}
         onLogout={handleLogout}
+        onWidthChange={setDrawerWidth}
       />
 
       {/* Main */}

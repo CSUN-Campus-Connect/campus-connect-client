@@ -177,34 +177,6 @@ export default function ClubsUI({ clubs: clubsProp, mode, club }: Props) {
   return (
     <AuroraBackground>
       <Box sx={{ position: "relative", minHeight: "100vh" }}>
-        {/* ── BACK BUTTON ───────────────────────────────────────────────────── */}
-        <Box sx={{ px: { xs: 3, md: 8, lg: 14 }, pt: 3, position: "relative", zIndex: 1 }}>
-          <Button
-            onClick={() => router.push("/dashboard")}
-            startIcon={<ArrowBackIcon sx={{ fontSize: 16 }} />}
-            sx={{
-              color: "white",
-              bgcolor: "rgba(255,255,255,0.12)",
-              border: "1px solid rgba(255,255,255,0.25)",
-              borderRadius: 999,
-              px: 2.2,
-              py: 0.8,
-              fontWeight: 800,
-              fontSize: 13,
-              letterSpacing: 0.3,
-              textTransform: "none",
-              backdropFilter: "blur(10px)",
-              transition: "all 0.2s ease",
-              "&:hover": {
-                bgcolor: "rgba(255,255,255,0.22)",
-                borderColor: "rgba(255,255,255,0.50)",
-                transform: "translateX(-2px)",
-              },
-            }}
-          >
-            Back to Dashboard
-          </Button>
-        </Box>
 
         {/* ── HERO ──────────────────────────────────────────────────────────── */}
         <Box
