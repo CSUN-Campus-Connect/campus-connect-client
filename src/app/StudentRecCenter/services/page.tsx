@@ -1,13 +1,15 @@
-"use client";
-
-// app/StudentRecCenter/services/page.tsx
+// src/app/StudentRecCenter/services/page.tsx
 // Sidebar nav + main content column layout.
 // Deep-link: ?section=<serviceId> auto-scrolls on mount.
+"use client";
 
 import * as React from "react";
 import { Box, Container } from "@mui/material";
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Header from "@/components/StudentRecCenter/srcHeader";
+import DashboardSidebar from "@/components/dashboard/sidebar";
+import SrcStatusBadge from "@/components/StudentRecCenter/SrcStatusBadge";
 import ServicesHero from "@/components/StudentRecCenter/Services/ServicesHero";
 import ServicesNav from "@/components/StudentRecCenter/Services/ServicesNav";
 import ServicesSearch from "@/components/StudentRecCenter/Services/ServicesSearch";
@@ -16,7 +18,9 @@ import { SERVICES } from "@/components/StudentRecCenter/Services/ServicesData";
 import type { ServiceId } from "@/components/StudentRecCenter/Services/ServicesData";
 
 export default function ServicesPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const [sidebarWidth, setSidebarWidth] = React.useState(220);
   const [search, setSearch] = React.useState("");
   const [activeSection, setActiveSection] = React.useState<ServiceId | null>(null);
 
@@ -62,41 +66,61 @@ export default function ServicesPage() {
   }, [q]);
 
   return (
-    <Box sx={{ minHeight: "100vh" }}>
-      <Header value="/StudentRecCenter/services" />
+    <Box sx={{ display: "flex", minHeight: "100vh" }}>
+      {/* ── Sidebar ── */}
+      <DashboardSidebar
+        onLogout={() => router.push("/login")}
+        onWidthChange={setSidebarWidth}
+      />
 
-      {/* Hero */}
-      <Container maxWidth="xl">
-        <ServicesHero />
-      </Container>
+      {/* ── Main content ── */}
+      <Box
+        sx={{
+          ml: `${sidebarWidth}px`,
+          flex: 1,
+          minWidth: 0,
+          transition: "margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+      >
+        <Header value="/StudentRecCenter/services" />
 
-      {/* Body: sidebar + content */}
-      <Container maxWidth="xl" sx={{ pb: 10 }}>
-        <Box sx={{ display: "flex", gap: 3, alignItems: "flex-start" }}>
-
-          {/* Sidebar (hidden on mobile) */}
-          <ServicesNav activeSection={activeSection} />
-
-          {/* Main content column */}
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            {/* Search */}
-            <Box sx={{ mb: 1 }}>
-              <ServicesSearch search={search} onChange={setSearch} resultCount={filtered.length} />
-            </Box>
-
-            {/* Modules */}
-            {filtered.map((svc) => (
-              <ServiceModule key={svc.id} service={svc} />
-            ))}
-
-            {filtered.length === 0 && (
-              <Box sx={{ textAlign: "center", py: 10, color: "rgba(255,255,255,0.25)", fontSize: 15 }}>
-                No services match &ldquo;{search}&rdquo;
-              </Box>
-            )}
+        {/* Hero */}
+        <Container maxWidth="xl">
+          {/* Live open/closed status in hero area */}
+          <Box sx={{ pt: 2, pb: 0.5, display: "flex", justifyContent: "flex-end" }}>
+            <SrcStatusBadge />
           </Box>
-        </Box>
-      </Container>
+          <ServicesHero />
+        </Container>
+
+        {/* Body: sidebar + content */}
+        <Container maxWidth="xl" sx={{ pb: 10 }}>
+          <Box sx={{ display: "flex", gap: 3, alignItems: "flex-start" }}>
+
+            {/* Services sidebar nav (hidden on mobile) */}
+            <ServicesNav activeSection={activeSection} />
+
+            {/* Main content column */}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              {/* Search */}
+              <Box sx={{ mb: 1 }}>
+                <ServicesSearch search={search} onChange={setSearch} resultCount={filtered.length} />
+              </Box>
+
+              {/* Modules */}
+              {filtered.map((svc) => (
+                <ServiceModule key={svc.id} service={svc} />
+              ))}
+
+              {filtered.length === 0 && (
+                <Box sx={{ textAlign: "center", py: 10, color: "rgba(255,255,255,0.25)", fontSize: 15 }}>
+                  No services match &ldquo;{search}&rdquo;
+                </Box>
+              )}
+            </Box>
+          </Box>
+        </Container>
+      </Box>
     </Box>
   );
 }

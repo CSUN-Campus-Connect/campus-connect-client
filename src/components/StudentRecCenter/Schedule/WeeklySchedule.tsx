@@ -1,100 +1,65 @@
 "use client";
 
-// ═══════════════════════════════════════════════════════════════════════
-// BACKEND INTEGRATION — WeeklySchedule
-// ═══════════════════════════════════════════════════════════════════════
-//
-// DATA SOURCE:
-//   Currently imports WEEKLY_CLASSES from the static mock in icsData.ts.
-//   Replace with a live SWR hook keyed to the selected week so the grid
-//   re-fetches automatically when the user navigates forward/back:
-//
-//   import useSWR from "swr";
-//   const fetcher = (url: string) => fetch(url).then((r) => r.json());
-//
-//   // Inside the component (weekStart is already in state):
-//   const { data: classes = [], isLoading } = useSWR<WeeklyClass[]>(
-//     `/api/src-schedule?week=${weekStart.format("YYYY-MM-DD")}`,
-//     fetcher,
-//     { revalidateOnFocus: false }
-//   );
-//   // Replace every WEEKLY_CLASSES reference below with `classes`.
-//   // Show a skeleton loader while isLoading === true.
-//
-// WEEK NAVIGATION:
-//   Each time the user clicks ← / → the weekStart state changes,
-//   the SWR key changes, and the fetch fires automatically.
-//   Pre-fetch adjacent weeks for instant transitions:
-//     useSWR(`/api/src-schedule?week=${weekStart.subtract(1,"week").format(...)}`)
-//     useSWR(`/api/src-schedule?week=${weekStart.add(1,"week").format(...)}`)
-//
-// SPOTS AVAILABILITY:
-//   spotsLeft is a frequently-changing field. Two options:
-//   A) Poll:  add refreshInterval: 5 * 60 * 1000 to the useSWR config (every 5 min).
-//   B) Push:  subscribe to a WebSocket / SSE channel for the class IDs on screen:
-//       const evtSource = new EventSource(`/api/src-schedule/live?ids=${classIds}`);
-//       evtSource.onmessage = ({ data }) => mutate(key); // trigger SWR revalidate
-//
-// ADD TO MY SCHEDULE — handleAddToEvents():
-//   POST /api/user-schedule
-//   Auth: require active session
-//   Body: {
-//     classId:     string,
-//     className:   string,
-//     dayOfWeek:   number,    // 0=Sun … 6=Sat
-//     startTime:   string,    // "HH:mm"
-//     endTime:     string,
-//     location:    string,
-//     instructor:  string,
-//     category:    string,
-//   }
-//   On success → 201 { userScheduleId }
-//   On duplicate (same user + classId + week) → 409
-//
-//   Supabase table suggestion:
-//     user_saved_classes (
-//       id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-//       user_id     UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-//       class_id    TEXT,
-//       week_start  DATE,       -- ISO date of week's Sunday
-//       saved_at    TIMESTAMPTZ DEFAULT NOW(),
-//       UNIQUE (user_id, class_id, week_start)
-//     )
-// ═══════════════════════════════════════════════════════════════════════
-
 import * as React from "react";
+import useSWR from "swr";
 import dayjs, { Dayjs } from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
 import {
   Box, Typography, Chip, IconButton, Tooltip, Button,
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Snackbar, Alert, Badge,
+  Snackbar, Alert, Skeleton,
 } from "@mui/material";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronLeftIcon  from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import TodayIcon from "@mui/icons-material/Today";
+import TodayIcon        from "@mui/icons-material/Today";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import PersonIcon from "@mui/icons-material/Person";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import LocationOnIcon   from "@mui/icons-material/LocationOn";
+import PersonIcon       from "@mui/icons-material/Person";
+import AccessTimeIcon   from "@mui/icons-material/AccessTime";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
-import { WEEKLY_CLASSES, WeeklyClass } from "./icsData";
 
 dayjs.extend(isoWeek);
+
+// ── Types ────────────────────────────────────────────────────────────────────
+
+export type WeeklyClass = {
+  id: string;
+  name: string;
+  instructor: string;
+  location: string;
+  /** 0 = Sun … 6 = Sat */
+  dayOfWeek: number;
+  /** "HH:mm" 24-hour */
+  startTime: string;
+  endTime: string;
+  category: "cardio" | "strength" | "mind-body" | "aquatics" | "dance" | "hiit";
+  spots?: number;
+  spotsLeft?: number;
+};
+
+// ── Constants ────────────────────────────────────────────────────────────────
 
 const RED = "#A80532";
 
 const CATEGORY_COLORS: Record<WeeklyClass["category"], { bg: string; text: string; border: string }> = {
-  cardio:     { bg: "rgba(95, 202, 113, 0.85)",   text: "#ffffff", border: "rgb(205, 245, 205)" },
-  strength:   { bg: "rgba(219, 177, 38, 0.9)",    text: "#ffffff", border: "rgb(245, 218, 139)" },
-  "mind-body":{ bg: "rgba(162, 98, 218, 0.85)",  text: "#ffffff", border: "rgb(203, 161, 241)" },
-  aquatics:   { bg: "rgba(21, 142, 212, 0.85)",   text: "#ffffff", border: "rgb(170, 225, 235)" },
-  dance:      { bg: "rgba(231, 88, 172, 0.85)",  text: "#ffffff", border: "rgb(238, 160, 199)" },
-  hiit:       { bg: "rgba(253, 110, 44, 0.85)",   text: "#ffffff", border: "rgb(235, 197, 169)" },
+  cardio:      { bg: "rgba(95, 202, 113, 0.85)",  text: "#ffffff", border: "rgb(205, 245, 205)" },
+  strength:    { bg: "rgba(219, 177, 38, 0.9)",   text: "#ffffff", border: "rgb(245, 218, 139)" },
+  "mind-body": { bg: "rgba(162, 98, 218, 0.85)",  text: "#ffffff", border: "rgb(203, 161, 241)" },
+  aquatics:    { bg: "rgba(21, 142, 212, 0.85)",  text: "#ffffff", border: "rgb(170, 225, 235)" },
+  dance:       { bg: "rgba(231, 88, 172, 0.85)",  text: "#ffffff", border: "rgb(238, 160, 199)" },
+  hiit:        { bg: "rgba(253, 110, 44, 0.85)",  text: "#ffffff", border: "rgb(235, 197, 169)" },
 };
 
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAYS      = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const FULL_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+const START_HOUR  = 6;
+const END_HOUR    = 21;
+const CELL_PX     = 64; // px per hour
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 function timeToMinutes(t: string) {
   const [h, m] = t.split(":").map(Number);
@@ -104,93 +69,95 @@ function timeToMinutes(t: string) {
 function fmt12(t: string) {
   const [h, m] = t.split(":").map(Number);
   const ampm = h >= 12 ? "pm" : "am";
-  const h12 = h % 12 || 12;
-  return `${h12}:${String(m).padStart(2, "0")}${ampm}`;
+  return `${h % 12 || 12}:${String(m).padStart(2, "0")}${ampm}`;
 }
 
-// Hours range to show in grid
-const START_HOUR = 6;
-const END_HOUR = 21;
-const TOTAL_MINS = (END_HOUR - START_HOUR) * 60;
-const CELL_PX = 64; // px per hour
+// ── Component ────────────────────────────────────────────────────────────────
 
 export default function WeeklySchedule() {
-  const today = dayjs();
+  const today    = dayjs();
   const [weekStart, setWeekStart] = React.useState<Dayjs>(today.startOf("week"));
-  const [selected, setSelected] = React.useState<WeeklyClass | null>(null);
-  const [toast, setToast] = React.useState<string | null>(null);
-  const [added, setAdded] = React.useState<Set<string>>(new Set());
+  const [selected, setSelected]   = React.useState<WeeklyClass | null>(null);
+  const [toast, setToast]         = React.useState<string | null>(null);
+  const [added, setAdded]         = React.useState<Set<string>>(new Set());
 
-  const weekDays = Array.from({ length: 7 }, (_, i) => weekStart.add(i, "day"));
+  const weekKey = weekStart.format("YYYY-MM-DD");
   const isCurrentWeek = weekStart.isSame(today.startOf("week"), "day");
 
-  // Group classes by day-of-week
+  // Fetch schedule for this week; pre-fetch adjacent weeks for instant nav
+  const { data: classes = [], isLoading } = useSWR<WeeklyClass[]>(
+    `/StudentRecCenter/api/src-schedule?week=${weekKey}`,
+    fetcher,
+    { revalidateOnFocus: false }
+  );
+  // Pre-fetch prev/next weeks silently
+  useSWR(`/StudentRecCenter/api/src-schedule?week=${weekStart.subtract(1, "week").format("YYYY-MM-DD")}`, fetcher, { revalidateOnFocus: false });
+  useSWR(`/StudentRecCenter/api/src-schedule?week=${weekStart.add(1, "week").format("YYYY-MM-DD")}`,      fetcher, { revalidateOnFocus: false });
+
+  const weekDays = Array.from({ length: 7 }, (_, i) => weekStart.add(i, "day"));
+
   const byDay = React.useMemo(() => {
     const map: Record<number, WeeklyClass[]> = {};
-    WEEKLY_CLASSES.forEach((c) => {
+    classes.forEach((c) => {
       if (!map[c.dayOfWeek]) map[c.dayOfWeek] = [];
       map[c.dayOfWeek].push(c);
     });
     return map;
-  }, []);
+  }, [classes]);
 
   async function handleAddToEvents(cls: WeeklyClass) {
-    // BACKEND: Replace optimistic update below with the real API call:
-    //   const res = await fetch("/api/user-schedule", {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify({
-    //       classId:    cls.id,
-    //       className:  cls.name,
-    //       dayOfWeek:  cls.dayOfWeek,
-    //       startTime:  cls.startTime,
-    //       endTime:    cls.endTime,
-    //       location:   cls.location,
-    //       instructor: cls.instructor,
-    //       category:   cls.category,
-    //       // Pass the current weekStart so the server can record which
-    //       // specific week instance the student saved (for recurring classes):
-    //       weekStart:  weekStart.format("YYYY-MM-DD"),
-    //     }),
-    //   });
-    //   if (res.status === 409) { setToast("Already on your schedule!"); return; }
-    //   if (!res.ok) { setToast("Something went wrong — try again."); return; }
-    //   // Optionally invalidate useSWR cache: mutate("/api/user-schedule");
-    //
-    // See top-of-file comments for full schema + spots real-time options.
-
-    // Optimistic UI update (no real network call yet)
     setAdded((prev) => new Set(prev).add(cls.id));
     setToast(`"${cls.name}" added to your schedule!`);
     setSelected(null);
+
+    try {
+      const res = await fetch("/api/user-schedule", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          classId:    cls.id,
+          className:  cls.name,
+          dayOfWeek:  cls.dayOfWeek,
+          startTime:  cls.startTime,
+          endTime:    cls.endTime,
+          location:   cls.location,
+          instructor: cls.instructor,
+          category:   cls.category,
+          weekStart:  weekKey,
+        }),
+      });
+      if (res.status === 409) { setToast("Already on your schedule!"); return; }
+      if (!res.ok) {
+        setAdded((prev) => { const s = new Set(prev); s.delete(cls.id); return s; });
+        setToast("Something went wrong — try again.");
+      }
+    } catch {
+      setAdded((prev) => { const s = new Set(prev); s.delete(cls.id); return s; });
+      setToast("Something went wrong — try again.");
+    }
   }
 
-  const gridHeight = ((END_HOUR - START_HOUR) * CELL_PX);
+  const gridHeight = (END_HOUR - START_HOUR) * CELL_PX;
 
   return (
     <Box>
       {/* ── Week Nav ── */}
-      <Box
-        sx={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          mb: 2, flexWrap: "wrap", gap: 1,
-        }}
-      >
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 1 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <IconButton
-            onClick={() => setWeekStart((w) => w.subtract(1, "week"))}
             size="small"
-            sx={{ color: "#fff", border: "1px solid rgba(255,255,255,0.25)", "&:hover": { bgcolor: "rgba(255,255,255,0.1)" } }}
+            onClick={() => setWeekStart((w) => w.subtract(1, "week"))}
+            sx={{ color: "rgba(255,255,255,0.7)", border: "1px solid rgba(255,255,255,0.15)", "&:hover": { bgcolor: "rgba(255,255,255,0.08)" } }}
           >
             <ChevronLeftIcon fontSize="small" />
           </IconButton>
-          <Typography sx={{ fontWeight: 800, color: "#fff", fontSize: "1rem", minWidth: 200, textAlign: "center" }}>
+          <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "0.9rem", minWidth: 180, textAlign: "center" }}>
             {weekStart.format("MMM D")} – {weekStart.add(6, "day").format("MMM D, YYYY")}
           </Typography>
           <IconButton
-            onClick={() => setWeekStart((w) => w.add(1, "week"))}
             size="small"
-            sx={{ color: "#fff", border: "1px solid rgba(255,255,255,0.25)", "&:hover": { bgcolor: "rgba(255,255,255,0.1)" } }}
+            onClick={() => setWeekStart((w) => w.add(1, "week"))}
+            sx={{ color: "rgba(255,255,255,0.7)", border: "1px solid rgba(255,255,255,0.15)", "&:hover": { bgcolor: "rgba(255,255,255,0.08)" } }}
           >
             <ChevronRightIcon fontSize="small" />
           </IconButton>
@@ -201,113 +168,75 @@ export default function WeeklySchedule() {
             startIcon={<TodayIcon sx={{ fontSize: "14px !important" }} />}
             onClick={() => setWeekStart(today.startOf("week"))}
             sx={{
-              color: "rgba(255,255,255,0.8)", fontSize: 12, fontWeight: 700,
-              border: "1px solid rgba(255,255,255,0.3)", borderRadius: 999, px: 1.5,
-              textTransform: "none",
-              "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
+              color: "rgba(255,255,255,0.6)", fontSize: 11, fontWeight: 600, textTransform: "none",
+              border: "1px solid rgba(255,255,255,0.2)", borderRadius: 999, px: 1.5,
+              "&:hover": { bgcolor: "rgba(255,255,255,0.08)", color: "#fff" },
             }}
           >
             Today
           </Button>
         )}
-
-        {/* Category legend */}
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
-          {(Object.keys(CATEGORY_COLORS) as WeeklyClass["category"][]).map((cat) => {
-            const c = CATEGORY_COLORS[cat];
-            return (
-              <Chip
-                key={cat}
-                label={cat.replace("-", " ")}
-                size="small"
-                sx={{ fontSize: 10, fontWeight: 700, textTransform: "capitalize", height: 22,
-                  bgcolor: c.bg, color: c.text, border: `1px solid ${c.border}`,
-                  "& .MuiChip-label": { px: 1 } }}
-              />
-            );
-          })}
-        </Box>
       </Box>
 
       {/* ── Grid ── */}
-      <Box
-        sx={{
-          borderRadius: 3, overflow: "hidden",
-          border: "1.5px solid rgba(255,255,255,0.15)",
-          bgcolor: "rgba(255,255,255,0.06)",
-          backdropFilter: "blur(12px)",
-        }}
-      >
-        {/* Day headers */}
-        <Box sx={{ display: "grid", gridTemplateColumns: "56px repeat(7, 1fr)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-          <Box sx={{ p: 1 }} />
-          {weekDays.map((d, i) => {
-            const isToday = d.isSame(today, "day");
-            return (
+      <Box sx={{ overflowX: "auto" }}>
+        <Box sx={{ display: "flex", minWidth: 700 }}>
+          {/* Time axis */}
+          <Box sx={{ width: 44, flexShrink: 0, position: "relative", height: gridHeight, mt: "36px" }}>
+            {Array.from({ length: END_HOUR - START_HOUR }, (_, i) => (
               <Box
                 key={i}
-                sx={{
-                  p: 1, textAlign: "center",
-                  borderLeft: "1px solid rgba(255,255,255,0.08)",
-                  bgcolor: isToday ? "rgba(168,5,50,0.25)" : "transparent",
-                }}
+                sx={{ position: "absolute", top: i * CELL_PX - 8, right: 6 }}
               >
-                <Typography sx={{ fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase", color: isToday ? "#fff" : "rgba(255,255,255,0.45)" }}>
-                  {DAYS[i]}
+                <Typography sx={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>
+                  {fmt12(`${START_HOUR + i}:00`)}
                 </Typography>
-                <Typography
-                  sx={{
-                    fontSize: 18, fontWeight: 800,
-                    color: isToday ? "#fff" : "rgba(255,255,255,0.7)",
-                    lineHeight: 1.2,
-                  }}
-                >
-                  {d.date()}
-                </Typography>
-                {isToday && (
-                  <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: RED, mx: "auto", mt: 0.25 }} />
-                )}
               </Box>
-            );
-          })}
-        </Box>
+            ))}
+          </Box>
 
-        {/* Scrollable time grid */}
-        <Box sx={{ overflowY: "auto", maxHeight: 520 }}>
-          <Box sx={{ display: "grid", gridTemplateColumns: "56px repeat(7, 1fr)", position: "relative", height: gridHeight }}>
-            {/* Hour labels */}
-            <Box sx={{ position: "relative" }}>
-              {Array.from({ length: END_HOUR - START_HOUR }, (_, i) => (
+          {/* Day columns */}
+          {weekDays.map((day, colIdx) => {
+            const isToday  = day.isSame(today, "day");
+            const classes_ = byDay[colIdx] ?? [];
+
+            return (
+              <Box key={colIdx} sx={{ flex: 1, minWidth: 80 }}>
+                {/* Day header */}
                 <Box
-                  key={i}
                   sx={{
-                    position: "absolute", top: i * CELL_PX - 9, left: 0, right: 0,
-                    px: 0.75, textAlign: "right",
+                    height: 36, display: "flex", flexDirection: "column",
+                    alignItems: "center", justifyContent: "center", mb: 0,
                   }}
                 >
-                  <Typography sx={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>
-                    {((START_HOUR + i) % 12 || 12)}{START_HOUR + i >= 12 ? "p" : "a"}
+                  <Typography sx={{ fontSize: 9, fontWeight: 700, color: isToday ? RED : "rgba(255,255,255,0.35)", letterSpacing: 1, textTransform: "uppercase" }}>
+                    {DAYS[colIdx]}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: 13, fontWeight: 800,
+                      color: isToday ? "#fff" : "rgba(255,255,255,0.45)",
+                      lineHeight: 1,
+                      ...(isToday && {
+                        bgcolor: RED, borderRadius: "50%",
+                        width: 22, height: 22,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }),
+                    }}
+                  >
+                    {day.date()}
                   </Typography>
                 </Box>
-              ))}
-            </Box>
 
-            {/* Day columns */}
-            {weekDays.map((d, colIdx) => {
-              const dow = d.day(); // 0-6
-              const classes = byDay[dow] ?? [];
-              const isToday = d.isSame(today, "day");
-
-              return (
+                {/* Time slots */}
                 <Box
-                  key={colIdx}
                   sx={{
-                    position: "relative",
-                    borderLeft: "1px solid rgba(255,255,255,0.07)",
-                    bgcolor: isToday ? "rgba(168,5,50,0.06)" : "transparent",
+                    position: "relative", height: gridHeight,
+                    borderLeft: "1px solid rgba(255,255,255,0.06)",
+                    bgcolor: isToday ? "rgba(168,5,50,0.04)" : "transparent",
                   }}
                 >
-                  {/* Hour lines */}
+                  {/* Hour grid lines */}
                   {Array.from({ length: END_HOUR - START_HOUR }, (_, i) => (
                     <Box
                       key={i}
@@ -319,13 +248,29 @@ export default function WeeklySchedule() {
                     />
                   ))}
 
+                  {/* Skeleton while loading */}
+                  {isLoading && [0, 1].map((i) => (
+                    <Skeleton
+                      key={i}
+                      variant="rectangular"
+                      sx={{
+                        position: "absolute",
+                        top: (i + 1) * CELL_PX * 1.5,
+                        left: 2, right: 2,
+                        height: CELL_PX - 4,
+                        borderRadius: 1.5,
+                        bgcolor: "rgba(255,255,255,0.06)",
+                      }}
+                    />
+                  ))}
+
                   {/* Classes */}
-                  {classes.map((cls) => {
+                  {!isLoading && classes_.map((cls) => {
                     const startMins = timeToMinutes(cls.startTime) - START_HOUR * 60;
-                    const endMins = timeToMinutes(cls.endTime) - START_HOUR * 60;
-                    const top = (startMins / 60) * CELL_PX;
+                    const endMins   = timeToMinutes(cls.endTime)   - START_HOUR * 60;
+                    const top    = (startMins / 60) * CELL_PX;
                     const height = Math.max(((endMins - startMins) / 60) * CELL_PX - 2, 28);
-                    const cc = CATEGORY_COLORS[cls.category];
+                    const cc     = CATEGORY_COLORS[cls.category];
                     const isFull = (cls.spotsLeft ?? 1) === 0;
                     const isAdded = added.has(cls.id);
 
@@ -339,21 +284,13 @@ export default function WeeklySchedule() {
                         <Box
                           onClick={() => setSelected(cls)}
                           sx={{
-                            position: "absolute",
-                            top, left: 2, right: 2,
-                            height,
+                            position: "absolute", top, left: 2, right: 2, height,
                             borderRadius: 1.5,
                             bgcolor: isAdded ? "rgba(34,197,94,0.2)" : cc.bg,
                             border: `1px solid ${isAdded ? "rgba(34,197,94,0.5)" : cc.border}`,
-                            px: 0.75, pt: 0.4,
-                            cursor: "pointer",
-                            overflow: "hidden",
+                            px: 0.75, pt: 0.4, cursor: "pointer", overflow: "hidden",
                             transition: "all 0.2s ease",
-                            "&:hover": {
-                              transform: "scale(1.02)",
-                              zIndex: 5,
-                              boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-                            },
+                            "&:hover": { transform: "scale(1.02)", zIndex: 5, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" },
                           }}
                         >
                           <Typography sx={{ fontSize: 9, fontWeight: 800, color: isAdded ? "#86efac" : cc.text, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -372,9 +309,9 @@ export default function WeeklySchedule() {
                     );
                   })}
                 </Box>
-              );
-            })}
-          </Box>
+              </Box>
+            );
+          })}
         </Box>
       </Box>
 
@@ -427,7 +364,7 @@ export default function WeeklySchedule() {
             <DialogContent sx={{ pt: 2 }}>
               {[
                 { icon: <AccessTimeIcon sx={{ fontSize: 16 }} />, label: `${FULL_DAYS[selected.dayOfWeek]}s · ${fmt12(selected.startTime)} – ${fmt12(selected.endTime)}` },
-                { icon: <PersonIcon sx={{ fontSize: 16 }} />, label: selected.instructor },
+                { icon: <PersonIcon     sx={{ fontSize: 16 }} />, label: selected.instructor },
                 { icon: <LocationOnIcon sx={{ fontSize: 16 }} />, label: selected.location },
               ].map((row, i) => (
                 <Box key={i} sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.25, color: "rgba(255,255,255,0.75)" }}>
@@ -470,8 +407,7 @@ export default function WeeklySchedule() {
                 onClick={() => handleAddToEvents(selected)}
                 sx={{
                   bgcolor: added.has(selected.id) ? "rgba(34,197,94,0.3)" : RED,
-                  color: "#fff",
-                  borderRadius: 999, px: 2.5, fontWeight: 700, textTransform: "none",
+                  color: "#fff", borderRadius: 999, px: 2.5, fontWeight: 700, textTransform: "none",
                   boxShadow: "0 4px 14px rgba(168,5,50,0.4)",
                   "&:hover": { bgcolor: "#8f0229" },
                   "&.Mui-disabled": { bgcolor: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.35)" },

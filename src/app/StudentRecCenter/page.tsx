@@ -1,3 +1,4 @@
+// src/app/StudentRecCenter/page.tsx
 "use client";
 
 import * as React from "react";
@@ -11,6 +12,7 @@ import Header from "@/components/StudentRecCenter/srcHeader";
 import Carousel from "@/components/StudentRecCenter/Carousel";
 import AddToEventsModal from "@/components/StudentRecCenter/AddToEventsModal";
 import InviteFriendModal from "@/components/StudentRecCenter/InviteFriendModal";
+import SrcStatusBadge from "@/components/StudentRecCenter/SrcStatusBadge";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import PoolIcon from "@mui/icons-material/Pool";
 import SportsBasketballIcon from "@mui/icons-material/SportsBasketball";
@@ -31,8 +33,10 @@ const categoryIcons: Record<string, React.ReactNode> = {
 };
 
 const quickStats = [
-  // BACKEND TODO: change to dynamic daily update from API route.
-  { icon: <AccessTimeIcon sx={{ fontSize: 18 }} />, label: "Open Today", value: "6am – 11pm" },
+  // BACKEND TODO: replace static values with a GET /api/src/stats endpoint
+  // that returns { hoursToday, memberCount, weeklyClasses, sportClubCount }
+  // so these update dynamically each semester.
+  { icon: <AccessTimeIcon sx={{ fontSize: 18 }} />, label: "Open Today", value: "6am – 10pm" },
   { icon: <PeopleIcon sx={{ fontSize: 18 }} />, label: "Members", value: "12,000+" },
   { icon: <EventIcon sx={{ fontSize: 18 }} />, label: "Weekly Classes", value: "80+" },
   { icon: <GroupIcon sx={{ fontSize: 18 }} />, label: "Sport Clubs", value: "40+" },
@@ -86,7 +90,6 @@ export default function StudentRecCenterHomePage() {
         onWidthChange={setSidebarWidth}
       />
 
-      {/* Offset content by the fixed sidebar width */}
       <Box
         sx={{
           ml: `${sidebarWidth}px`,
@@ -98,7 +101,6 @@ export default function StudentRecCenterHomePage() {
         }}
       >
         <Header value="" />
-
         <Box sx={{ height: "1px", bgcolor: "rgba(168,5,50,0.6)", mx: 2 }} />
 
         <Container maxWidth="xl" sx={{ pt: 2, pb: 2 }}>
@@ -127,7 +129,10 @@ export default function StudentRecCenterHomePage() {
               <Typography sx={{ fontSize: { xs: 18, sm: 22, md: 28 }, fontWeight: 900, letterSpacing: 6, color: "#fff", textShadow: "0 2px 12px rgba(0,0,0,0.5)" }}>
                 SRC
               </Typography>
-              <Chip label="● Facility Open" size="small" sx={{ mt: 1.5, fontSize: 11, fontWeight: 700, bgcolor: "rgba(34,197,94,0.25)", color: "#bbf7d0", border: "1px solid rgba(187,247,208,0.4)", backdropFilter: "blur(8px)", "& .MuiChip-label": { px: 1.25 }, animation: "pulse 2s infinite", "@keyframes pulse": { "0%,100%": { opacity: 1 }, "50%": { opacity: 0.65 } } }} />
+              {/* ── Real open/closed badge — computed from actual SRC hours ── */}
+              <Box sx={{ mt: 1.5 }}>
+                <SrcStatusBadge />
+              </Box>
             </Box>
           </Box>
 

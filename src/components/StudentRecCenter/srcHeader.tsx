@@ -54,36 +54,6 @@ export default function Header({ value }: { value?: string }) {
             willChange: "backdrop-filter, background",
           }}
         >
-          {/* Back to Dashboard button */}
-          <Box
-            component={Link}
-            href="/dashboard"
-            aria-label="Back to Dashboard"
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 0.75,
-              px: 1.25,
-              py: 0.6,
-              borderRadius: 999,
-              flexShrink: 0,
-              textDecoration: "none",
-              color: scrolled ? "#A80532" : "#fff",
-              border: scrolled ? "1.5px solid rgba(168,5,50,0.3)" : "1.5px solid rgba(255,255,255,0.8)",
-              bgcolor: scrolled ? "rgba(168,5,50,0.06)" : "rgba(255,255,255,0.15)",
-              transition: "all 0.3s ease",
-              "&:hover": {
-                bgcolor: scrolled ? "rgba(168,5,50,0.12)" : "rgba(255,255,255,0.28)",
-                transform: "translateX(-2px)",
-              },
-            }}
-          >
-            <ArrowBackIosNewIcon sx={{ fontSize: 12 }} />
-            <Typography sx={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.3, lineHeight: 1 }}>
-              Dashboard
-            </Typography>
-          </Box>
-
           {/* Logo + wordmark */}
           <Link
             href="/StudentRecCenter"

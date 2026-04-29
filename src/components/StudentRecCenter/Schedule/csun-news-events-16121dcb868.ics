@@ -1,0 +1,520 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//CSUN News &amp; Events - ECPv6.11.2//NONSGML v1.0//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:CSUN News &amp; Events
+X-ORIGINAL-URL:https://news.csun.edu
+X-WR-CALDESC:Events for CSUN News &amp; Events
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-Robots-Tag:noindex
+X-PUBLISHED-TTL:PT1H
+BEGIN:VTIMEZONE
+TZID:America/Los_Angeles
+BEGIN:DAYLIGHT
+TZOFFSETFROM:-0800
+TZOFFSETTO:-0700
+TZNAME:PDT
+DTSTART:20260308T100000
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:-0700
+TZOFFSETTO:-0800
+TZNAME:PST
+DTSTART:20261101T090000
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260227
+DTEND;VALUE=DATE:20260510
+DTSTAMP:20260428T190956
+CREATED:20260121T225753Z
+LAST-MODIFIED:20260122T212618Z
+UID:10010243-1772150400-1778371199@news.csun.edu
+SUMMARY:American Red Cross CPR/First-Aid/AED Classes
+DESCRIPTION:Get certified and equipped with important life-saving skills through American Red Cross Adult and Pediatric CPR/First-Aid/AED training! Learn to respond to cardio-respiratory emergencies calmly and confidently through this hands-on course. Check your email after you register for instructions.   \n  \nRegister on the SRC Portal or at the SRC Front Desk today!   \n  \nDo you need interpretation for an event? If so\, please fill out the Interpreting Services Request Form at least seven business days prior to the event. 
+URL:https://news.csun.edu/event/american-red-cross-cpr-first-aid-aed-classes/
+LOCATION:Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/01/Calendar_AmericanRedCrossCPR_SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.2397767274;-118.525089862
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525089862,34.2397767274
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260302
+DTEND;VALUE=DATE:20260509
+DTSTAMP:20260428T190956
+CREATED:20260203T231043Z
+LAST-MODIFIED:20260224T220716Z
+UID:10010499-1772409600-1778284799@news.csun.edu
+SUMMARY:Spring 2026 Intramural Sports Season
+DESCRIPTION:Sign up through Fusion Play today and get ready to bring the heat!   \nBasketball March 2 – May 8 Red Ring Courts   \nAll-Rec: Wednesdays\, 6 – 8 p.m.  \nSorority: Wednesdays\, 5 – 6 p.m.  \nMen’s/Fraternity: Thursdays\, 5 – 9 p.m.  \nUltimate Frisbee March 2 – April 10 Turf Field  \nFraternity: Fridays\, 4 – 5 p.m.  \nAll-Rec: Fridays\, 3 – 4 p.m.   \nMen’s: Fridays\, 4 – 5 p.m.  \nSorority: Fridays\, 3 – 4 p.m.  \nVolleyball March 2 – May 8 Red Ring Courts  \nAll-Rec: Fridays\, 3 – 5 p.m.  \nIndoor Soccer March 2 – May 8  MatArena  \nAll Rec: Wednesdays\, 5 – 7 p.m.  \nFraternity: Tuesdays\, 7 – 9 p.m.  \nMen’s: Wednesdays\, 7 – 9 p.m.  \nSorority: Tuesdays\, 5 – 7 p.m.  \nSoftball April 12 – May 8 Turf Field  \nAll Rec: Fridays\, 6 – 8p.m.  \nMen’s: Fridays\, 4 – 6 p.m.  \nFraternity: Fridays\, 4 – 6 p.m.  \nSorority: Fridays\, 3 – 5 p.m.  
+URL:https://news.csun.edu/event/spring-2026-intramural-sports-season-registration/
+LOCATION:Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/02/Calendar-IntramuralSports-SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.2397767274;-118.525089862
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525089862,34.2397767274
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260429T090000
+DTEND;TZID=America/Los_Angeles:20260429T180000
+DTSTAMP:20260428T190956
+CREATED:20260206T002517Z
+LAST-MODIFIED:20260212T184903Z
+UID:10010537-1777453200-1777485600@news.csun.edu
+SUMMARY:Beginner Lessons
+DESCRIPTION:Get the confidence you’ve always wanted in the water and strengthen your skills with weekly 45-minute Adult Swim Lessons. Learn safety skills\, strokes and breathing techniques\, all for a low price. Choose a class time and register between Monday\, March 2 and Monday\, April 13 at the SRC Front Desk or on the SRC Portal. Hurry\, before spots fill! 
+URL:https://news.csun.edu/event/beginner-lessons/2026-04-29/
+LOCATION:Rec Pool\, Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/02/Calendar-AdultSwimLessons_SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.240676354;-118.525553212
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Rec Pool Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525553212,34.240676354
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260430T090000
+DTEND;TZID=America/Los_Angeles:20260430T180000
+DTSTAMP:20260428T190956
+CREATED:20260206T002731Z
+LAST-MODIFIED:20260212T185014Z
+UID:10010553-1777539600-1777572000@news.csun.edu
+SUMMARY:Intermediate Lessons
+DESCRIPTION:Get the confidence you’ve always wanted in the water and strengthen your skills with weekly 45-minute Adult Swim Lessons. Learn safety skills\, strokes and breathing techniques\, all for a low price. Choose a class time and register between Monday\, March 2 and Monday\, April 13 at the SRC Front Desk or on the SRC Portal. Hurry\, before spots fill! 
+URL:https://news.csun.edu/event/intermediate-lessons/2026-04-30/
+LOCATION:Rec Pool\, Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/02/Calendar-AdultSwimLessons_SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.240676354;-118.525553212
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Rec Pool Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525553212,34.240676354
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260430T110000
+DTEND;TZID=America/Los_Angeles:20260430T193000
+DTSTAMP:20260428T190956
+CREATED:20260319T233524Z
+LAST-MODIFIED:20260326T235816Z
+UID:10011115-1777546800-1777577400@news.csun.edu
+SUMMARY:Sweatchella
+DESCRIPTION:Get pumped for the ultimate musical fitness festival\, Sweatchella! Break a sweat with a live DJ in this high-energy\, festival-inspired workout experience. Explore a dynamic lineup of fusion workouts that blend different group exercise formats into one unforgettable fitness experience.  \n  \nAll Matadors are invited to the most vibrant gathering of the semester!   \n  \nRegister on the USU Rec & Wellness Portal or the MINDBODY app starting Monday\, April 20.   \n  \nDo you need interpretation for an event? If so\, please fill out the Interpreting Services Request Form at least seven business days prior to the event. 
+URL:https://news.csun.edu/event/sweatchella/
+LOCATION:MatArena\, Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/03/Cal-Sweatchella-SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.2396421272;-118.525022566
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=MatArena Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525022566,34.2396421272
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260430T170000
+DTEND;TZID=America/Los_Angeles:20260430T210000
+DTSTAMP:20260428T190956
+CREATED:20251209T184204Z
+LAST-MODIFIED:20260402T223012Z
+UID:10009385-1777568400-1777582800@news.csun.edu
+SUMMARY:Guilty Gear Strive
+DESCRIPTION:Game on\, Matadors! The Student Recreation Center is hosting a series of tournaments in the Games Room for you to show off your skills and win amazing prizes. Whether you dominate Smash Bros\, are the master of hat tricks on FIFA or keep it cool with a billiards cue\, you’re guaranteed to have fun as you go head-to-head with worthy competitors.   \nSign up for any event of your choosing and let the games begin!   \nDo you need interpretation for an event? If so\, please fill out the Interpreting Services Request Form at least seven business days prior to the event. 
+URL:https://news.csun.edu/event/guilty-gear-strive-2/
+LOCATION:Games Room\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8272\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2025/12/812064160-calendar-grtournaments_guiltygear2_sp26.png
+GEO:34.2398927513;-118.525370529
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Games Room University Student Union 18111 Nordhoff St. Northridge CA 91330-8272 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525370529,34.2398927513
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260502T100000
+DTEND;TZID=America/Los_Angeles:20260502T120000
+DTSTAMP:20260428T190956
+CREATED:20260205T210557Z
+LAST-MODIFIED:20260210T182027Z
+UID:10010520-1777716000-1777723200@news.csun.edu
+SUMMARY:Children’s Swim Lessons
+DESCRIPTION:Parents\, set your children up for life by enrolling them in weekly 25-minute swim lessons! For just $50\, your child will be equipped with the important skills of knowing how to confidently breathe and move through the water. Meanwhile\, you’ll get peace of mind that they can play safely.   \n  \nRegister between Monday\, March 9 and Saturday\, April 18 at the SRC Front Desk before spots fill!   \n  \nFive spots available per class. Parents/guardians must have a valid Spring 2026 SRC membership and present a birth certificate for each child that is registered.  
+URL:https://news.csun.edu/event/childrens-swim-lessons/2026-05-02/
+LOCATION:Rec Pool\, Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/02/CAL-ChildrensSwim-SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.240676354;-118.525553212
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Rec Pool Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525553212,34.240676354
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260504
+DTEND;VALUE=DATE:20260516
+DTSTAMP:20260428T190956
+CREATED:20260408T214816Z
+LAST-MODIFIED:20260421T205355Z
+UID:10011324-1777852800-1778889599@news.csun.edu
+SUMMARY:SRC Membership and Locker Service Renewals
+DESCRIPTION:Spring 2026 memberships and locker service expire Friday\, May 15 at 8 p.m.   \nStarting Monday\, May 4\, you can renew your membership and locker services for the summer at the SRC front desk\, or by logging into the SRC portal. If you choose not to renew your locker service\, please remove all of your belongings before 8 p.m. on Friday\, May 15. Items that are left behind will be retained in accordance with the University Student Union lost and found policy.   \nIf you’re a CSUN student enrolled in Summer 2026\, your SRC membership fee is already included in your campus fees.   \nPlease visit the SRC front desk if you have any questions.   \n  \nNon-student members: The Oasis is open to you this summer!   \nWhen you purchase a summer SRC membership\, you can find relaxation all summer long. If you wish to only access the Oasis this summer\, please visit the Oasis front desk to purchase your membership.   \n Access to the Oasis will expire at the end of the summer on Friday\, August 14.   \n  \nRenew your membership and make plans to stay motivated at the SRC and Oasis! 
+URL:https://news.csun.edu/event/src-membership-and-locker-service-renewals/
+LOCATION:Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2024/09/Calendar_Placeholder_imgs2.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.2397767274;-118.525089862
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525089862,34.2397767274
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260505T090000
+DTEND;TZID=America/Los_Angeles:20260505T180000
+DTSTAMP:20260428T190956
+CREATED:20260206T002731Z
+LAST-MODIFIED:20260212T185014Z
+UID:10010579-1777971600-1778004000@news.csun.edu
+SUMMARY:Intermediate Lessons
+DESCRIPTION:Get the confidence you’ve always wanted in the water and strengthen your skills with weekly 45-minute Adult Swim Lessons. Learn safety skills\, strokes and breathing techniques\, all for a low price. Choose a class time and register between Monday\, March 2 and Monday\, April 13 at the SRC Front Desk or on the SRC Portal. Hurry\, before spots fill! 
+URL:https://news.csun.edu/event/intermediate-lessons/2026-05-05/
+LOCATION:Rec Pool\, Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/02/Calendar-AdultSwimLessons_SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.240676354;-118.525553212
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Rec Pool Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525553212,34.240676354
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260509T100000
+DTEND;TZID=America/Los_Angeles:20260509T120000
+DTSTAMP:20260428T190956
+CREATED:20260421T182938Z
+LAST-MODIFIED:20260421T183010Z
+UID:10011372-1778320800-1778328000@news.csun.edu
+SUMMARY:Children’s Swim Lessons
+DESCRIPTION:Parents\, set your children up for life by enrolling them in weekly 25-minute swim lessons\, no SRC membership or CSUN affiliation required! Your child can participate in some summer fun\, while learning an important skill. They’ll be able to confidently breathe and move through the water\, while you’ll get peace of mindthat they can play safely.   \n  \nRegister between Monday\, April 13 and Saturday\, July 18 at the SRC Front Desk or online!   \n  \nFive spots available per class. Parents/guardians must present a signed waiver for each child prior to the first class.  
+URL:https://news.csun.edu/event/childrens-swim-lessons-2/2026-05-09/
+LOCATION:Rec Pool\, Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/02/CAL-ChildrensSwim-SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.240676354;-118.525553212
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Rec Pool Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525553212,34.240676354
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260516T100000
+DTEND;TZID=America/Los_Angeles:20260516T120000
+DTSTAMP:20260428T190956
+CREATED:20260421T182938Z
+LAST-MODIFIED:20260421T183010Z
+UID:10011373-1778925600-1778932800@news.csun.edu
+SUMMARY:Children’s Swim Lessons
+DESCRIPTION:Parents\, set your children up for life by enrolling them in weekly 25-minute swim lessons\, no SRC membership or CSUN affiliation required! Your child can participate in some summer fun\, while learning an important skill. They’ll be able to confidently breathe and move through the water\, while you’ll get peace of mindthat they can play safely.   \n  \nRegister between Monday\, April 13 and Saturday\, July 18 at the SRC Front Desk or online!   \n  \nFive spots available per class. Parents/guardians must present a signed waiver for each child prior to the first class.  
+URL:https://news.csun.edu/event/childrens-swim-lessons-2/2026-05-16/
+LOCATION:Rec Pool\, Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/02/CAL-ChildrensSwim-SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.240676354;-118.525553212
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Rec Pool Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525553212,34.240676354
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260523T100000
+DTEND;TZID=America/Los_Angeles:20260523T120000
+DTSTAMP:20260428T190956
+CREATED:20260421T182938Z
+LAST-MODIFIED:20260421T183010Z
+UID:10011374-1779530400-1779537600@news.csun.edu
+SUMMARY:Children’s Swim Lessons
+DESCRIPTION:Parents\, set your children up for life by enrolling them in weekly 25-minute swim lessons\, no SRC membership or CSUN affiliation required! Your child can participate in some summer fun\, while learning an important skill. They’ll be able to confidently breathe and move through the water\, while you’ll get peace of mindthat they can play safely.   \n  \nRegister between Monday\, April 13 and Saturday\, July 18 at the SRC Front Desk or online!   \n  \nFive spots available per class. Parents/guardians must present a signed waiver for each child prior to the first class.  
+URL:https://news.csun.edu/event/childrens-swim-lessons-2/2026-05-23/
+LOCATION:Rec Pool\, Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/02/CAL-ChildrensSwim-SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.240676354;-118.525553212
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Rec Pool Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525553212,34.240676354
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260529T180000
+DTEND;TZID=America/Los_Angeles:20260529T200000
+DTSTAMP:20260428T190956
+CREATED:20260423T172708Z
+LAST-MODIFIED:20260423T172708Z
+UID:10011388-1780077600-1780084800@news.csun.edu
+SUMMARY:Summer Night Hits
+DESCRIPTION:Smash the competition in our summer softball season! Form a league of your own and battle it out for the championship title. Summer SRC members can register for free\, while non-members can join in on the fun for just $25. Catch some unforgettable memories in our scrimmage\, league and playoff games.   \nRegister on Fusion Play starting Tuesday\, May 12 before spots fill!  
+URL:https://news.csun.edu/event/summer-night-hits/2026-05-29/
+LOCATION:SRC Field\, Student Recreation Center\, University Student Union\, 18111 Matador Rd\, Northridge\, 91330\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2024/09/Calendar_Placeholder_imgs2.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260530T100000
+DTEND;TZID=America/Los_Angeles:20260530T120000
+DTSTAMP:20260428T190956
+CREATED:20260421T182938Z
+LAST-MODIFIED:20260421T183010Z
+UID:10011375-1780135200-1780142400@news.csun.edu
+SUMMARY:Children’s Swim Lessons
+DESCRIPTION:Parents\, set your children up for life by enrolling them in weekly 25-minute swim lessons\, no SRC membership or CSUN affiliation required! Your child can participate in some summer fun\, while learning an important skill. They’ll be able to confidently breathe and move through the water\, while you’ll get peace of mindthat they can play safely.   \n  \nRegister between Monday\, April 13 and Saturday\, July 18 at the SRC Front Desk or online!   \n  \nFive spots available per class. Parents/guardians must present a signed waiver for each child prior to the first class.  
+URL:https://news.csun.edu/event/childrens-swim-lessons-2/2026-05-30/
+LOCATION:Rec Pool\, Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/02/CAL-ChildrensSwim-SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.240676354;-118.525553212
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Rec Pool Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525553212,34.240676354
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260605T180000
+DTEND;TZID=America/Los_Angeles:20260605T200000
+DTSTAMP:20260428T190956
+CREATED:20260423T172708Z
+LAST-MODIFIED:20260423T172708Z
+UID:10011389-1780682400-1780689600@news.csun.edu
+SUMMARY:Summer Night Hits
+DESCRIPTION:Smash the competition in our summer softball season! Form a league of your own and battle it out for the championship title. Summer SRC members can register for free\, while non-members can join in on the fun for just $25. Catch some unforgettable memories in our scrimmage\, league and playoff games.   \nRegister on Fusion Play starting Tuesday\, May 12 before spots fill!  
+URL:https://news.csun.edu/event/summer-night-hits/2026-06-05/
+LOCATION:SRC Field\, Student Recreation Center\, University Student Union\, 18111 Matador Rd\, Northridge\, 91330\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2024/09/Calendar_Placeholder_imgs2.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260606T100000
+DTEND;TZID=America/Los_Angeles:20260606T120000
+DTSTAMP:20260428T190956
+CREATED:20260421T182938Z
+LAST-MODIFIED:20260421T183010Z
+UID:10011376-1780740000-1780747200@news.csun.edu
+SUMMARY:Children’s Swim Lessons
+DESCRIPTION:Parents\, set your children up for life by enrolling them in weekly 25-minute swim lessons\, no SRC membership or CSUN affiliation required! Your child can participate in some summer fun\, while learning an important skill. They’ll be able to confidently breathe and move through the water\, while you’ll get peace of mindthat they can play safely.   \n  \nRegister between Monday\, April 13 and Saturday\, July 18 at the SRC Front Desk or online!   \n  \nFive spots available per class. Parents/guardians must present a signed waiver for each child prior to the first class.  
+URL:https://news.csun.edu/event/childrens-swim-lessons-2/2026-06-06/
+LOCATION:Rec Pool\, Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/02/CAL-ChildrensSwim-SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.240676354;-118.525553212
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Rec Pool Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525553212,34.240676354
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260612T180000
+DTEND;TZID=America/Los_Angeles:20260612T200000
+DTSTAMP:20260428T190956
+CREATED:20260423T172708Z
+LAST-MODIFIED:20260423T172708Z
+UID:10011390-1781287200-1781294400@news.csun.edu
+SUMMARY:Summer Night Hits
+DESCRIPTION:Smash the competition in our summer softball season! Form a league of your own and battle it out for the championship title. Summer SRC members can register for free\, while non-members can join in on the fun for just $25. Catch some unforgettable memories in our scrimmage\, league and playoff games.   \nRegister on Fusion Play starting Tuesday\, May 12 before spots fill!  
+URL:https://news.csun.edu/event/summer-night-hits/2026-06-12/
+LOCATION:SRC Field\, Student Recreation Center\, University Student Union\, 18111 Matador Rd\, Northridge\, 91330\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2024/09/Calendar_Placeholder_imgs2.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260613T100000
+DTEND;TZID=America/Los_Angeles:20260613T120000
+DTSTAMP:20260428T190956
+CREATED:20260421T182938Z
+LAST-MODIFIED:20260421T183010Z
+UID:10011377-1781344800-1781352000@news.csun.edu
+SUMMARY:Children’s Swim Lessons
+DESCRIPTION:Parents\, set your children up for life by enrolling them in weekly 25-minute swim lessons\, no SRC membership or CSUN affiliation required! Your child can participate in some summer fun\, while learning an important skill. They’ll be able to confidently breathe and move through the water\, while you’ll get peace of mindthat they can play safely.   \n  \nRegister between Monday\, April 13 and Saturday\, July 18 at the SRC Front Desk or online!   \n  \nFive spots available per class. Parents/guardians must present a signed waiver for each child prior to the first class.  
+URL:https://news.csun.edu/event/childrens-swim-lessons-2/2026-06-13/
+LOCATION:Rec Pool\, Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/02/CAL-ChildrensSwim-SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.240676354;-118.525553212
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Rec Pool Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525553212,34.240676354
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260620T100000
+DTEND;TZID=America/Los_Angeles:20260620T120000
+DTSTAMP:20260428T190956
+CREATED:20260421T182938Z
+LAST-MODIFIED:20260421T183010Z
+UID:10011378-1781949600-1781956800@news.csun.edu
+SUMMARY:Children’s Swim Lessons
+DESCRIPTION:Parents\, set your children up for life by enrolling them in weekly 25-minute swim lessons\, no SRC membership or CSUN affiliation required! Your child can participate in some summer fun\, while learning an important skill. They’ll be able to confidently breathe and move through the water\, while you’ll get peace of mindthat they can play safely.   \n  \nRegister between Monday\, April 13 and Saturday\, July 18 at the SRC Front Desk or online!   \n  \nFive spots available per class. Parents/guardians must present a signed waiver for each child prior to the first class.  
+URL:https://news.csun.edu/event/childrens-swim-lessons-2/2026-06-20/
+LOCATION:Rec Pool\, Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/02/CAL-ChildrensSwim-SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.240676354;-118.525553212
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Rec Pool Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525553212,34.240676354
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260626T180000
+DTEND;TZID=America/Los_Angeles:20260626T200000
+DTSTAMP:20260428T190956
+CREATED:20260423T172708Z
+LAST-MODIFIED:20260423T172708Z
+UID:10011391-1782496800-1782504000@news.csun.edu
+SUMMARY:Summer Night Hits
+DESCRIPTION:Smash the competition in our summer softball season! Form a league of your own and battle it out for the championship title. Summer SRC members can register for free\, while non-members can join in on the fun for just $25. Catch some unforgettable memories in our scrimmage\, league and playoff games.   \nRegister on Fusion Play starting Tuesday\, May 12 before spots fill!  
+URL:https://news.csun.edu/event/summer-night-hits/2026-06-26/
+LOCATION:SRC Field\, Student Recreation Center\, University Student Union\, 18111 Matador Rd\, Northridge\, 91330\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2024/09/Calendar_Placeholder_imgs2.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260627T100000
+DTEND;TZID=America/Los_Angeles:20260627T120000
+DTSTAMP:20260428T190956
+CREATED:20260421T182938Z
+LAST-MODIFIED:20260421T183010Z
+UID:10011379-1782554400-1782561600@news.csun.edu
+SUMMARY:Children’s Swim Lessons
+DESCRIPTION:Parents\, set your children up for life by enrolling them in weekly 25-minute swim lessons\, no SRC membership or CSUN affiliation required! Your child can participate in some summer fun\, while learning an important skill. They’ll be able to confidently breathe and move through the water\, while you’ll get peace of mindthat they can play safely.   \n  \nRegister between Monday\, April 13 and Saturday\, July 18 at the SRC Front Desk or online!   \n  \nFive spots available per class. Parents/guardians must present a signed waiver for each child prior to the first class.  
+URL:https://news.csun.edu/event/childrens-swim-lessons-2/2026-06-27/
+LOCATION:Rec Pool\, Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/02/CAL-ChildrensSwim-SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.240676354;-118.525553212
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Rec Pool Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525553212,34.240676354
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260704T100000
+DTEND;TZID=America/Los_Angeles:20260704T120000
+DTSTAMP:20260428T190956
+CREATED:20260421T182938Z
+LAST-MODIFIED:20260421T183010Z
+UID:10011380-1783159200-1783166400@news.csun.edu
+SUMMARY:Children’s Swim Lessons
+DESCRIPTION:Parents\, set your children up for life by enrolling them in weekly 25-minute swim lessons\, no SRC membership or CSUN affiliation required! Your child can participate in some summer fun\, while learning an important skill. They’ll be able to confidently breathe and move through the water\, while you’ll get peace of mindthat they can play safely.   \n  \nRegister between Monday\, April 13 and Saturday\, July 18 at the SRC Front Desk or online!   \n  \nFive spots available per class. Parents/guardians must present a signed waiver for each child prior to the first class.  
+URL:https://news.csun.edu/event/childrens-swim-lessons-2/2026-07-04/
+LOCATION:Rec Pool\, Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/02/CAL-ChildrensSwim-SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.240676354;-118.525553212
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Rec Pool Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525553212,34.240676354
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260710T180000
+DTEND;TZID=America/Los_Angeles:20260710T200000
+DTSTAMP:20260428T190956
+CREATED:20260423T172708Z
+LAST-MODIFIED:20260423T172708Z
+UID:10011392-1783706400-1783713600@news.csun.edu
+SUMMARY:Summer Night Hits
+DESCRIPTION:Smash the competition in our summer softball season! Form a league of your own and battle it out for the championship title. Summer SRC members can register for free\, while non-members can join in on the fun for just $25. Catch some unforgettable memories in our scrimmage\, league and playoff games.   \nRegister on Fusion Play starting Tuesday\, May 12 before spots fill!  
+URL:https://news.csun.edu/event/summer-night-hits/2026-07-10/
+LOCATION:SRC Field\, Student Recreation Center\, University Student Union\, 18111 Matador Rd\, Northridge\, 91330\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2024/09/Calendar_Placeholder_imgs2.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260711T100000
+DTEND;TZID=America/Los_Angeles:20260711T120000
+DTSTAMP:20260428T190956
+CREATED:20260421T182938Z
+LAST-MODIFIED:20260421T183010Z
+UID:10011381-1783764000-1783771200@news.csun.edu
+SUMMARY:Children’s Swim Lessons
+DESCRIPTION:Parents\, set your children up for life by enrolling them in weekly 25-minute swim lessons\, no SRC membership or CSUN affiliation required! Your child can participate in some summer fun\, while learning an important skill. They’ll be able to confidently breathe and move through the water\, while you’ll get peace of mindthat they can play safely.   \n  \nRegister between Monday\, April 13 and Saturday\, July 18 at the SRC Front Desk or online!   \n  \nFive spots available per class. Parents/guardians must present a signed waiver for each child prior to the first class.  
+URL:https://news.csun.edu/event/childrens-swim-lessons-2/2026-07-11/
+LOCATION:Rec Pool\, Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/02/CAL-ChildrensSwim-SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.240676354;-118.525553212
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Rec Pool Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525553212,34.240676354
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260717T180000
+DTEND;TZID=America/Los_Angeles:20260717T200000
+DTSTAMP:20260428T190956
+CREATED:20260423T172708Z
+LAST-MODIFIED:20260423T172708Z
+UID:10011393-1784311200-1784318400@news.csun.edu
+SUMMARY:Summer Night Hits
+DESCRIPTION:Smash the competition in our summer softball season! Form a league of your own and battle it out for the championship title. Summer SRC members can register for free\, while non-members can join in on the fun for just $25. Catch some unforgettable memories in our scrimmage\, league and playoff games.   \nRegister on Fusion Play starting Tuesday\, May 12 before spots fill!  
+URL:https://news.csun.edu/event/summer-night-hits/2026-07-17/
+LOCATION:SRC Field\, Student Recreation Center\, University Student Union\, 18111 Matador Rd\, Northridge\, 91330\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2024/09/Calendar_Placeholder_imgs2.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260718T100000
+DTEND;TZID=America/Los_Angeles:20260718T120000
+DTSTAMP:20260428T190956
+CREATED:20260421T182938Z
+LAST-MODIFIED:20260421T183010Z
+UID:10011382-1784368800-1784376000@news.csun.edu
+SUMMARY:Children’s Swim Lessons
+DESCRIPTION:Parents\, set your children up for life by enrolling them in weekly 25-minute swim lessons\, no SRC membership or CSUN affiliation required! Your child can participate in some summer fun\, while learning an important skill. They’ll be able to confidently breathe and move through the water\, while you’ll get peace of mindthat they can play safely.   \n  \nRegister between Monday\, April 13 and Saturday\, July 18 at the SRC Front Desk or online!   \n  \nFive spots available per class. Parents/guardians must present a signed waiver for each child prior to the first class.  
+URL:https://news.csun.edu/event/childrens-swim-lessons-2/2026-07-18/
+LOCATION:Rec Pool\, Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/02/CAL-ChildrensSwim-SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.240676354;-118.525553212
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Rec Pool Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525553212,34.240676354
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260724T180000
+DTEND;TZID=America/Los_Angeles:20260724T200000
+DTSTAMP:20260428T190956
+CREATED:20260423T172708Z
+LAST-MODIFIED:20260423T172708Z
+UID:10011394-1784916000-1784923200@news.csun.edu
+SUMMARY:Summer Night Hits
+DESCRIPTION:Smash the competition in our summer softball season! Form a league of your own and battle it out for the championship title. Summer SRC members can register for free\, while non-members can join in on the fun for just $25. Catch some unforgettable memories in our scrimmage\, league and playoff games.   \nRegister on Fusion Play starting Tuesday\, May 12 before spots fill!  
+URL:https://news.csun.edu/event/summer-night-hits/2026-07-24/
+LOCATION:SRC Field\, Student Recreation Center\, University Student Union\, 18111 Matador Rd\, Northridge\, 91330\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2024/09/Calendar_Placeholder_imgs2.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260725T100000
+DTEND;TZID=America/Los_Angeles:20260725T120000
+DTSTAMP:20260428T190956
+CREATED:20260421T182938Z
+LAST-MODIFIED:20260421T183010Z
+UID:10011383-1784973600-1784980800@news.csun.edu
+SUMMARY:Children’s Swim Lessons
+DESCRIPTION:Parents\, set your children up for life by enrolling them in weekly 25-minute swim lessons\, no SRC membership or CSUN affiliation required! Your child can participate in some summer fun\, while learning an important skill. They’ll be able to confidently breathe and move through the water\, while you’ll get peace of mindthat they can play safely.   \n  \nRegister between Monday\, April 13 and Saturday\, July 18 at the SRC Front Desk or online!   \n  \nFive spots available per class. Parents/guardians must present a signed waiver for each child prior to the first class.  
+URL:https://news.csun.edu/event/childrens-swim-lessons-2/2026-07-25/
+LOCATION:Rec Pool\, Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/02/CAL-ChildrensSwim-SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.240676354;-118.525553212
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Rec Pool Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525553212,34.240676354
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260731T180000
+DTEND;TZID=America/Los_Angeles:20260731T200000
+DTSTAMP:20260428T190956
+CREATED:20260423T172708Z
+LAST-MODIFIED:20260423T172708Z
+UID:10011395-1785520800-1785528000@news.csun.edu
+SUMMARY:Summer Night Hits
+DESCRIPTION:Smash the competition in our summer softball season! Form a league of your own and battle it out for the championship title. Summer SRC members can register for free\, while non-members can join in on the fun for just $25. Catch some unforgettable memories in our scrimmage\, league and playoff games.   \nRegister on Fusion Play starting Tuesday\, May 12 before spots fill!  
+URL:https://news.csun.edu/event/summer-night-hits/2026-07-31/
+LOCATION:SRC Field\, Student Recreation Center\, University Student Union\, 18111 Matador Rd\, Northridge\, 91330\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2024/09/Calendar_Placeholder_imgs2.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260801T100000
+DTEND;TZID=America/Los_Angeles:20260801T120000
+DTSTAMP:20260428T190956
+CREATED:20260421T182938Z
+LAST-MODIFIED:20260421T183010Z
+UID:10011384-1785578400-1785585600@news.csun.edu
+SUMMARY:Children’s Swim Lessons
+DESCRIPTION:Parents\, set your children up for life by enrolling them in weekly 25-minute swim lessons\, no SRC membership or CSUN affiliation required! Your child can participate in some summer fun\, while learning an important skill. They’ll be able to confidently breathe and move through the water\, while you’ll get peace of mindthat they can play safely.   \n  \nRegister between Monday\, April 13 and Saturday\, July 18 at the SRC Front Desk or online!   \n  \nFive spots available per class. Parents/guardians must present a signed waiver for each child prior to the first class.  
+URL:https://news.csun.edu/event/childrens-swim-lessons-2/2026-08-01/
+LOCATION:Rec Pool\, Student Recreation Center\, University Student Union\, 18111 Nordhoff St.\, Northridge\, CA\, 91330-8449\, United States
+CATEGORIES:Student Recreation Center,University Student Union
+ATTACH;FMTTYPE=image/png:https://news.csun.edu/wp-content/uploads/2026/02/CAL-ChildrensSwim-SP26.png
+ORGANIZER;CN="USU Student Recreation Center":MAILTO:src@csun.edu
+GEO:34.240676354;-118.525553212
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Rec Pool Student Recreation Center University Student Union 18111 Nordhoff St. Northridge CA 91330-8449 United States;X-APPLE-RADIUS=500;X-TITLE=18111 Nordhoff St.:geo:-118.525553212,34.240676354
+END:VEVENT
+END:VCALENDAR
