@@ -1,12 +1,15 @@
 export { WidgetHeader } from "./WidgetHeader";
 export { KPI } from "./KPI";
-export { TodayClassesWidget } from "./TodayClassesWidget";
+export { ClassHelperWidget } from "./ClassHelperWidget";
+export { ClassHelperWidget as TodayClassesWidget } from "./ClassHelperWidget";
 export { DMNotificationsWidget } from "./DMNotificationsWidget";
 export { StickyNoteWidget } from "./StickyNoteWidget";
-export { CanvasAssignmentsWidget } from "./CanvasAssignmentsWidget";
+export { AssignmentTrackerWidget, AssignmentTrackerWidget as CanvasAssignmentsWidget } from "./AssignmentTrackerWidget";
 export { CampusEventTrackerWidget } from "./CampusEventTrackerWidget";
 export { CitationGeneratorWidget } from "./CitationGeneratorWidget";
 export { MarketplaceSuggestWidget } from "./MarketplaceSuggestWidget";
 export { PhotoPinWidget } from "./PhotoPinWidget";
 export * from "./WeatherWidget";
 export { SundialNewsWidget } from "./SundialNewsWidget";
+export { TorodachiWidget } from "./TorodachiWidget";
+export { WorkoutDeckWidget } from "./WorkoutDeckWidget";

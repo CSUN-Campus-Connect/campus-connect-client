@@ -5,6 +5,7 @@ import { Box, IconButton, Typography, Skeleton, Divider, Tooltip } from "@mui/ma
 import CloseIcon from "@mui/icons-material/Close";
 import NewspaperIcon from "@mui/icons-material/Newspaper";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import TextFieldsIcon from "@mui/icons-material/TextFields";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -25,12 +26,68 @@ interface SundialResponse {
   data: SundialArticle[];
 }
 
+// ─── Font Size Scale ──────────────────────────────────────────────────────────
+
+type FontSize = "default" | "large" | "xl";
+
+interface FontScale {
+  badge: string;
+  date: string;
+  smallTitle: string;
+  headlineTitle: string;
+  mastheadTitle: string;
+  mastheadSub: string;
+  mastheadDate: string;
+  tab: string;
+  storyCount: string;
+  footer: string;
+  headlineImg: number;
+}
+
+const FONT_SCALES: Record<FontSize, FontScale> = {
+  default: {
+    badge: "10px",
+    date: "11px",
+    smallTitle: "13px",
+    headlineTitle: "17px",
+    mastheadTitle: "26px",
+    mastheadSub: "10px",
+    mastheadDate: "9.5px",
+    tab: "9.5px",
+    storyCount: "10px",
+    footer: "9.5px",
+    headlineImg: 140,
+  },
+  large: {
+    badge: "12px",
+    date: "13px",
+    smallTitle: "15px",
+    headlineTitle: "20px",
+    mastheadTitle: "30px",
+    mastheadSub: "12px",
+    mastheadDate: "11px",
+    tab: "11px",
+    storyCount: "11px",
+    footer: "11px",
+    headlineImg: 160,
+  },
+  xl: {
+    badge: "14px",
+    date: "15px",
+    smallTitle: "17px",
+    headlineTitle: "24px",
+    mastheadTitle: "36px",
+    mastheadSub: "14px",
+    mastheadDate: "13px",
+    tab: "13px",
+    storyCount: "13px",
+    footer: "13px",
+    headlineImg: 190,
+  },
+};
+
 // ─── API ──────────────────────────────────────────────────────────────────────
 
-/**
- * Fetch all articles — used on initial load and when filter is "all".
- * Route: GET /api/v1/sundial
- */
 async function fetchAllArticles(signal: AbortSignal): Promise<SundialArticle[]> {
   const res = await fetch("/api/v1/sundial", { signal, cache: "no-store" });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -38,11 +95,6 @@ async function fetchAllArticles(signal: AbortSignal): Promise<SundialArticle[]> 
   return json.data;
 }
 
-/**
- * Fetch articles filtered by category using the date-range endpoint.
- * We use a wide range (2 years back → today) so it behaves like a category-only filter.
- * Route: GET /api/v1/sundial/queryByDateRange?rangeStart=...&rangeEnd=...&category=...
- */
 async function fetchByCategory(
   category: SundialCategory,
   signal: AbortSignal
@@ -131,12 +183,12 @@ const MastheadDivider = () => (
   </Box>
 );
 
-const CategoryBadge: React.FC<{ category: SundialCategory }> = ({ category }) => (
+const CategoryBadge: React.FC<{ category: SundialCategory; fontSize: string }> = ({ category, fontSize }) => (
   <Box
     component="span"
     sx={{
       display: "inline-block",
-      fontSize: "9px",
+      fontSize,
       fontWeight: 800,
       letterSpacing: "0.12em",
       textTransform: "uppercase",
@@ -150,7 +202,7 @@ const CategoryBadge: React.FC<{ category: SundialCategory }> = ({ category }) =>
   </Box>
 );
 
-const HeadlineArticle: React.FC<{ article: SundialArticle }> = ({ article }) => (
+const HeadlineArticle: React.FC<{ article: SundialArticle; scale: FontScale }> = ({ article, scale }) => (
   <Box
     component="a"
     href={article.link}
@@ -163,7 +215,7 @@ const HeadlineArticle: React.FC<{ article: SundialArticle }> = ({ article }) => 
       "&:hover .headline-title": { textDecoration: "underline", textDecorationColor: "#cc0000" },
     }}
   >
-    <CategoryBadge category={article.category} />
+    <CategoryBadge category={article.category} fontSize={scale.badge} />
     {article.image && (
       <Box
         component="img"
@@ -171,7 +223,7 @@ const HeadlineArticle: React.FC<{ article: SundialArticle }> = ({ article }) => 
         alt={article.title}
         sx={{
           width: "100%",
-          height: 120,
+          height: scale.headlineImg,
           objectFit: "cover",
           mt: 0.75,
           mb: 0.75,
@@ -187,7 +239,7 @@ const HeadlineArticle: React.FC<{ article: SundialArticle }> = ({ article }) => 
       className="headline-title"
       sx={{
         fontFamily: "'Playfair Display', 'Georgia', 'Times New Roman', serif",
-        fontSize: "15px",
+        fontSize: scale.headlineTitle,
         fontWeight: 700,
         lineHeight: 1.25,
         mt: 0.5,
@@ -200,7 +252,7 @@ const HeadlineArticle: React.FC<{ article: SundialArticle }> = ({ article }) => 
     <Typography
       sx={{
         fontFamily: "'IM Fell English', 'Georgia', serif",
-        fontSize: "10px",
+        fontSize: scale.date,
         color: "#777",
         mt: 0.25,
         fontStyle: "italic",
@@ -211,9 +263,10 @@ const HeadlineArticle: React.FC<{ article: SundialArticle }> = ({ article }) => 
   </Box>
 );
 
-const SmallArticle: React.FC<{ article: SundialArticle; showDivider?: boolean }> = ({
+const SmallArticle: React.FC<{ article: SundialArticle; showDivider?: boolean; scale: FontScale }> = ({
   article,
   showDivider = true,
+  scale,
 }) => (
   <>
     <Box
@@ -231,12 +284,12 @@ const SmallArticle: React.FC<{ article: SundialArticle; showDivider?: boolean }>
       }}
     >
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <CategoryBadge category={article.category} />
+        <CategoryBadge category={article.category} fontSize={scale.badge} />
         <Typography
           className="small-title"
           sx={{
             fontFamily: "'Playfair Display', 'Georgia', serif",
-            fontSize: "11.5px",
+            fontSize: scale.smallTitle,
             fontWeight: 600,
             lineHeight: 1.3,
             mt: 0.3,
@@ -253,7 +306,7 @@ const SmallArticle: React.FC<{ article: SundialArticle; showDivider?: boolean }>
         <Typography
           sx={{
             fontFamily: "Georgia, serif",
-            fontSize: "9.5px",
+            fontSize: scale.date,
             color: "#888",
             mt: 0.25,
             fontStyle: "italic",
@@ -268,8 +321,8 @@ const SmallArticle: React.FC<{ article: SundialArticle; showDivider?: boolean }>
           src={article.image}
           alt=""
           sx={{
-            width: 52,
-            height: 52,
+            width: 60,
+            height: 60,
             objectFit: "cover",
             flexShrink: 0,
             filter: "grayscale(15%)",
@@ -284,6 +337,35 @@ const SmallArticle: React.FC<{ article: SundialArticle; showDivider?: boolean }>
   </>
 );
 
+// ─── Font Size Cycler Button ───────────────────────────────────────────────────
+
+const FontSizeCycler: React.FC<{ size: FontSize; onChange: (s: FontSize) => void }> = ({ size, onChange }) => {
+  const labels: Record<FontSize, string> = { default: "A", large: "A+", xl: "A++" };
+  const next: Record<FontSize, FontSize> = { default: "large", large: "xl", xl: "default" };
+  return (
+    <Tooltip title={`Text size: ${size} (click to change)`}>
+      <IconButton
+        size="small"
+        onClick={() => onChange(next[size])}
+        sx={{
+          p: 0.25,
+          fontSize: "10px",
+          fontWeight: 700,
+          fontFamily: "Georgia, serif",
+          minWidth: 22,
+          height: 22,
+          color: size !== "default" ? "#cc0000" : "inherit",
+        }}
+        aria-label="cycle text size"
+      >
+        <Box component="span" sx={{ fontSize: size === "xl" ? "13px" : size === "large" ? "11px" : "9px", fontWeight: 900, lineHeight: 1 }}>
+          A
+        </Box>
+      </IconButton>
+    </Tooltip>
+  );
+};
+
 // ─── Main Widget ───────────────────────────────────────────────────────────────
 
 interface SundialNewsWidgetProps {
@@ -297,8 +379,10 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
   const [loading, setLoading] = React.useState(true);
   const [isFallback, setIsFallback] = React.useState(false);
   const [activeFilter, setActiveFilter] = React.useState<FilterTab>("all");
-  // Increment to trigger a re-fetch manually via the refresh button
   const [refreshKey, setRefreshKey] = React.useState(0);
+  const [fontSize, setFontSize] = React.useState<FontSize>("default");
+
+  const scale = FONT_SCALES[fontSize];
 
   React.useEffect(() => {
     const controller = new AbortController();
@@ -316,7 +400,6 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
         setArticles(data);
         setIsFallback(false);
       } catch (err: any) {
-        // Don't show fallback if the request was intentionally aborted on unmount
         if (err?.name === "AbortError") return;
         setArticles(
           activeFilter === "all"
@@ -334,7 +417,6 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
       controller.abort();
       clearTimeout(timeout);
     };
-    // Re-run whenever the filter tab or refresh button is pressed
   }, [activeFilter, refreshKey]);
 
   const headline = articles[0] ?? null;
@@ -371,7 +453,7 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
           cursor: "move",
           bgcolor: "#fff",
           borderBottom: "3px double #111",
-          px: 1.25,
+          px: 1.5,
           pt: 1,
           pb: 0.5,
         }}
@@ -381,7 +463,7 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
           <Typography
             sx={{
               fontFamily: "Georgia, 'Times New Roman', serif",
-              fontSize: "9px",
+              fontSize: scale.storyCount,
               letterSpacing: "0.14em",
               color: "#666",
               textTransform: "uppercase",
@@ -389,7 +471,8 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
           >
             {isFallback ? "★ Toro Connect Launch Edition ★" : `${articles.length} stories`}
           </Typography>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <FontSizeCycler size={fontSize} onChange={setFontSize} />
             <Tooltip title="Refresh articles">
               <IconButton
                 size="small"
@@ -397,12 +480,12 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
                 sx={{ p: 0.25 }}
                 aria-label="refresh sundial articles"
               >
-                <RefreshIcon sx={{ fontSize: 13 }} />
+                <RefreshIcon sx={{ fontSize: 15 }} />
               </IconButton>
             </Tooltip>
             {onDelete && (
               <IconButton size="small" onClick={onDelete} sx={{ p: 0.25 }} aria-label="close sundial widget">
-                <CloseIcon sx={{ fontSize: 14 }} />
+                <CloseIcon sx={{ fontSize: 15 }} />
               </IconButton>
             )}
           </Box>
@@ -413,7 +496,7 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
           <Typography
             sx={{
               fontFamily: "'Playfair Display', 'UnifrakturMaguntia', Georgia, 'Times New Roman', serif",
-              fontSize: "22px",
+              fontSize: scale.mastheadTitle,
               fontWeight: 900,
               color: "#111",
               letterSpacing: "-0.02em",
@@ -426,7 +509,7 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
           <Typography
             sx={{
               fontFamily: "Georgia, serif",
-              fontSize: "8.5px",
+              fontSize: scale.mastheadSub,
               color: "#555",
               fontStyle: "italic",
               letterSpacing: "0.04em",
@@ -437,7 +520,7 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
           <Typography
             sx={{
               fontFamily: "Georgia, serif",
-              fontSize: "8px",
+              fontSize: scale.mastheadDate,
               color: "#888",
               mt: 0.25,
             }}
@@ -454,8 +537,8 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
               onClick={() => setActiveFilter(tab)}
               sx={{
                 px: 0.75,
-                py: 0.2,
-                fontSize: "8.5px",
+                py: 0.3,
+                fontSize: scale.tab,
                 fontWeight: 700,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
@@ -481,7 +564,7 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
         sx={{
           flex: 1,
           overflowY: "auto",
-          px: 1.25,
+          px: 1.5,
           py: 1,
           "&::-webkit-scrollbar": { width: 5 },
           "&::-webkit-scrollbar-thumb": { bgcolor: "#c8b99a", borderRadius: 1 },
@@ -489,31 +572,30 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
       >
         {loading ? (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            <Skeleton variant="rectangular" height={14} width="60%" sx={{ bgcolor: "#e8dcc8" }} />
-            <Skeleton variant="rectangular" height={90} sx={{ bgcolor: "#e8dcc8" }} />
-            <Skeleton variant="rectangular" height={12} width="40%" sx={{ bgcolor: "#e8dcc8" }} />
+            <Skeleton variant="rectangular" height={16} width="60%" sx={{ bgcolor: "#e8dcc8" }} />
+            <Skeleton variant="rectangular" height={100} sx={{ bgcolor: "#e8dcc8" }} />
+            <Skeleton variant="rectangular" height={14} width="40%" sx={{ bgcolor: "#e8dcc8" }} />
             <Divider sx={{ borderColor: "#ddd" }} />
             {[1, 2, 3].map((i) => (
               <Box key={i} sx={{ display: "flex", gap: 1, py: 0.5 }}>
                 <Box sx={{ flex: 1 }}>
-                  <Skeleton variant="rectangular" height={10} width="50%" sx={{ bgcolor: "#e8dcc8", mb: 0.5 }} />
-                  <Skeleton variant="rectangular" height={10} sx={{ bgcolor: "#e8dcc8" }} />
-                  <Skeleton variant="rectangular" height={10} width="80%" sx={{ bgcolor: "#e8dcc8", mt: 0.5 }} />
+                  <Skeleton variant="rectangular" height={12} width="50%" sx={{ bgcolor: "#e8dcc8", mb: 0.5 }} />
+                  <Skeleton variant="rectangular" height={12} sx={{ bgcolor: "#e8dcc8" }} />
+                  <Skeleton variant="rectangular" height={12} width="80%" sx={{ bgcolor: "#e8dcc8", mt: 0.5 }} />
                 </Box>
-                <Skeleton variant="rectangular" width={52} height={52} sx={{ bgcolor: "#e8dcc8" }} />
+                <Skeleton variant="rectangular" width={60} height={60} sx={{ bgcolor: "#e8dcc8" }} />
               </Box>
             ))}
           </Box>
         ) : articles.length === 0 ? (
           <Box sx={{ textAlign: "center", py: 4, color: "#999" }}>
             <NewspaperIcon sx={{ fontSize: 36, opacity: 0.3 }} />
-            <Typography sx={{ fontFamily: "Georgia, serif", fontSize: 12, fontStyle: "italic", mt: 1 }}>
+            <Typography sx={{ fontFamily: "Georgia, serif", fontSize: scale.smallTitle, fontStyle: "italic", mt: 1 }}>
               No articles in this section.
             </Typography>
           </Box>
         ) : (
           <>
-            {/* Fallback notice */}
             {isFallback && (
               <Box
                 sx={{
@@ -527,7 +609,7 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
                 <Typography
                   sx={{
                     fontFamily: "Georgia, serif",
-                    fontSize: "9px",
+                    fontSize: scale.date,
                     color: "#7a5c00",
                     fontStyle: "italic",
                     textAlign: "center",
@@ -538,20 +620,19 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
               </Box>
             )}
 
-            {/* Headline story */}
             {headline && (
               <>
-                <HeadlineArticle article={headline} />
+                <HeadlineArticle article={headline} scale={scale} />
                 {rest.length > 0 && <MastheadDivider />}
               </>
             )}
 
-            {/* Rest of articles */}
             {rest.map((article, i) => (
               <SmallArticle
                 key={article.id}
                 article={article}
                 showDivider={i < rest.length - 1}
+                scale={scale}
               />
             ))}
           </>
@@ -562,7 +643,7 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
       <Box
         sx={{
           borderTop: "2px solid #111",
-          px: 1.25,
+          px: 1.5,
           py: 0.5,
           bgcolor: "#111",
           display: "flex",
@@ -573,7 +654,7 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
         <Typography
           sx={{
             fontFamily: "Georgia, serif",
-            fontSize: "8.5px",
+            fontSize: scale.footer,
             color: "#ccc",
             fontStyle: "italic",
           }}
@@ -583,7 +664,7 @@ export const SundialNewsWidget: React.FC<SundialNewsWidgetProps> = ({ onDelete }
         <Typography
           sx={{
             fontFamily: "Georgia, serif",
-            fontSize: "8px",
+            fontSize: scale.footer,
             color: "#cc4444",
             letterSpacing: "0.08em",
             textTransform: "uppercase",
