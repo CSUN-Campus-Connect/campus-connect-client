@@ -12,8 +12,8 @@ import type {
   Comment,
 } from "../types/feed.types";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
-const API  = `${BASE}/posts`;
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API  = `${BASE}/api/v1/posts`;
 
 /** Shared fetch wrapper — attaches JWT from localStorage, throws on non-2xx */
 async function req<T>(path: string, options: RequestInit = {}): Promise<T> {

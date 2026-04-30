@@ -16,7 +16,7 @@ import type {
 } from '../types';
 
 // Next.js uses NEXT_PUBLIC_ prefix for client-side env vars (not VITE_API_URL)
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
 const API  = `${BASE}/api/v1/posts`;
 
 /** Shared fetch wrapper — attaches JWT from localStorage, throws on non-2xx */
