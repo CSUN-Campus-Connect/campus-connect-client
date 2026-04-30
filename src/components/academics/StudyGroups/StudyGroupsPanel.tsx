@@ -997,12 +997,8 @@ export default function StudyGroupsPanel() {
     <Box>
       <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "center" }} spacing={1.5} sx={{ mb: 2.5 }}>
         <Box>
-          <Typography fontWeight={950} sx={{ color: "#fff", fontSize: "1.15rem", lineHeight: 1.2 }}>Study Groups</Typography>
-          {/* BACKEND: groups.length is derived from local state.
-              Once API fetching is live, this should come from the total count
-              returned by the API (e.g., response headers or a `total` field),
-              not from the length of the currently loaded array (which may be paginated). */}
-          <Typography sx={{ color: "rgba(255,255,255,0.55)", fontSize: "0.82rem", mt: 0.25 }}>
+          <Typography fontWeight={950} sx={{ color: "#111", fontSize: "1.15rem", lineHeight: 1.2 }}>Study Groups</Typography>
+          <Typography sx={{ color: "#999", fontSize: "0.82rem", mt: 0.25 }}>
             {groups.length} active · join with your school email
           </Typography>
         </Box>
@@ -1014,37 +1010,28 @@ export default function StudyGroupsPanel() {
           BACKEND: Debounce searchQuery (300ms) before firing an API search request.
           Pass filterMode and tagFilters as query params for server-side filtering:
           GET /api/study-groups?q=calculus&mode=virtual&tags=Math,STEM&page=1&limit=20 */}
-      <Paper elevation={0} sx={{ borderRadius: 3, p: 1.75, mb: 2.5, bgcolor: "rgba(0,0,0,0.20)", border: "1px solid rgba(255,255,255,0.12)", backdropFilter: "blur(12px)" }}>
+      <Paper elevation={0} sx={{ borderRadius: 3, p: 1.75, mb: 2.5, bgcolor: "#fff", border: "1.5px solid #f0f0f3", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
         <TextField fullWidth size="small" placeholder="Search by course, topic, or keyword…"
           value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-          InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 15, color: "rgba(255,255,255,0.45)" }} /></InputAdornment> }}
-          sx={{ mb: 1.25, "& .MuiOutlinedInput-root": { bgcolor: "rgba(255,255,255,0.08)", color: "#fff", borderRadius: 2, "& fieldset": { borderColor: "rgba(255,255,255,0.18)" } }, "& .MuiInputBase-input::placeholder": { color: "rgba(255,255,255,0.45)", opacity: 1 } }}
+          InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 15, color: "#b0b8c4" }} /></InputAdornment> }}
+          sx={{ mb: 1.25, "& .MuiOutlinedInput-root": { bgcolor: "#f8f9fb", color: "#222", borderRadius: 2, "& fieldset": { borderColor: "#e8eaed" }, "&:hover fieldset": { borderColor: "#A80532" }, "&.Mui-focused fieldset": { borderColor: "#A80532" } }, "& .MuiInputBase-input::placeholder": { color: "#b0b8c4", opacity: 1 } }}
         />
         <Stack direction="row" spacing={0.6} flexWrap="wrap" sx={{ gap: 0.6 }}>
-          {/* BACKEND: filterMode (all/virtual/in-person) maps to:
-              GET /api/study-groups?mode=virtual or ?mode=in-person
-              which translates to WHERE is_virtual = true/false in the query. */}
           {(["all", "virtual", "in-person"] as const).map((f) => (
             <Chip key={f} label={f === "all" ? "All" : f === "virtual" ? "Virtual" : "In-Person"} size="small" clickable onClick={() => setFilterMode(f)}
-              sx={{ fontWeight: 900, fontSize: "0.68rem", bgcolor: filterMode === f ? "#fff" : "rgba(255,255,255,0.10)", color: filterMode === f ? "#A80532" : "rgba(255,255,255,0.72)", "&:hover": { bgcolor: filterMode === f ? "#fff" : "rgba(255,255,255,0.18)" } }} />
+              sx={{ fontWeight: 900, fontSize: "0.68rem", bgcolor: filterMode === f ? "#A80532" : "#fff", color: filterMode === f ? "#fff" : "#666", border: filterMode === f ? "none" : "1.5px solid #e8eaed", "&:hover": { bgcolor: filterMode === f ? "#8e0229" : "#f5f5f7" }, boxShadow: filterMode === f ? "0 2px 8px rgba(168,5,50,0.22)" : "none" }} />
           ))}
 
-          {/* BACKEND: "Private" tag filter is only relevant on the "My Groups" tab.
-              Maps to: GET /api/study-groups/mine?visibility=private */}
           {subTab === 1 && (
             <Chip
               label={SPECIAL_PRIVATE_TAG}
               size="small"
               clickable
               onClick={() => toggleTagFilter(SPECIAL_PRIVATE_TAG)}
-              sx={{ fontWeight: 900, fontSize: "0.68rem", bgcolor: tagFilters.includes(SPECIAL_PRIVATE_TAG) ? "#fff" : "rgba(255,255,255,0.10)", color: tagFilters.includes(SPECIAL_PRIVATE_TAG) ? "#A80532" : "rgba(255,255,255,0.72)", "&:hover": { bgcolor: tagFilters.includes(SPECIAL_PRIVATE_TAG) ? "#fff" : "rgba(255,255,255,0.18)" } }}
+              sx={{ fontWeight: 900, fontSize: "0.68rem", bgcolor: tagFilters.includes(SPECIAL_PRIVATE_TAG) ? "#A80532" : "#fff", color: tagFilters.includes(SPECIAL_PRIVATE_TAG) ? "#fff" : "#666", border: tagFilters.includes(SPECIAL_PRIVATE_TAG) ? "none" : "1.5px solid #e8eaed", "&:hover": { bgcolor: tagFilters.includes(SPECIAL_PRIVATE_TAG) ? "#8e0229" : "#f5f5f7" }, boxShadow: tagFilters.includes(SPECIAL_PRIVATE_TAG) ? "0 2px 8px rgba(168,5,50,0.22)" : "none" }}
             />
           )}
 
-          {/* BACKEND: Topic tag filter chips map to:
-              GET /api/study-groups?tags=Math,STEM
-              which translates to WHERE tags && ARRAY['Math','STEM'] in Postgres
-              (array overlap operator). Fetch the tag list dynamically from the DB. */}
           {TOPIC_TAGS.map((t) => (
             <Chip
               key={t}
@@ -1052,19 +1039,19 @@ export default function StudyGroupsPanel() {
               size="small"
               clickable
               onClick={() => toggleTagFilter(t)}
-              sx={{ fontWeight: 900, fontSize: "0.66rem", bgcolor: tagFilters.includes(t) ? "#fff" : "rgba(255,255,255,0.10)", color: tagFilters.includes(t) ? "#A80532" : "rgba(255,255,255,0.72)", "&:hover": { bgcolor: tagFilters.includes(t) ? "#fff" : "rgba(255,255,255,0.18)" } }}
+              sx={{ fontWeight: 900, fontSize: "0.66rem", bgcolor: tagFilters.includes(t) ? "#A80532" : "#fff", color: tagFilters.includes(t) ? "#fff" : "#666", border: tagFilters.includes(t) ? "none" : "1.5px solid #e8eaed", "&:hover": { bgcolor: tagFilters.includes(t) ? "#8e0229" : "#f5f5f7" }, boxShadow: tagFilters.includes(t) ? "0 2px 8px rgba(168,5,50,0.22)" : "none" }}
             />
           ))}
         </Stack>
       </Paper>
 
       {displayed.length === 0 ? (
-        <Paper elevation={0} sx={{ p: 4, borderRadius: 4, bgcolor: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.14)", textAlign: "center" }}>
-          <GroupsIcon sx={{ fontSize: 38, color: "rgba(255,255,255,0.28)", mb: 1.5 }} />
-          <Typography sx={{ color: "rgba(255,255,255,0.80)", fontWeight: 900 }}>
+        <Paper elevation={0} sx={{ p: 4, borderRadius: 4, bgcolor: "#fff", border: "1.5px solid #f0f0f3", textAlign: "center" }}>
+          <GroupsIcon sx={{ fontSize: 38, color: "#e0e0e0", mb: 1.5 }} />
+          <Typography sx={{ color: "#333", fontWeight: 900 }}>
             {subTab === 1 ? "You haven't joined any groups yet." : "No study groups found."}
           </Typography>
-          <Typography sx={{ color: "rgba(255,255,255,0.45)", mt: 0.5, fontSize: "0.85rem" }}>
+          <Typography sx={{ color: "#999", mt: 0.5, fontSize: "0.85rem" }}>
             {subTab === 1 ? "Browse all groups or create your own!" : "Try clearing your search or create the first one!"}
           </Typography>
         </Paper>

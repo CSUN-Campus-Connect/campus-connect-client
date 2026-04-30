@@ -17,9 +17,11 @@ import {
   Fab,
   Stack,
   Divider,
+  IconButton,
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
+import CloseIcon from "@mui/icons-material/Close";
 import { GridStack } from "gridstack";
 import "gridstack/dist/gridstack.min.css";
 
@@ -511,7 +513,10 @@ const name = profile?.first + " " + profile?.last;
           position: "relative",
           flexGrow: 1,
           p: 3,
-          width: { md: `calc(100% - ${drawerWidth}px)` },
+          ml: `${drawerWidth}px`,
+          width: `calc(100% - ${drawerWidth}px)`,
+          transition: "margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1), width 0.28s cubic-bezier(0.4, 0, 0.2, 1)",
+          minWidth: 0,
         }}
       >
         <NewAccountSetup />
@@ -529,7 +534,17 @@ const name = profile?.first + " " + profile?.last;
 
       {/* Add Widget Library */}
       <Dialog open={addOpen} onClose={closeLibrary} fullWidth maxWidth="sm">
-        <DialogTitle>Add a widget</DialogTitle>
+        <DialogTitle sx={{ pr: 6 }}>
+          Add a widget
+          <IconButton
+            onClick={closeLibrary}
+            size="small"
+            sx={{ position: "absolute", top: 8, right: 8 }}
+            aria-label="close"
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
         <DialogContent>
           <Stack spacing={1.5} mt={1}>
             <Button
@@ -612,7 +627,7 @@ const name = profile?.first + " " + profile?.last;
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeLibrary}>Close</Button>
+          <Button onClick={closeLibrary}>Done</Button>
         </DialogActions>
       </Dialog>
     </Box>
