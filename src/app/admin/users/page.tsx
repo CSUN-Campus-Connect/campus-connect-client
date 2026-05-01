@@ -31,6 +31,7 @@ export default function UsersPage() {
   const [typeFilter, setTypeFilter] = useState("");
   const [verifiedFilter, setVerifiedFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
+  const [actionMenu, setActionMenu] = useState<string | null>(null);
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
   const headers = { Authorization: `Bearer ${token}` };
@@ -68,11 +69,26 @@ export default function UsersPage() {
   const handleRoleFilter = (val: string) => { setRoleFilter(val); applyFilters(allUsers, typeFilter, verifiedFilter, val, 1); };
   const clearFilters = () => { setTypeFilter(""); setVerifiedFilter(""); setRoleFilter(""); applyFilters(allUsers, "", "", "", 1); };
 
+  const handleBan = async (u: UserRow) => {
+    const reason = prompt(`Ban ${u.firstName} ${u.lastName}?\n\nEnter reason:`);
+    if (reason === null) return;
+    try {
+      await api.post(`/api/v1/admin/users/${u.id}/suspend`, { reason }, { headers });
+      fetchUsers();
+    } catch {}
+    setActionMenu(null);
+  };
+
+  const handleEmail = (u: UserRow) => {
+    window.location.href = `mailto:${u.email}`;
+    setActionMenu(null);
+  };
+
   const hasActiveFilters = typeFilter || verifiedFilter || roleFilter;
   const uniqueRoles = Array.from(new Set(allUsers.flatMap((u) => u.roles.map((r) => r.name)))).sort();
 
   return (
-    <div>
+    <div onClick={() => setActionMenu(null)}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
         <div>
           <h1 style={{ fontSize: "22px", fontWeight: 600, color: t.textPrimary, marginBottom: "4px" }}>Users</h1>
@@ -124,11 +140,12 @@ export default function UsersPage() {
                   <th style={t.thStyle}>roles</th>
                   <th style={t.thStyle}>verified</th>
                   <th style={t.thStyle}>joined</th>
+                  <th style={t.thStyle}></th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((u) => (
-                  <tr key={u.id}>
+                  <tr key={u.id} style={{ borderBottom: `1px solid ${t.border}` }}>
                     <td style={t.tdStyle}>
                       <Link href={`/admin/users/${u.id}`} style={{ color: t.textPrimary, textDecoration: "none", fontWeight: 500 }}>
                         {u.firstName} {u.lastName}
@@ -147,6 +164,40 @@ export default function UsersPage() {
                       <span style={{ color: u.isVerified ? t.success : t.accentLight }}>{u.isVerified ? "yes" : "no"}</span>
                     </td>
                     <td style={{ ...t.tdStyle, color: t.textMuted }}>{new Date(u.createdAt).toLocaleDateString()}</td>
+                    <td style={{ ...t.tdStyle, position: "relative" }} onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => setActionMenu(actionMenu === u.id ? null : u.id)}
+                        style={{ ...t.btnSecondary, fontFamily: t.font, fontSize: "11px", padding: "3px 10px" }}
+                      >
+                        actions ▾
+                      </button>
+                      {actionMenu === u.id && (
+                        <div style={{
+                          position: "absolute", right: 0, top: "100%", zIndex: 20,
+                          background: t.bgCard, border: `1px solid ${t.border}`,
+                          borderRadius: "6px", boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                          minWidth: "160px", overflow: "hidden",
+                        }}>
+                          <Link href={`/admin/users/${u.id}`} style={{ display: "block", padding: "9px 14px", fontSize: "12px", color: t.textPrimary, textDecoration: "none", borderBottom: `1px solid ${t.border}` }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = t.bgHover)}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
+                            view profile
+                          </Link>
+                          <button onClick={() => handleEmail(u)} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 14px", fontSize: "12px", color: t.textPrimary, background: "none", border: "none", borderBottom: `1px solid ${t.border}`, cursor: "pointer", fontFamily: t.font }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = t.bgHover)}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
+                            send email
+                          </button>
+                          {hasPermission(permissions, "users:ban") && (
+                            <button onClick={() => handleBan(u)} style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 14px", fontSize: "12px", color: t.error, background: "none", border: "none", cursor: "pointer", fontFamily: t.font }}
+                              onMouseEnter={(e) => (e.currentTarget.style.background = t.errorBg)}
+                              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
+                              ban user
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
