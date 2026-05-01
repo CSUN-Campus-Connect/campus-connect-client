@@ -19,6 +19,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Box, Button, Chip, Typography } from "@mui/material";
 import type { Club } from "./temp(mockdata)/clubs.data";
 import { btnMaroon } from "./ClubsStates";
@@ -35,6 +36,7 @@ interface FlipClubCardProps {
 export default function FlipClubCard({ club, isMember = false, onLeaveSuccess }: FlipClubCardProps) {
   const [flipped, setFlipped] = React.useState(false);
   const [hovered, setHovered] = React.useState(false);
+  const router = useRouter();
 
   const initials = React.useMemo(() => {
     const parts = (club.name ?? "").split(" ").filter(Boolean);
@@ -72,9 +74,9 @@ export default function FlipClubCard({ club, isMember = false, onLeaveSuccess }:
 
   return (
     <Box
-      onClick={() => setFlipped((v) => !v)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={() => setFlipped((v) => !v)}
       sx={{
         position: "relative",
         height: 300,
@@ -92,9 +94,10 @@ export default function FlipClubCard({ club, isMember = false, onLeaveSuccess }:
           transition: "transform 540ms cubic-bezier(0.2, 0.8, 0.2, 1)",
           transform: flipped ? "rotateY(180deg)" : hovered ? "rotateY(0deg) translateY(-4px)" : "rotateY(0deg)",
           borderRadius: "20px",
+          zIndex: 1,
           boxShadow: hovered
-            ? "0 22px 60px rgba(255,60,10,0.28), 0 8px 24px rgba(0,0,0,0.4)"
-            : "0 10px 35px rgba(0,0,0,0.35)",
+            ? "0 18px 50px rgba(63, 63, 63, 0.22)"
+            : "0 6px 24px rgba(27, 27, 27, 0.12)",
         }}
       >
         {/* ── FRONT FACE ──────────────────────────────────────────────── */}
@@ -106,9 +109,14 @@ export default function FlipClubCard({ club, isMember = false, onLeaveSuccess }:
             WebkitBackfaceVisibility: "hidden",
             borderRadius: "20px",
             overflow: "hidden",
-            bgcolor: "rgba(255,255,255,0.95)",
+            bgcolor: "#ffffff",
+            border: `4px solid ${catColor}`,
+            cursor: "pointer",
+            pointerEvents: flipped ? "none" : "auto",
           }}
         >
+          {/* Card content */}
+          <Box sx={{ position: "relative", zIndex: 1, height: "100%" }}>
           {/* Banner */}
           <Box
             sx={{
@@ -226,7 +234,7 @@ export default function FlipClubCard({ club, isMember = false, onLeaveSuccess }:
               sx={{
                 fontSize: 17,
                 fontWeight: 900,
-                color: "#1a0408",
+                color: "#1a1a1a",
                 lineHeight: 1.2,
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -239,7 +247,7 @@ export default function FlipClubCard({ club, isMember = false, onLeaveSuccess }:
               sx={{
                 mt: 0.5,
                 fontSize: 13,
-                color: "rgba(45,16,18,0.65)",
+                color: "rgba(80,80,80,0.85)",
                 lineHeight: 1.4,
                 overflow: "hidden",
                 display: "-webkit-box",
@@ -250,6 +258,7 @@ export default function FlipClubCard({ club, isMember = false, onLeaveSuccess }:
               {club.tagline ?? ""}
             </Typography>
           </Box>
+          </Box> {/* end content wrapper */}
         </Box>
 
         {/* ── BACK FACE ───────────────────────────────────────────────── */}
@@ -262,9 +271,14 @@ export default function FlipClubCard({ club, isMember = false, onLeaveSuccess }:
             transform: "rotateY(180deg)",
             borderRadius: "20px",
             overflow: "hidden",
-            bgcolor: "rgba(255,255,255,0.95)",
+            bgcolor: "#ffffff",
+            border: `4px solid ${catColor}`,
+            cursor: "pointer",
+            pointerEvents: flipped ? "auto" : "none",
           }}
         >
+          {/* Back face content */}
+          <Box sx={{ position: "relative", zIndex: 1, height: "100%" }}>
           <Box
             sx={{
               p: 2.4,
@@ -274,14 +288,14 @@ export default function FlipClubCard({ club, isMember = false, onLeaveSuccess }:
               boxSizing: "border-box",
             }}
           >
-            <Typography sx={{ fontSize: 17, fontWeight: 900, color: "#1a0408", lineHeight: 1.25 }}>
+            <Typography sx={{ fontSize: 17, fontWeight: 900, color: "#1a1a1a", lineHeight: 1.25 }}>
               {club.card?.headline ?? club.name}
             </Typography>
             <Typography
               sx={{
                 mt: 1,
                 fontSize: 13,
-                color: "rgba(45,16,18,0.72)",
+                color: "rgba(60,60,60,0.85)",
                 lineHeight: 1.55,
                 overflow: "hidden",
                 display: "-webkit-box",
@@ -303,9 +317,9 @@ export default function FlipClubCard({ club, isMember = false, onLeaveSuccess }:
                     sx={{
                       fontSize: 11,
                       fontWeight: 800,
-                      bgcolor: "rgba(180,0,46,0.09)",
-                      color: "#B4002E",
-                      border: "1px solid rgba(180,0,46,0.18)",
+                      bgcolor: catColor.replace("0.85)", "0.10)"),
+                      color: catColor.replace("0.85)", "1)"),
+                      border: `1px solid ${catColor.replace("0.85)", "0.30)")}`,
                       height: 22,
                     }}
                   />
@@ -326,11 +340,14 @@ export default function FlipClubCard({ club, isMember = false, onLeaveSuccess }:
                 flexWrap: "wrap",
               }}
             >
-              <Typography sx={{ fontSize: 11, color: "rgba(45,16,18,0.45)", fontWeight: 700 }}>
+              <Typography sx={{ fontSize: 11, color: "rgba(100,100,100,0.55)", fontWeight: 700 }}>
                 Tap to flip back
               </Typography>
 
-              <Box sx={{ display: "flex", gap: 0.8, alignItems: "center" }}>
+              <Box
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                sx={{ display: "flex", gap: 0.8, alignItems: "center" }}
+              >
                 {/* Leave button — only shown when user is a member */}
                 {isMember && (
                   <LeaveClubDialog
@@ -342,21 +359,28 @@ export default function FlipClubCard({ club, isMember = false, onLeaveSuccess }:
                 )}
 
                 <Button
-                  component={Link}
-                  href={href}
-                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                  onClick={(e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    router.push(href);
+                  }}
                   sx={{
                     ...btnMaroon,
                     fontSize: 13,
                     py: 0.8,
                     px: 2,
+                    bgcolor: catColor.replace("0.85)", "1)"),
+                    "&:hover": {
+                      bgcolor: catColor.replace("0.85)", "1)"),
+                      filter: "brightness(1.15)",
+                    },
                   }}
                 >
                   View club →
                 </Button>
               </Box>
             </Box>
-          </Box>
+          </Box> {/* end inner content */}
+          </Box> {/* end back content wrapper */}
         </Box>
       </Box>
     </Box>
