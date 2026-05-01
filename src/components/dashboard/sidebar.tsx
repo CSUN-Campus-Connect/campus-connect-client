@@ -75,6 +75,7 @@ type SidebarProps = {
 
 export default function DashboardSidebar({ onLogout, onWidthChange }: SidebarProps) {
   const pathname = usePathname();
+  const [isHydrated, setIsHydrated] = React.useState(false);
   const [profile] = React.useState<Profile>(loadProfile());
   const name = `${profile?.first ?? ""} ${profile?.last ?? ""}`.trim();
 
@@ -82,6 +83,10 @@ export default function DashboardSidebar({ onLogout, onWidthChange }: SidebarPro
   const width = collapsed ? 0 : EXPANDED_WIDTH;
 
   const pointerY = useMotionValue<number>(Infinity);
+
+  React.useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   React.useEffect(() => {
     onWidthChange?.(width);
@@ -194,7 +199,7 @@ export default function DashboardSidebar({ onLogout, onWidthChange }: SidebarPro
                 }}
               >
                 <Box textAlign="left">
-                  <Typography variant="body2" fontWeight={700}>{name || "Profile"}</Typography>
+                  <Typography variant="body2" fontWeight={700}>{isHydrated ? (name || "Profile") : "Profile"}</Typography>
                   <Typography variant="caption" sx={{ opacity: 0.75 }}>View Profile</Typography>
                 </Box>
               </Button>
