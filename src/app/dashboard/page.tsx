@@ -13,7 +13,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import { GridStack } from "gridstack";
-import "gridstack/dist/gridstack.min.css";
+//import "gridstack/dist/gridstack.min.css";
 
 import NewAccountSetup from "../../components/dashboard/accSetup";
 import CalendarCard from "../../components/widgets/CalendarCard";
