@@ -33,9 +33,6 @@ const categoryIcons: Record<string, React.ReactNode> = {
 };
 
 const quickStats = [
-  // BACKEND TODO: replace static values with a GET /api/src/stats endpoint
-  // that returns { hoursToday, memberCount, weeklyClasses, sportClubCount }
-  // so these update dynamically each semester.
   { icon: <AccessTimeIcon sx={{ fontSize: 18 }} />, label: "Open Today", value: "6am – 10pm" },
   { icon: <PeopleIcon sx={{ fontSize: 18 }} />, label: "Members", value: "12,000+" },
   { icon: <EventIcon sx={{ fontSize: 18 }} />, label: "Weekly Classes", value: "80+" },
@@ -103,57 +100,79 @@ export default function StudentRecCenterHomePage() {
         <Header value="" />
         <Box sx={{ height: "1px", bgcolor: "rgba(168,5,50,0.6)", mx: 2 }} />
 
-        <Container maxWidth="xl" sx={{ pt: 2, pb: 2 }}>
-          {/* ── HERO ── */}
-          <Box
-            sx={{
-              position: "relative", borderRadius: 5, overflow: "hidden",
-              height: { xs: 280, sm: 360, md: 480 }, mb: 2,
-              boxShadow: "0 20px 60px rgba(0,0,0,0.3)", isolation: "isolate", transform: "translateZ(0)",
-            }}
-          >
-            <video src="../videos/hero-src.mp4" autoPlay muted loop playsInline
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "blur(20px) brightness(0.65) saturate(0.85)", transform: "scale(1.1) translateZ(0)", willChange: "transform" }}
-            />
-            <video src="../videos/hero-src.mp4" autoPlay muted loop playsInline
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", transform: "translateZ(0)", willChange: "transform" }}
-            />
-            <Box sx={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(168,5,50,0.6) 0%, transparent 50%, rgba(0,0,0,0.4) 100%)" }} />
-            <Box sx={{ position: "absolute", bottom: { xs: 20, md: 36 }, left: { xs: 20, md: 40 } }}>
-              <Typography sx={{ fontSize: { xs: 11, sm: 12 }, fontWeight: 700, letterSpacing: 4, textTransform: "uppercase", color: "rgba(255,255,255,0.7)", mb: 0.5 }}>
-                California State University Northridge
-              </Typography>
-              <Typography sx={{ fontSize: { xs: 36, sm: 52, md: 72 }, fontWeight: 900, lineHeight: 0.9, letterSpacing: -1, color: "transparent", WebkitTextStroke: { xs: "2px rgba(255,255,255,0.9)", md: "2.5px rgba(255,255,255,0.9)" }, textShadow: "0 4px 20px rgba(0,0,0,0.4)" }}>
-                CSUN
-              </Typography>
-              <Typography sx={{ fontSize: { xs: 18, sm: 22, md: 28 }, fontWeight: 900, letterSpacing: 6, color: "#fff", textShadow: "0 2px 12px rgba(0,0,0,0.5)" }}>
-                SRC
-              </Typography>
-              {/* ── Real open/closed badge — computed from actual SRC hours ── */}
-              <Box sx={{ mt: 1.5 }}>
-                <SrcStatusBadge />
-              </Box>
-            </Box>
-          </Box>
-
-          {/* ── STATS BAR ── */}
-          <Box sx={{ display: "flex", flexWrap: "wrap", mb: 2.5, borderRadius: 4, overflow: "hidden", border: "1.5px solid rgba(255,255,255,0.2)", backdropFilter: "blur(12px)", bgcolor: "rgba(255,255,255,0.1)" }}>
-            {quickStats.map((s, i) => (
-              <Box key={s.label} sx={{ flex: "1 1 140px", display: "flex", alignItems: "center", gap: 1.5, px: { xs: 2, md: 3 }, py: { xs: 1.5, md: 2 }, borderRight: i < quickStats.length - 1 ? "1px solid rgba(255,255,255,0.15)" : "none" }}>
-                <Box sx={{ color: "rgba(255,255,255,0.6)" }}>{s.icon}</Box>
-                <Box>
-                  <Typography sx={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.55)", fontWeight: 600, letterSpacing: 0.5, textTransform: "uppercase" }}>{s.label}</Typography>
-                  <Typography sx={{ fontSize: "0.95rem", color: "#fff", fontWeight: 800, lineHeight: 1.1 }}>{s.value}</Typography>
+        {/* ── TWO-TONE WHITE BLOCK: Video Hero Section ── */}
+        <Box
+          sx={{
+            position: "relative",
+            bgcolor: "rgba(255,255,255,0.97)",
+            pt: 2,
+            pb: 3,
+            // Subtle inner shadow at bottom to transition back to red bg
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 32,
+              background: "linear-gradient(to bottom, transparent, rgba(168,5,50,0.18))",
+              pointerEvents: "none",
+            },
+          }}
+        >
+          <Container maxWidth="xl">
+            {/* ── HERO ── */}
+            <Box
+              sx={{
+                position: "relative", borderRadius: 5, overflow: "hidden",
+                height: { xs: 280, sm: 360, md: 480 }, mb: 2,
+                boxShadow: "0 20px 60px rgba(0,0,0,0.22)", isolation: "isolate", transform: "translateZ(0)",
+              }}
+            >
+              <video src="../videos/hero-src.mp4" autoPlay muted loop playsInline
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "blur(20px) brightness(0.65) saturate(0.85)", transform: "scale(1.1) translateZ(0)", willChange: "transform" }}
+              />
+              <video src="../videos/hero-src.mp4" autoPlay muted loop playsInline
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", transform: "translateZ(0)", willChange: "transform" }}
+              />
+              <Box sx={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(168,5,50,0.6) 0%, transparent 50%, rgba(0,0,0,0.4) 100%)" }} />
+              <Box sx={{ position: "absolute", bottom: { xs: 20, md: 36 }, left: { xs: 20, md: 40 } }}>
+                <Typography sx={{ fontSize: { xs: 11, sm: 12 }, fontWeight: 700, letterSpacing: 4, textTransform: "uppercase", color: "rgba(255,255,255,0.7)", mb: 0.5 }}>
+                  California State University Northridge
+                </Typography>
+                <Typography sx={{ fontSize: { xs: 36, sm: 52, md: 72 }, fontWeight: 900, lineHeight: 0.9, letterSpacing: -1, color: "transparent", WebkitTextStroke: { xs: "2px rgba(255,255,255,0.9)", md: "2.5px rgba(255,255,255,0.9)" }, textShadow: "0 4px 20px rgba(0,0,0,0.4)" }}>
+                  CSUN
+                </Typography>
+                <Typography sx={{ fontSize: { xs: 18, sm: 22, md: 28 }, fontWeight: 900, letterSpacing: 6, color: "#fff", textShadow: "0 2px 12px rgba(0,0,0,0.5)" }}>
+                  SRC
+                </Typography>
+                <Box sx={{ mt: 1.5 }}>
+                  <SrcStatusBadge />
                 </Box>
               </Box>
-            ))}
-          </Box>
+            </Box>
 
-          {/* ── QUICK CATEGORIES ── */}
+            {/* ── STATS BAR ── */}
+            <Box sx={{ display: "flex", flexWrap: "wrap", mb: 0, borderRadius: 4, overflow: "hidden", border: "1.5px solid rgba(168,5,50,0.18)", bgcolor: "rgba(168,5,50,0.06)" }}>
+              {quickStats.map((s, i) => (
+                <Box key={s.label} sx={{ flex: "1 1 140px", display: "flex", alignItems: "center", gap: 1.5, px: { xs: 2, md: 3 }, py: { xs: 1.5, md: 2 }, borderRight: i < quickStats.length - 1 ? "1px solid rgba(168,5,50,0.15)" : "none" }}>
+                  <Box sx={{ color: "rgba(168,5,50,0.7)" }}>{s.icon}</Box>
+                  <Box>
+                    <Typography sx={{ fontSize: "0.72rem", color: "rgba(168,5,50,0.6)", fontWeight: 600, letterSpacing: 0.5, textTransform: "uppercase" }}>{s.label}</Typography>
+                    <Typography sx={{ fontSize: "0.95rem", color: "#a80532", fontWeight: 800, lineHeight: 1.1 }}>{s.value}</Typography>
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+          </Container>
+        </Box>
+
+        {/* ── RED BG: Explore Programs (on regular red bg) ── */}
+        <Container maxWidth="xl" sx={{ pt: 3, pb: 1 }}>
           <Typography variant="overline" sx={{ color: "rgba(255,255,255,0.5)", letterSpacing: 3, fontWeight: 700, display: "block", mb: 1.5 }}>
             Explore Programs
           </Typography>
-          <Box sx={{ display: "grid", gap: 1.5, gridTemplateColumns: { xs: "1fr 1fr", sm: "repeat(3, 1fr)", md: "repeat(6, 1fr)" }, mb: 5 }}>
+          <Box sx={{ display: "grid", gap: 1.5, gridTemplateColumns: { xs: "1fr 1fr", sm: "repeat(3, 1fr)", md: "repeat(6, 1fr)" }, mb: 4 }}>
             {[
               { title: "Boxing",            href: "/StudentRecCenter/programs#boxing" },
               { title: "Yoga",              href: "/StudentRecCenter/programs#yoga" },
@@ -173,17 +192,39 @@ export default function StudentRecCenterHomePage() {
               </Card>
             ))}
           </Box>
-
-          {/* ── FEATURED CAROUSEL ── */}
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2.5 }}>
-            <Box>
-              <Typography variant="overline" sx={{ color: "rgba(255,255,255,0.5)", letterSpacing: 3, fontWeight: 700, display: "block" }}>Highlights</Typography>
-              <Typography variant="h5" fontWeight={900} sx={{ color: "#fff", letterSpacing: -0.5 }}>Featured at the SRC</Typography>
-            </Box>
-            <Chip label="12 programs" size="small" sx={{ bgcolor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)", border: "1px solid rgba(255,255,255,0.18)", fontSize: 11, fontWeight: 600 }} />
-          </Box>
-          <Carousel slides={featured} />
         </Container>
+
+        {/* ── TWO-TONE WHITE BLOCK: Carousel / Highlights ── */}
+        <Box
+          sx={{
+            position: "relative",
+            bgcolor: "rgba(255,255,255,0.97)",
+            py: 4,
+            // Top fade from red
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 32,
+              background: "linear-gradient(to bottom, rgba(168,5,50,0.18), transparent)",
+              pointerEvents: "none",
+              zIndex: 1,
+            },
+          }}
+        >
+          <Container maxWidth="xl" sx={{ position: "relative", zIndex: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2.5 }}>
+              <Box>
+                <Typography variant="overline" sx={{ color: "rgba(168,5,50,0.55)", letterSpacing: 3, fontWeight: 700, display: "block" }}>Highlights</Typography>
+                <Typography variant="h5" fontWeight={900} sx={{ color: "#1a0008", letterSpacing: -0.5 }}>Featured at the SRC</Typography>
+              </Box>
+              <Chip label="12 programs" size="small" sx={{ bgcolor: "rgba(168,5,50,0.08)", color: "rgba(168,5,50,0.7)", border: "1px solid rgba(168,5,50,0.2)", fontSize: 11, fontWeight: 600 }} />
+            </Box>
+            <Carousel slides={featured} />
+          </Container>
+        </Box>
 
         <AddToEventsModal open={eventsModal.open} programTitle={eventsModal.title} onClose={() => setEventsModal({ open: false, title: "" })} onConfirm={handleAddToEvents} />
         <InviteFriendModal open={inviteModal.open} programTitle={inviteModal.title} onClose={() => setInviteModal({ open: false, title: "" })} onConfirm={handleInvite} />

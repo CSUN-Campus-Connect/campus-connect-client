@@ -24,7 +24,6 @@ export default function ServicesPage() {
   const [search, setSearch] = React.useState("");
   const [activeSection, setActiveSection] = React.useState<ServiceId | null>(null);
 
-  // ── Deep-link scroll ──────────────────────────────────────────────────────
   React.useEffect(() => {
     const section = searchParams.get("section") as ServiceId | null;
     if (!section) return;
@@ -34,7 +33,6 @@ export default function ServicesPage() {
     return () => clearTimeout(timer);
   }, [searchParams]);
 
-  // ── IntersectionObserver: highlight sidebar item ──────────────────────────
   React.useEffect(() => {
     const obs: IntersectionObserver[] = [];
     SERVICES.forEach((svc) => {
@@ -50,7 +48,6 @@ export default function ServicesPage() {
     return () => obs.forEach((o) => o.disconnect());
   }, []);
 
-  // ── Search filter ─────────────────────────────────────────────────────────
   const q = search.trim().toLowerCase();
   const filtered = React.useMemo(() => {
     if (!q) return SERVICES;
@@ -84,16 +81,35 @@ export default function ServicesPage() {
       >
         <Header value="/StudentRecCenter/services" />
 
-        {/* Hero */}
-        <Container maxWidth="xl">
-          {/* Live open/closed status in hero area */}
-          <Box sx={{ pt: 2, pb: 0.5, display: "flex", justifyContent: "flex-end" }}>
-            <SrcStatusBadge />
-          </Box>
-          <ServicesHero />
-        </Container>
+        {/* ── TWO-TONE WHITE BLOCK: Hero / Title area ── */}
+        <Box
+          sx={{
+            position: "relative",
+            bgcolor: "rgba(255,255,255,0.97)",
+            // Bottom fade back to red bg
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 40,
+              background: "linear-gradient(to bottom, transparent, rgba(168,5,50,0.22))",
+              pointerEvents: "none",
+            },
+          }}
+        >
+          <Container maxWidth="xl">
+            {/* Live open/closed status */}
+            <Box sx={{ pt: 2, pb: 0.5, display: "flex", justifyContent: "flex-end" }}>
+              <SrcStatusBadge />
+            </Box>
+            {/* ServicesHero contains the big "SRC Services" title */}
+            <ServicesHero />
+          </Container>
+        </Box>
 
-        {/* Body: sidebar + content */}
+        {/* ── RED BG: Body content ── */}
         <Container maxWidth="xl" sx={{ pb: 10 }}>
           <Box sx={{ display: "flex", gap: 3, alignItems: "flex-start" }}>
 

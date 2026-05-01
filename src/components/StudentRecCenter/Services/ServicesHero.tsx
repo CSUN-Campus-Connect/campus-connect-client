@@ -33,7 +33,7 @@ export default function ServicesHero() {
         isolation: "isolate",
       }}
     >
-      {/* Floating icon orbs */}
+      {/* Floating icon orbs — colors adjusted for white bg */}
       {orbs.map((o, i) => (
         <Box
           key={i}
@@ -47,15 +47,15 @@ export default function ServicesHero() {
             width: o.size,
             height: o.size,
             borderRadius: "50%",
-            bgcolor: `${o.color}22`,
-            border: `1px solid ${o.color}44`,
+            bgcolor: `${o.color}18`,
+            border: `1.5px solid ${o.color}55`,
             display: { xs: "none", md: "flex" },
             alignItems: "center",
             justifyContent: "center",
             color: o.color,
             animation: `floatOrb 5s ease-in-out infinite alternate`,
             animationDelay: o.delay,
-            backdropFilter: "blur(6px)",
+            backdropFilter: "blur(4px)",
             "& svg": { fontSize: o.size * 0.45 },
             "@keyframes floatOrb": {
               "0%": { transform: "translateY(0px) rotate(0deg)" },
@@ -73,9 +73,9 @@ export default function ServicesHero() {
         size="small"
         sx={{
           mb: 2,
-          bgcolor: `${SRC_RED}33`,
-          color: "#ffb3c1",
-          border: `1px solid ${SRC_RED}66`,
+          bgcolor: `${SRC_RED}18`,
+          color: SRC_RED,
+          border: `1.5px solid ${SRC_RED}55`,
           fontWeight: 700,
           fontSize: 11,
           letterSpacing: 2,
@@ -83,6 +83,7 @@ export default function ServicesHero() {
         }}
       />
 
+      {/* Main title — dark red text + white border/stroke for contrast */}
       <Typography
         component="h1"
         sx={{
@@ -90,29 +91,40 @@ export default function ServicesHero() {
           fontWeight: 900,
           lineHeight: 1,
           letterSpacing: 1,
-          color: "white",
-          textShadow: `0 4px 40px ${SRC_RED}88`,
+          // Dark red fill with white text-stroke so it pops on the white bg
+          color: SRC_RED,
+          WebkitTextStroke: { xs: "1.5px rgba(255,255,255,0.7)", md: "2px rgba(255,255,255,0.7)" },
+          paintOrder: "stroke fill",
+          // Outer border effect via text-shadow stack
+          textShadow: `
+            -2px -2px 0 rgba(255,255,255,0.6),
+             2px -2px 0 rgba(255,255,255,0.6),
+            -2px  2px 0 rgba(255,255,255,0.6),
+             2px  2px 0 rgba(255,255,255,0.6),
+             0 0 40px ${SRC_RED}44
+          `,
           fontFamily: "'Bebas Neue', 'Impact', 'Arial Black', sans-serif",
         }}
       >
         SRC Services
       </Typography>
 
+      {/* Subtitle — dark red, readable on white */}
       <Typography
         sx={{
           mt: 2.5,
-          color: "rgba(255,255,255,0.58)",
+          color: `${SRC_RED}bb`,
           fontSize: { xs: 14, md: 17 },
           maxWidth: 500,
           mx: "auto",
           lineHeight: 1.7,
-          fontWeight: 400,
+          fontWeight: 500,
         }}
       >
         One Facility, All the training, All the performance, All you need.
       </Typography>
 
-      {/* Stats strip */}
+      {/* Stats strip — dark red on white */}
       <Box
         sx={{
           display: "flex",
@@ -135,14 +147,13 @@ export default function ServicesHero() {
               px: { xs: 1.8, md: 2.4 },
               py: { xs: 0.9, md: 1.2 },
               borderRadius: "999px",
-              bgcolor: "rgba(255,255,255,0.07)",
-              border: "1px solid rgba(255,255,255,0.14)",
-              backdropFilter: "blur(10px)",
+              bgcolor: `${SRC_RED}0d`,
+              border: `1.5px solid ${SRC_RED}33`,
             }}
           >
             <Typography
               sx={{
-                color: "white",
+                color: SRC_RED,
                 fontWeight: 900,
                 fontSize: { xs: 15, md: 18 },
                 lineHeight: 1.1,
@@ -153,9 +164,9 @@ export default function ServicesHero() {
             </Typography>
             <Typography
               sx={{
-                color: "rgba(255,255,255,0.5)",
+                color: `${SRC_RED}88`,
                 fontSize: 10,
-                fontWeight: 600,
+                fontWeight: 700,
                 letterSpacing: 0.5,
                 textAlign: "center",
                 textTransform: "uppercase",
