@@ -15,30 +15,28 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", href: "/admin", permissions: [], group: "overview" },
-  { label: "Analytics", href: "/admin/analytics", permissions: ["analytics:view"], group: "overview" },
-  { label: "Audit Log", href: "/admin/audit-log", permissions: ["system:audit_log"], group: "overview" },
+  { label: "Dashboard",  href: "/admin",            permissions: [],                     group: "overview" },
+  { label: "Analytics",  href: "/admin/analytics",  permissions: ["analytics:view"],     group: "overview" },
+  { label: "Audit Log",  href: "/admin/audit-log",  permissions: ["system:audit_log"],   group: "overview" },
 
-  { label: "Users", href: "/admin/users", permissions: ["users:read"], group: "manage" },
-  { label: "Roles", href: "/admin/roles", permissions: ["roles:read"], group: "manage" },
-  { label: "Clubs", href: "/admin/clubs", permissions: ["clubs:read"], group: "manage" },
+  { label: "Users",      href: "/admin/users",       permissions: ["users:read"],         group: "manage" },
+  { label: "Roles",      href: "/admin/roles",       permissions: ["roles:read"],         group: "manage" },
 
-  { label: "Moderation", href: "/admin/moderation", permissions: ["moderation:read"], group: "safety" },
-  { label: "Security", href: "/admin/security", permissions: ["security:view_cases"], group: "safety" },
-  { label: "Alerts", href: "/admin/announcements", permissions: [], group: "safety" },
-  { label: "Marketplace", href: "/admin/marketplace", permissions: ["marketplace:read"], group: "content" },
-  { label: "Events", href: "/admin/events", permissions: ["events:read"], group: "content" },
-  { label: "Bug Reports", href: "/admin/bugs", permissions: ["bugs:read"], group: "content" },
+  { label: "Moderation", href: "/admin/moderation",  permissions: ["moderation:read"],    group: "safety" },
+  { label: "Security",   href: "/admin/security",    permissions: ["security:view_cases"], group: "safety" },
+  { label: "Alerts",     href: "/admin/announcements", permissions: [],                   group: "safety" },
 
-  { label: "Settings", href: "/admin/settings", permissions: ["system:config"], group: "system" },
+  { label: "Bug Reports", href: "/admin/bugs",       permissions: ["bugs:read"],          group: "content" },
+
+  { label: "Settings",   href: "/admin/settings",    permissions: ["system:config"],      group: "system" },
 ];
 
 const GROUP_LABELS: Record<string, string> = {
   overview: "Overview",
-  manage: "Manage",
-  safety: "Safety",
-  content: "Content",
-  system: "System",
+  manage:   "Manage",
+  safety:   "Safety",
+  content:  "Content",
+  system:   "System",
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -161,12 +159,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             overflowX: "auto",
           }}>
             {groups.map((group, gi) => (
-              <div key={group} style={{ display: "flex", alignItems: "center", gap: "0px" }}>
+              <div key={group} style={{ display: "flex", alignItems: "center" }}>
                 {gi > 0 && (
-                  <div style={{
-                    width: "1px", height: "16px", background: "#f0f0f0",
-                    margin: "0 8px",
-                  }} />
+                  <div style={{ width: "1px", height: "16px", background: "#f0f0f0", margin: "0 8px" }} />
                 )}
                 {visibleNav.filter((n) => n.group === group).map((item) => {
                   const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
