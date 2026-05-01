@@ -682,6 +682,7 @@ export default function UniCartClient() {
                   placeholder="Search by course, title, or professor…"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                inputProps={{ "aria-label": "Search by course, title, or professor" }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">

@@ -4,7 +4,7 @@ import type { EventItem, CategoryId } from '../types';
 type Props = {
   event: EventItem;
   isFavorite: boolean;
-  onToggleFavorite: (id: number, e: React.MouseEvent) => void;
+  onToggleFavorite: (id: string, e: React.MouseEvent) => void;
   onRegister: (event: EventItem, e?: React.MouseEvent) => void;
   onAddToCalendar: (event: EventItem, e?: React.MouseEvent) => void;
   onShare: (event: EventItem, e: React.MouseEvent) => void;
@@ -58,6 +58,7 @@ export default function EventGridCard({
 
         <button
           onClick={(e) => onToggleFavorite(event.id, e)}
+          aria-label={isFavorite ? `Remove ${event.title} from favorites` : `Add ${event.title} to favorites`}
           style={{
             position: 'absolute',
             top: '1rem',
@@ -69,7 +70,7 @@ export default function EventGridCard({
             cursor: 'pointer',
           }}
         >
-          <svg width="24" height="24" fill={isFavorite ? '#D22030' : 'none'} stroke={isFavorite ? '#D22030' : '#374151'} strokeWidth="2.5">
+          <svg aria-hidden="true" width="24" height="24" fill={isFavorite ? '#D22030' : 'none'} stroke={isFavorite ? '#D22030' : '#374151'} strokeWidth="2.5">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
         </button>
@@ -174,6 +175,7 @@ export default function EventGridCard({
           </button>
           <button
             onClick={(e) => onAddToCalendar(event, e)}
+            aria-label={`Add ${event.title} to calendar`}
             style={{
               background: 'rgba(255, 255, 255, 0.1)',
               color: 'white',
@@ -183,7 +185,7 @@ export default function EventGridCard({
               cursor: 'pointer',
             }}
           >
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg aria-hidden="true" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="4" width="18" height="18" rx="2" />
               <line x1="16" y1="2" x2="16" y2="6" />
               <line x1="8" y1="2" x2="8" y2="6" />
@@ -191,6 +193,7 @@ export default function EventGridCard({
           </button>
           <button
             onClick={(e) => onShare(event, e)}
+            aria-label={`Share ${event.title}`}
             style={{
               background: 'rgba(255, 255, 255, 0.1)',
               color: 'white',
@@ -200,7 +203,7 @@ export default function EventGridCard({
               cursor: 'pointer',
             }}
           >
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg aria-hidden="true" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="18" cy="5" r="3" />
               <circle cx="6" cy="12" r="3" />
               <circle cx="18" cy="19" r="3" />

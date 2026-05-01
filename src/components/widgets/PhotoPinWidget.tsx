@@ -142,6 +142,7 @@ export const PhotoPinWidget: React.FC<{ id: string; onDelete?: () => void }> = (
           onChange={(e) => setTitle(e.target.value)}
           variant="standard"
           placeholder="Title"
+          inputProps={{ "aria-label": "Photo pin title" }}
           fullWidth
           InputProps={{
             disableUnderline: true,
@@ -150,7 +151,11 @@ export const PhotoPinWidget: React.FC<{ id: string; onDelete?: () => void }> = (
         />
 
         <Box
+          role="button"
+          tabIndex={0}
           onClick={onPick}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPick(); } }}
+          aria-label="Upload a photo (click or drop image)"
           sx={{
             width: "100%",
             aspectRatio: "1 / 1",
@@ -163,7 +168,6 @@ export const PhotoPinWidget: React.FC<{ id: string; onDelete?: () => void }> = (
             userSelect: "none",
             cursor: "pointer",
           }}
-          title="Click to upload (or drop image)"
         >
           {img ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -181,6 +185,7 @@ export const PhotoPinWidget: React.FC<{ id: string; onDelete?: () => void }> = (
           ref={noteRef}
           value={note}
           onChange={(e) => onNoteChange(e.target.value)}
+          aria-label="Photo pin note"
           placeholder="add a note... "
           style={{
             width: "100%",

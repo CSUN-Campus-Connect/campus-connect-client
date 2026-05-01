@@ -122,7 +122,7 @@ function Modal({ open, onClose, title, children, txt }: {
       <div onClick={e => e.stopPropagation()} style={{ background: txt.modalBg, border: `1px solid ${txt.modalBorder}`, borderRadius: 16, padding: 28, maxWidth: 520, width: '90%', maxHeight: '80vh', overflowY: 'auto', position: 'relative' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           {title && <span style={{ fontWeight: 700, fontSize: 18, color: txt.primary }}>{title}</span>}
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: txt.muted, marginLeft: 'auto' }}><CloseIcon /></button>
+          <button onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: txt.muted, marginLeft: 'auto' }}><CloseIcon /></button>
         </div>
         {children}
       </div>
@@ -239,6 +239,7 @@ function SocialFeed({ posts, accentColor, txt }: {
           <p style={{ color: txt.secondary, lineHeight: 1.65, fontSize: 14, margin: '0 0 14px' }}>{post.content}</p>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
             <button onClick={() => toggleLike(post.id)}
+              aria-label={post.liked ? 'Unlike post' : 'Like post'}
               style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', color: post.liked ? accentColor : txt.muted, fontSize: 13 }}>
               <HeartIcon filled={post.liked} /> {post.likes}
             </button>

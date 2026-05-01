@@ -247,7 +247,11 @@ const WorkoutCardDeck: React.FC = () => {
               }}
             >
               <motion.div
+                role="button"
+                tabIndex={0}
+                aria-label="Shuffle and deal workout deck"
                 onClick={handleShuffleClick}
+                onKeyDown={(e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleShuffleClick(); } }}
                 style={{ cursor: "pointer" }}
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.97 }}
@@ -310,6 +314,7 @@ const WorkoutCardDeck: React.FC = () => {
                       }}
                     />
                     <TouchAppIcon
+                      aria-hidden="true"
                       sx={{
                         fontSize: 32,
                         color: "#fff",
@@ -346,7 +351,11 @@ const WorkoutCardDeck: React.FC = () => {
             >
               <Stack direction="row" spacing={4} alignItems="center">
                 <Box
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Re-shuffle deck"
                   onClick={handleShuffleClick}
+                  onKeyDown={(e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleShuffleClick(); } }}
                   sx={{
                     display: "flex",
                     alignItems: "center",
@@ -360,6 +369,7 @@ const WorkoutCardDeck: React.FC = () => {
                   }}
                 >
                   <AutorenewIcon
+                    aria-hidden="true"
                     sx={{
                       fontSize: 24,
                       filter: "drop-shadow(0 0 6px rgba(0,0,0,0.9))",
@@ -449,6 +459,10 @@ const WorkoutCardDeck: React.FC = () => {
                 return (
                   <motion.div
                     key={card.id + "-" + drawId}
+                    role={phase === "stacked" || phase === "fanned" ? "button" : undefined}
+                    tabIndex={phase === "stacked" || phase === "fanned" ? 0 : undefined}
+                    aria-label={phase === "fanned" ? `${card.name} — ${card.description}` : phase === "stacked" ? "Fan out cards" : undefined}
+                    aria-pressed={phase === "fanned" ? isSelected : undefined}
                     style={{
                       position: "absolute",
                       left: "40%",
@@ -473,6 +487,7 @@ const WorkoutCardDeck: React.FC = () => {
                           : index * 0.03,
                     }}
                     onClick={() => handleCardClick(card.id)}
+                    onKeyDown={(e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleCardClick(card.id); } }}
                   >
                     {showingBack ? (
                       <Box

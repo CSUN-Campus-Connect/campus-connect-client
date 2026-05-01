@@ -155,7 +155,7 @@ export default function NoteViewCommentsPanel({
         {([1, 2, 3, 4, 5] as const).map((n) => {
           const filled = n <= commentRating;
           return (
-            <IconButton key={n} onClick={() => setCommentRating(n)} size="small" sx={{ color: filled ? "#A80532" : "rgba(0,0,0,0.22)" }}>
+            <IconButton key={n} onClick={() => setCommentRating(n)} size="small" aria-label={`Rate ${n} star${n !== 1 ? "s" : ""}`} sx={{ color: filled ? "#A80532" : "rgba(0,0,0,0.22)" }}>
               {filled ? <StarRoundedIcon /> : <StarBorderRoundedIcon />}
             </IconButton>
           );

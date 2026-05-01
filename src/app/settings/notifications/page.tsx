@@ -315,6 +315,7 @@ export default function NotificationsPage() {
                 checked={clubsNotifications}
                 onChange={setClubsNotifications}
                 disabled={!hasLoaded}
+                inputProps={{ "aria-label": "Clubs notifications" }}
               />
             }
           />
@@ -329,6 +330,7 @@ export default function NotificationsPage() {
                 checked={campusEventsNotifications}
                 onChange={setCampusEventsNotifications}
                 disabled={!hasLoaded}
+                inputProps={{ "aria-label": "Campus events and reminders notifications" }}
               />
             }
           />
@@ -343,6 +345,7 @@ export default function NotificationsPage() {
                 checked={marketplaceNotifications}
                 onChange={setMarketplaceNotifications}
                 disabled={!hasLoaded}
+                inputProps={{ "aria-label": "Marketplace notifications" }}
               />
             }
           />
@@ -357,6 +360,7 @@ export default function NotificationsPage() {
                 checked={academicNotifications}
                 onChange={setAcademicNotifications}
                 disabled={!hasLoaded}
+                inputProps={{ "aria-label": "Academic notifications" }}
               />
             }
           />
@@ -371,6 +375,7 @@ export default function NotificationsPage() {
                 checked={followRequestNotifications}
                 onChange={setFollowRequestNotifications}
                 disabled={!hasLoaded}
+                inputProps={{ "aria-label": "Follow requests and mentions notifications" }}
               />
             }
           />

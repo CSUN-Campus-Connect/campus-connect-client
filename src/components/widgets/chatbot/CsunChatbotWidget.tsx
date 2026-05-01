@@ -416,6 +416,7 @@ export function CsunChatbotWidget() {
                 id="cc-csun-chatbot-message"
                 name="cc_chatbot_message"
                 type="text"
+                aria-label="Message to CSUN chatbot"
                 enterKeyHint="send"
                 autoComplete="off"
                 autoCorrect="off"

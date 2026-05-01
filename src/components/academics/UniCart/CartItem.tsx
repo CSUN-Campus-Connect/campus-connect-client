@@ -114,6 +114,7 @@ export function CartItem({ cls, index, onRemove }: Props) {
             <IconButton
               size="small"
               onClick={onRemove}
+              aria-label={`Remove ${cls.subject} ${cls.number} from cart`}
               sx={{ color: "rgba(0,0,0,0.28)", "&:hover": { color: "#dc2626", bgcolor: "#fef2f2" }, p: 0.4, mt: -0.25, mr: -0.25, borderRadius: "8px" }}
             >
               <DeleteOutlineIcon sx={{ fontSize: 15 }} />

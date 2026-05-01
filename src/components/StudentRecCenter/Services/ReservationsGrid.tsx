@@ -33,6 +33,10 @@ function SpaceCard({ space }: { space: ReservationSpace }) {
     >
       {/* Header row */}
       <Box
+        role="button"
+        tabIndex={0}
+        aria-expanded={open}
+        aria-label={`${space.name} — ${open ? "collapse" : "expand"} details`}
         sx={{
           p: 2,
           pb: 1.5,
@@ -42,6 +46,7 @@ function SpaceCard({ space }: { space: ReservationSpace }) {
           cursor: "pointer",
         }}
         onClick={() => setOpen((v) => !v)}
+        onKeyDown={(e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen((v) => !v); } }}
       >
         <Box sx={{ flex: 1 }}>
           <Typography sx={{ color: "white", fontWeight: 900, fontSize: 15, lineHeight: 1.2 }}>
@@ -49,18 +54,20 @@ function SpaceCard({ space }: { space: ReservationSpace }) {
           </Typography>
           {space.floor && (
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.4, mt: 0.4 }}>
-              <PlaceRoundedIcon sx={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }} />
+              <PlaceRoundedIcon aria-hidden="true" sx={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }} />
               <Typography sx={{ color: "rgba(255,255,255,0.45)", fontSize: 12 }}>{space.floor}</Typography>
             </Box>
           )}
           {space.capacity && (
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.4, mt: 0.2 }}>
-              <PeopleRoundedIcon sx={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }} />
+              <PeopleRoundedIcon aria-hidden="true" sx={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }} />
               <Typography sx={{ color: "rgba(255,255,255,0.45)", fontSize: 12 }}>{space.capacity}</Typography>
             </Box>
           )}
         </Box>
         <IconButton
+          aria-hidden="true"
+          tabIndex={-1}
           size="small"
           sx={{
             color: "rgba(255,255,255,0.45)",
@@ -69,7 +76,7 @@ function SpaceCard({ space }: { space: ReservationSpace }) {
             mt: -0.5,
           }}
         >
-          <ExpandMoreRoundedIcon />
+          <ExpandMoreRoundedIcon aria-hidden="true" />
         </IconButton>
       </Box>
 

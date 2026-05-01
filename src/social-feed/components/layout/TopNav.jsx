@@ -96,6 +96,7 @@ export function TopNav({ currentUser, unreadCount = 3, onSettings, onViewProfile
             type="search"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
+            aria-label="Search posts, topics, or people"
             placeholder='Search posts, topics, people… ("/" to focus)'
             style={{
               width: '100%', height: 38,
@@ -177,6 +178,8 @@ export function TopNav({ currentUser, unreadCount = 3, onSettings, onViewProfile
         <div ref={avatarRef} style={{ position: 'relative' }}>
           <button
             onClick={() => { setShowAvatar(v => !v); setShowNotifs(false); }}
+            aria-label="Open account menu"
+            aria-expanded={showAvatar}
             style={{
               background: 'none', border: 'none', padding: 0,
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,

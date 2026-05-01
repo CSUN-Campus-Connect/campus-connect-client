@@ -42,7 +42,7 @@ import {
 
 function ConnectionStatus({ connected }: { connected: boolean }) {
   return (
-    <Typography sx={{ fontSize: "0.875rem", fontWeight: 600, color: connected ? "#15803D" : "#6B7280" }}>
+    <Typography sx={{ fontSize: "0.875rem", fontWeight: 600, color: connected ? "#15803D" : "#767676" }}>
       {connected ? "Connected" : "Not connected"}
     </Typography>
   );
@@ -87,7 +87,7 @@ export default function SocialFeedSettingsPage() {
           icon={<PersonOutlineIcon fontSize="small" />}
           title="Show profile publicly"
           description="Let others find your profile outside mutual connections."
-          action={<SettingsToggle checked={showProfilePublicly} onChange={setShowProfilePublicly} />}
+          action={<SettingsToggle checked={showProfilePublicly} onChange={setShowProfilePublicly} inputProps={{ "aria-label": "Show profile publicly" }} />}
         />
         <SettingsRow
           divider
@@ -95,7 +95,7 @@ export default function SocialFeedSettingsPage() {
           icon={<VisibilityOutlinedIcon fontSize="small" />}
           title="Show activity status"
           description="Let friends see when you are active."
-          action={<SettingsToggle checked={showActivityStatus} onChange={setShowActivityStatus} />}
+          action={<SettingsToggle checked={showActivityStatus} onChange={setShowActivityStatus} inputProps={{ "aria-label": "Show activity status" }} />}
         />
         <SettingsRow
           divider
@@ -103,14 +103,14 @@ export default function SocialFeedSettingsPage() {
           icon={<LabelOutlinedIcon fontSize="small" />}
           title="Allow tagging"
           description="Others can tag you in posts and photos."
-          action={<SettingsToggle checked={allowTagging} onChange={setAllowTagging} />}
+          action={<SettingsToggle checked={allowTagging} onChange={setAllowTagging} inputProps={{ "aria-label": "Allow tagging" }} />}
         />
         <SettingsRow
           tint="cyan"
           icon={<PeopleOutlineIcon fontSize="small" />}
           title="Show friends / connections"
           description="Display your network on your profile."
-          action={<SettingsToggle checked={showFriendsConnections} onChange={setShowFriendsConnections} />}
+          action={<SettingsToggle checked={showFriendsConnections} onChange={setShowFriendsConnections} inputProps={{ "aria-label": "Show friends and connections" }} />}
         />
       </SettingsCard>
 
@@ -122,7 +122,7 @@ export default function SocialFeedSettingsPage() {
           icon={<PlayCircleOutlineIcon fontSize="small" />}
           title="Autoplay videos"
           description="Play videos in the feed automatically."
-          action={<SettingsToggle checked={autoplayVideos} onChange={setAutoplayVideos} />}
+          action={<SettingsToggle checked={autoplayVideos} onChange={setAutoplayVideos} inputProps={{ "aria-label": "Autoplay videos" }} />}
         />
         <SettingsRow
           divider
@@ -130,7 +130,7 @@ export default function SocialFeedSettingsPage() {
           icon={<WarningAmberOutlinedIcon fontSize="small" />}
           title="Show sensitive content"
           description="May include mature or graphic material."
-          action={<SettingsToggle checked={showSensitiveContent} onChange={setShowSensitiveContent} />}
+          action={<SettingsToggle checked={showSensitiveContent} onChange={setShowSensitiveContent} inputProps={{ "aria-label": "Show sensitive content" }} />}
         />
         <SettingsRow
           divider
@@ -183,27 +183,27 @@ export default function SocialFeedSettingsPage() {
           tint="rose"
           icon={<FavoriteBorderOutlinedIcon fontSize="small" />}
           title="Post likes"
-          action={<SettingsToggle checked={postLikes} onChange={setPostLikes} />}
+          action={<SettingsToggle checked={postLikes} onChange={setPostLikes} inputProps={{ "aria-label": "Post likes notifications" }} />}
         />
         <SettingsRow
           divider
           tint="blue"
           icon={<ChatBubbleOutlineIcon fontSize="small" />}
           title="Comments"
-          action={<SettingsToggle checked={commentsNotif} onChange={setCommentsNotif} />}
+          action={<SettingsToggle checked={commentsNotif} onChange={setCommentsNotif} inputProps={{ "aria-label": "Comments notifications" }} />}
         />
         <SettingsRow
           divider
           tint="violet"
           icon={<AlternateEmailOutlinedIcon fontSize="small" />}
           title="Mentions"
-          action={<SettingsToggle checked={mentionsNotif} onChange={setMentionsNotif} />}
+          action={<SettingsToggle checked={mentionsNotif} onChange={setMentionsNotif} inputProps={{ "aria-label": "Mentions notifications" }} />}
         />
         <SettingsRow
           tint="emerald"
           icon={<PersonAddAltOutlinedIcon fontSize="small" />}
           title="New followers"
-          action={<SettingsToggle checked={newFollowers} onChange={setNewFollowers} />}
+          action={<SettingsToggle checked={newFollowers} onChange={setNewFollowers} inputProps={{ "aria-label": "New followers notifications" }} />}
         />
       </SettingsCard>
 
@@ -362,7 +362,7 @@ export default function SocialFeedSettingsPage() {
           icon={<MotionPhotosOffOutlinedIcon fontSize="small" />}
           title="Reduce motion"
           description="Less animation across the social feed."
-          action={<SettingsToggle checked={reduceMotion} onChange={setReduceMotion} />}
+          action={<SettingsToggle checked={reduceMotion} onChange={setReduceMotion} inputProps={{ "aria-label": "Reduce motion" }} />}
         />
       </SettingsCard>
     </Box>

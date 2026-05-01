@@ -80,14 +80,14 @@ export default function EventSettingsPage() {
           tint="blue"
           icon={<EmailOutlinedIcon fontSize="small" />}
           title="Email notifications"
-          action={<SettingsToggle checked={emailNotif} onChange={setEmailNotif} />}
+          action={<SettingsToggle checked={emailNotif} onChange={setEmailNotif} inputProps={{ "aria-label": "Email notifications" }} />}
         />
         <SettingsRow
           divider
           tint="green"
           icon={<PhoneOutlinedIcon fontSize="small" />}
           title="Phone notifications"
-          action={<SettingsToggle checked={phoneNotif} onChange={setPhoneNotif} />}
+          action={<SettingsToggle checked={phoneNotif} onChange={setPhoneNotif} inputProps={{ "aria-label": "Phone notifications" }} />}
         />
         <SettingsRow
           divider
@@ -142,14 +142,14 @@ export default function EventSettingsPage() {
           tint="emerald"
           icon={<HowToRegOutlinedIcon fontSize="small" />}
           title="Require RSVP"
-          action={<SettingsToggle checked={requireRsvp} onChange={setRequireRsvp} />}
+          action={<SettingsToggle checked={requireRsvp} onChange={setRequireRsvp} inputProps={{ "aria-label": "Require RSVP" }} />}
         />
         <SettingsRow
           divider
           tint="cyan"
           icon={<QueueOutlinedIcon fontSize="small" />}
           title="Waitlist"
-          action={<SettingsToggle checked={waitlist} onChange={setWaitlist} />}
+          action={<SettingsToggle checked={waitlist} onChange={setWaitlist} inputProps={{ "aria-label": "Enable waitlist" }} />}
         />
         <SettingsRow
           divider
@@ -178,7 +178,7 @@ export default function EventSettingsPage() {
           tint="green"
           icon={<CheckCircleOutlineIcon fontSize="small" />}
           title="Auto confirm RSVP"
-          action={<SettingsToggle checked={autoConfirmRsvp} onChange={setAutoConfirmRsvp} />}
+          action={<SettingsToggle checked={autoConfirmRsvp} onChange={setAutoConfirmRsvp} inputProps={{ "aria-label": "Auto confirm RSVP" }} />}
         />
       </SettingsCard>
 
@@ -211,14 +211,14 @@ export default function EventSettingsPage() {
           tint="blue"
           icon={<SearchOutlinedIcon fontSize="small" />}
           title="Show in search"
-          action={<SettingsToggle checked={showInSearch} onChange={setShowInSearch} />}
+          action={<SettingsToggle checked={showInSearch} onChange={setShowInSearch} inputProps={{ "aria-label": "Show event in search" }} />}
         />
         <SettingsRow
           tint="violet"
           icon={<LockOutlinedIcon fontSize="small" />}
           title="Private invite only"
           description="Hide from browse; share link or invite only."
-          action={<SettingsToggle checked={privateInviteOnly} onChange={setPrivateInviteOnly} />}
+          action={<SettingsToggle checked={privateInviteOnly} onChange={setPrivateInviteOnly} inputProps={{ "aria-label": "Private invite only" }} />}
         />
       </SettingsCard>
 
@@ -229,20 +229,20 @@ export default function EventSettingsPage() {
           tint="blue"
           icon={<EmailOutlinedIcon fontSize="small" />}
           title="Show organizer email"
-          action={<SettingsToggle checked={showOrganizerEmail} onChange={setShowOrganizerEmail} />}
+          action={<SettingsToggle checked={showOrganizerEmail} onChange={setShowOrganizerEmail} inputProps={{ "aria-label": "Show organizer email" }} />}
         />
         <SettingsRow
           divider
           tint="slate"
           icon={<BadgeOutlinedIcon fontSize="small" />}
           title="Show organizer phone"
-          action={<SettingsToggle checked={showOrganizerPhone} onChange={setShowOrganizerPhone} />}
+          action={<SettingsToggle checked={showOrganizerPhone} onChange={setShowOrganizerPhone} inputProps={{ "aria-label": "Show organizer phone" }} />}
         />
         <SettingsRow
           tint="cyan"
           icon={<ForumOutlinedIcon fontSize="small" />}
           title="Allow attendee messages"
-          action={<SettingsToggle checked={allowAttendeeMessages} onChange={setAllowAttendeeMessages} />}
+          action={<SettingsToggle checked={allowAttendeeMessages} onChange={setAllowAttendeeMessages} inputProps={{ "aria-label": "Allow attendee messages" }} />}
         />
       </SettingsCard>
 
@@ -253,27 +253,27 @@ export default function EventSettingsPage() {
           tint="orange"
           icon={<NotificationsActiveOutlinedIcon fontSize="small" />}
           title="Event changes"
-          action={<SettingsToggle checked={eventChanges} onChange={setEventChanges} />}
+          action={<SettingsToggle checked={eventChanges} onChange={setEventChanges} inputProps={{ "aria-label": "Event changes notifications" }} />}
         />
         <SettingsRow
           divider
           tint="red"
           icon={<EventBusyOutlinedIcon fontSize="small" />}
           title="Event cancellations"
-          action={<SettingsToggle checked={eventCancellations} onChange={setEventCancellations} />}
+          action={<SettingsToggle checked={eventCancellations} onChange={setEventCancellations} inputProps={{ "aria-label": "Event cancellations notifications" }} />}
         />
         <SettingsRow
           divider
           tint="amber"
           icon={<AlarmOnOutlinedIcon fontSize="small" />}
           title="Starting soon"
-          action={<SettingsToggle checked={startingSoon} onChange={setStartingSoon} />}
+          action={<SettingsToggle checked={startingSoon} onChange={setStartingSoon} inputProps={{ "aria-label": "Starting soon notifications" }} />}
         />
         <SettingsRow
           tint="emerald"
           icon={<AssignmentTurnedInOutlinedIcon fontSize="small" />}
           title="RSVP confirmations"
-          action={<SettingsToggle checked={rsvpConfirmations} onChange={setRsvpConfirmations} />}
+          action={<SettingsToggle checked={rsvpConfirmations} onChange={setRsvpConfirmations} inputProps={{ "aria-label": "RSVP confirmations notifications" }} />}
         />
       </SettingsCard>
 
@@ -284,20 +284,20 @@ export default function EventSettingsPage() {
           tint="violet"
           icon={<LoginOutlinedIcon fontSize="small" />}
           title="Check-in required"
-          action={<SettingsToggle checked={checkInRequired} onChange={setCheckInRequired} />}
+          action={<SettingsToggle checked={checkInRequired} onChange={setCheckInRequired} inputProps={{ "aria-label": "Check-in required" }} />}
         />
         <SettingsRow
           divider
           tint="sky"
           icon={<AccessTimeOutlinedIcon fontSize="small" />}
           title="Late entry allowed"
-          action={<SettingsToggle checked={lateEntryAllowed} onChange={setLateEntryAllowed} />}
+          action={<SettingsToggle checked={lateEntryAllowed} onChange={setLateEntryAllowed} inputProps={{ "aria-label": "Late entry allowed" }} />}
         />
         <SettingsRow
           tint="blue"
           icon={<ListAltOutlinedIcon fontSize="small" />}
           title="Show attendee list"
-          action={<SettingsToggle checked={showAttendeeList} onChange={setShowAttendeeList} />}
+          action={<SettingsToggle checked={showAttendeeList} onChange={setShowAttendeeList} inputProps={{ "aria-label": "Show attendee list" }} />}
         />
       </SettingsCard>
     </Box>

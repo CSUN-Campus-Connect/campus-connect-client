@@ -101,6 +101,7 @@ export default function EventBentoCard({ event, index, isFavorite, onOpen, onTog
           {/* Favorites toggle */}
           <button
             onClick={(e) => onToggleFav(event.id, e)}
+            aria-label={isFavorite ? `Remove ${event.title} from favorites` : `Add ${event.title} to favorites`}
             style={{
               position: 'absolute', top: 8, right: 8,
               width: 32, height: 32, borderRadius: '50%',
@@ -114,7 +115,7 @@ export default function EventBentoCard({ event, index, isFavorite, onOpen, onTog
             onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)'; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24"
+            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24"
               fill={isFavorite ? '#D22030' : 'none'}
               stroke={isFavorite ? '#D22030' : 'rgba(255,255,255,0.7)'} strokeWidth="2"
             >
@@ -198,9 +199,10 @@ export default function EventBentoCard({ event, index, isFavorite, onOpen, onTog
             {/* Details arrow */}
             <button
               onClick={(e) => { e.stopPropagation(); onOpen(event); }}
+              aria-label={`View details for ${event.title}`}
               style={{ ...iconBtnStyle }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5">
+              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5">
                 <path d="M7 17L17 7M17 7H7M17 7v10" />
               </svg>
             </button>

@@ -212,6 +212,7 @@ export default function SportClubsPage() {
               <input
                 type="text"
                 className="sc-search"
+                aria-label="Search sport clubs or tags"
                 placeholder="Search clubs or tags…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -237,9 +238,10 @@ export default function SportClubsPage() {
               {search && (
                 <button
                   onClick={() => setSearch("")}
+                  aria-label="Clear search"
                   style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.5)", padding: 0, display: "flex" }}
                 >
-                  <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg aria-hidden="true" width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>

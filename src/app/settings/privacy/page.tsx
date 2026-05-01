@@ -396,6 +396,7 @@ export default function PrivacyPage() {
                     }
                     sx={selectSx}
                     disabled={!hasLoaded}
+                    inputProps={{ "aria-label": "Who can view my account" }}
                   >
                     <MenuItem value="everyone">Everyone</MenuItem>
                     <MenuItem value="friends">Friends</MenuItem>
@@ -416,6 +417,7 @@ export default function PrivacyPage() {
                     }
                     sx={selectSx}
                     disabled={!hasLoaded}
+                    inputProps={{ "aria-label": "Who can message me" }}
                   >
                     <MenuItem value="everyone">Everyone</MenuItem>
                     <MenuItem value="friends">Friends</MenuItem>
@@ -434,6 +436,7 @@ export default function PrivacyPage() {
                   checked={allowTagging}
                   onChange={setAllowTagging}
                   disabled={!hasLoaded}
+                  inputProps={{ "aria-label": "Allow tagging" }}
                 />
               }
             />

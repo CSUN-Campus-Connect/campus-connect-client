@@ -1038,14 +1038,33 @@ export default function SmartPlannerClient() {
       <div style={{ minHeight:"100vh", background: BG, fontFamily:"'DM Sans', system-ui, sans-serif" }}>
 
         {/* ── Top Bar ── */}
-        <div style={{
-          position:"sticky", top:0, zIndex:40,
-          borderBottom: "1px solid rgba(255,255,255,0.11)",
-          background: "rgba(100,0,28,0.74)", backdropFilter:"blur(16px)",
-          padding:"0 24px", display:"flex", alignItems:"center", gap:12, height:54,
-        }}>
-          <Link href="/academics" style={{ display:"inline-flex", alignItems:"center", gap:5, color: "rgba(255,255,255,0.76)", textDecoration:"none", fontSize:12, fontWeight:700, padding:"4px 11px", border: "1px solid rgba(255,255,255,0.20)", borderRadius:999, transition:"background 0.14s" }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <div
+          style={{
+            position: "sticky", top: 0, zIndex: 40,
+            borderBottom: "1px solid rgba(255,255,255,0.12)",
+            background: "rgba(120,0,35,0.70)",
+            backdropFilter: "blur(14px)",
+            padding: "0 24px",
+            display: "flex", alignItems: "center", gap: 12, height: 58,
+          }}
+        >
+          {/* Back to Academics */}
+          <Link
+            href="/academics"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              color: "rgba(255,255,255,0.80)", textDecoration: "none",
+              fontSize: 13, fontWeight: 700,
+              padding: "5px 12px",
+              border: "1px solid rgba(255,255,255,0.22)",
+              borderRadius: 999,
+              transition: "background 0.15s",
+            }}
+          >
+            {/* left-arrow */}
+            <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
             Academics
           </Link>
           <span style={{ color: "rgba(255,255,255,0.20)", fontSize:15 }}>/</span>

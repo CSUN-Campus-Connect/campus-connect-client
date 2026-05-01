@@ -46,6 +46,7 @@ export function CommentsPanel({ postId, currentUserId }: CommentsPanelProps) {
             ref={inputRef}
             type="text"
             placeholder="Write a reply… (Cmd+Enter to send)"
+            aria-label="Write a reply"
             onKeyDown={handleKeyDown}
             maxLength={300}
             disabled={isSubmitting}

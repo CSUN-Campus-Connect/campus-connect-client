@@ -300,12 +300,13 @@ export default function NoteView({
               >
                 {mode === "upload" ? "Back to Files" : "Upload"}
               </Button>
-              <IconButton onClick={onClose} sx={{ color: "rgba(255,255,255,0.85)", "&:hover": { bgcolor: "rgba(255,255,255,0.10)" } }}>
-                <CloseIcon />
-              </IconButton>
             </Stack>
+
+            <IconButton onClick={onClose} aria-label="Close folder" sx={{ color: "rgba(255,255,255,0.85)" }}>
+              <CloseIcon />
+            </IconButton>
           </Stack>
-        </Box>
+        </Stack>
       </Box>
 
       <DialogContent sx={{ p: 0, bgcolor: "#f2eeec" }}>

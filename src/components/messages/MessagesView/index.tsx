@@ -499,7 +499,7 @@ export default function MessagesView(props: MessagesViewProps) {
                 <Stack direction="row" spacing={0.25} alignItems="center" sx={{ minWidth: 0 }}>
                   <Typography sx={{ fontWeight: 1000, fontSize: 16 }} noWrap>{me.username}</Typography>
                   <Tooltip title="Message settings">
-                    <IconButton size="small" onClick={() => { setSettingsTab("backgrounds"); setSettingsOpen(true); }} sx={{ borderRadius: 2 }}>
+                    <IconButton size="small" aria-label="Message settings" onClick={() => { setSettingsTab("backgrounds"); setSettingsOpen(true); }} sx={{ borderRadius: 2 }}>
                       <SettingsIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
@@ -508,10 +508,10 @@ export default function MessagesView(props: MessagesViewProps) {
               <Stack direction="row" spacing={0.5}>
                 {onCreateGroup != null && (
                   <Tooltip title="Create group">
-                    <IconButton onClick={() => setCreateGroupOpen(true)} sx={{ borderRadius: 2 }} size="small"><GroupAddIcon /></IconButton>
+                    <IconButton onClick={() => setCreateGroupOpen(true)} aria-label="Create group" sx={{ borderRadius: 2 }} size="small"><GroupAddIcon /></IconButton>
                   </Tooltip>
                 )}
-                <Tooltip title="New message"><IconButton onClick={() => setNewMsgOpen(true)} sx={{ borderRadius: 2 }}><ChatIcon /></IconButton></Tooltip>
+                <Tooltip title="New message"><IconButton onClick={() => setNewMsgOpen(true)} aria-label="New message" sx={{ borderRadius: 2 }}><ChatIcon /></IconButton></Tooltip>
               </Stack>
             </Box>
             <Box sx={{ px: 2, pb: 1 }}>
@@ -600,7 +600,7 @@ export default function MessagesView(props: MessagesViewProps) {
             {/* Header */}
             <Box sx={{ px: 2, py: 1.25, display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(0,0,0,0.08)", minHeight: 58, flexShrink: 0 }}>
               <Stack direction="row" alignItems="center" spacing={1.2}>
-                <IconButton onClick={() => onSelectedThreadIdChange(null)} sx={{ display: { xs: "inline-flex", md: "none" } }}><ArrowBackIcon /></IconButton>
+                <IconButton onClick={() => onSelectedThreadIdChange(null)} aria-label="Back to conversations" sx={{ display: { xs: "inline-flex", md: "none" } }}><ArrowBackIcon /></IconButton>
                 {selectedThread && isGroupThread(selectedThread) ? (
                   <>
                     {selectedThreadId && groupPictureByThreadId[selectedThreadId] ? (
@@ -630,7 +630,7 @@ export default function MessagesView(props: MessagesViewProps) {
               </Stack>
               {(otherUser || (selectedThread && isGroupThread(selectedThread))) && (
                 <>
-                  <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)}><MoreHorizIcon /></IconButton>
+                  <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)} aria-label="More options"><MoreHorizIcon /></IconButton>
                   <Menu open={!!menuAnchor} anchorEl={menuAnchor} onClose={() => setMenuAnchor(null)}>
                     <MenuItem onClick={() => { setMenuAnchor(null); openReport(); }}>Report</MenuItem>
                     {otherUser ? (
@@ -752,7 +752,7 @@ export default function MessagesView(props: MessagesViewProps) {
                             >
                               {!isDeleted && !isEditing && (hoveredMsgId === m.id || showEmojiPicker) && (
                                 <Box sx={{ order: mine ? 0 : 2, position: "relative" }}>
-                                  <IconButton size="small" onClick={() => setEmojiPickerMsgId(showEmojiPicker ? null : m.id)} sx={{ opacity: 0.55, fontSize: 16 }}>😊</IconButton>
+                                  <IconButton size="small" onClick={() => setEmojiPickerMsgId(showEmojiPicker ? null : m.id)} aria-label="React to message" aria-expanded={showEmojiPicker} sx={{ opacity: 0.55, fontSize: 16 }}>😊</IconButton>
                                   {showEmojiPicker && (
                                     <Box
                                       sx={{ position: "absolute", bottom: "100%", [mine ? "right" : "left"]: 0, mb: 0.5, bgcolor: "white", border: "1px solid rgba(0,0,0,0.12)", borderRadius: 3, boxShadow: "0 4px 16px rgba(0,0,0,0.12)", display: "flex", gap: 0.25, px: 0.75, py: 0.5, zIndex: 10 }}
@@ -761,7 +761,7 @@ export default function MessagesView(props: MessagesViewProps) {
                                       {QUICK_EMOJIS.map((emoji) => {
                                         const alreadyReacted = groupedReactions[emoji]?.reactedByMe ?? false;
                                         return (
-                                          <Box key={emoji} onClick={() => { onReactMessage(m.id, emoji); setEmojiPickerMsgId(null); }} sx={{ fontSize: 20, cursor: "pointer", px: 0.5, py: 0.25, borderRadius: 1.5, bgcolor: alreadyReacted ? "rgba(168,5,50,0.10)" : "transparent", "&:hover": { bgcolor: "rgba(0,0,0,0.07)", transform: "scale(1.2)" }, transition: "transform 0.1s" }}>
+                                          <Box key={emoji} role="button" aria-label={`React with ${emoji}`} onClick={() => { onReactMessage(m.id, emoji); setEmojiPickerMsgId(null); }} sx={{ fontSize: 20, cursor: "pointer", px: 0.5, py: 0.25, borderRadius: 1.5, bgcolor: alreadyReacted ? "rgba(168,5,50,0.10)" : "transparent", "&:hover": { bgcolor: "rgba(0,0,0,0.07)", transform: "scale(1.2)" }, transition: "transform 0.1s" }}>
                                             {emoji}
                                           </Box>
                                         );
@@ -772,7 +772,7 @@ export default function MessagesView(props: MessagesViewProps) {
                               )}
 
                               {mine && !isDeleted && (hoveredMsgId === m.id || msgMenuTarget === m.id) && !isEditing && (
-                                <IconButton size="small" onClick={(e) => { setMsgMenuAnchor(e.currentTarget); setMsgMenuTarget(m.id); }} sx={{ order: 1, alignSelf: "center", opacity: 0.6 }}>
+                                <IconButton size="small" aria-label="Message options" onClick={(e) => { setMsgMenuAnchor(e.currentTarget); setMsgMenuTarget(m.id); }} sx={{ order: 1, alignSelf: "center", opacity: 0.6 }}>
                                   <MoreHorizIcon fontSize="small" />
                                 </IconButton>
                               )}
@@ -877,9 +877,9 @@ export default function MessagesView(props: MessagesViewProps) {
                 </Stack>
               )}
               <Stack direction="row" spacing={1} alignItems="center">
-                <IconButton disabled={!selectedThread} onClick={() => toast.show("File attachments coming soon!", "info")} title="Attach file"><AttachFileIcon /></IconButton>
-                <IconButton disabled={!selectedThread} onClick={() => toast.show("Voice messages coming soon!", "info")} title="Voice message"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></IconButton>
-                <IconButton disabled={!selectedThread} onClick={() => setGifOpen(true)} title="GIFs"><GifBoxIcon /></IconButton>
+                <IconButton disabled={!selectedThread} aria-label="Attach file" onClick={() => toast.show("File attachments coming soon!", "info")}><AttachFileIcon /></IconButton>
+                <IconButton disabled={!selectedThread} aria-label="Record voice message" onClick={() => toast.show("Voice messages coming soon!", "info")}><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></IconButton>
+                <IconButton disabled={!selectedThread} aria-label="Open GIF picker" onClick={() => setGifOpen(true)}><GifBoxIcon /></IconButton>
                 <TextField
                   value={selectedDraft.text}
                   onChange={(e) => { setDraft((p) => ({ ...p, text: e.target.value })); if (selectedThreadId) onTypingStart(selectedThreadId); }}
@@ -889,7 +889,7 @@ export default function MessagesView(props: MessagesViewProps) {
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                   InputProps={{ sx: { borderRadius: 999, bgcolor: "rgba(0,0,0,0.03)", "& fieldset": { borderColor: "rgba(0,0,0,0.10)" } } }}
                 />
-                <IconButton onClick={handleSend} disabled={!selectedThread} title="Send"><SendIcon sx={{ color: selectedThread ? RED : "rgba(0,0,0,0.25)" }} /></IconButton>
+                <IconButton onClick={handleSend} disabled={!selectedThread} aria-label="Send message"><SendIcon sx={{ color: selectedThread ? RED : "rgba(0,0,0,0.25)" }} /></IconButton>
               </Stack>
               <Typography sx={{ mt: 0.7, fontSize: 11, color: "rgba(0,0,0,0.45)" }}>File attachments and voice messages coming soon.</Typography>
             </Box>

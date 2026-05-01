@@ -13,6 +13,7 @@ import { z } from 'zod';
 import type { PublicUser } from '../../types/profile';
 
 const smooth: [number, number, number, number] = [0.16, 1, 0.3, 1];
+const GRAY = "#767676";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -72,7 +73,6 @@ export default function RegisterPage() {
     setIsSubmitting(true);
     try {
       const { confirmPassword, ...apiData } = registerData;
-      // Strip empty phone number so the backend treats it as null
       if (!apiData.phoneNumber?.trim()) delete apiData.phoneNumber;
       await api.post<PublicUser>('/api/v1/users/register', apiData);
       setIsSuccess(true);
@@ -95,7 +95,7 @@ export default function RegisterPage() {
       >
         <Link href="/" className="flex items-center gap-3">
           <Image src="/ToroConnectLP.png" alt="Toro Campus Connect" width={32} height={32} className="w-8 h-8" />
-          <span className="text-[13px] font-light tracking-wide text-[#999]">Toro Campus Connect</span>
+          <span className="text-[13px] font-light tracking-wide" style={{ color: GRAY }}>Toro Campus Connect</span>
         </Link>
         <Link href="/login" className="text-[13px] font-semibold text-[#CC0033] hover:underline underline-offset-4">
           Sign in
@@ -115,7 +115,6 @@ export default function RegisterPage() {
             <p className="text-[11px] font-semibold tracking-[0.15em] text-[#CC0033] uppercase mb-6">
               Join CampusConnect
             </p>
-
             <div className="overflow-hidden mb-1">
               <motion.h1
                 initial={{ y: '110%' }}
@@ -146,26 +145,25 @@ export default function RegisterPage() {
                 campus.
               </motion.h1>
             </div>
-
             <motion.p
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.6, ease: smooth }}
-              className="text-[14px] text-[#aaa] font-light leading-relaxed max-w-xs"
+              className="text-[14px] font-light leading-relaxed max-w-xs"
+              style={{ color: GRAY }}
             >
               One account. Your feed, clubs, marketplace, events, and everything CSUN in one place.
             </motion.p>
-
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.7, delay: 0.75 }}
               className="mt-8 pt-6 border-t border-[#eee]"
             >
-              <p className="text-[11px] font-semibold tracking-[0.12em] text-[#bbb] uppercase mb-2">
+              <p className="text-[11px] font-semibold tracking-[0.12em] uppercase mb-2" style={{ color: GRAY }}>
                 Password requirements
               </p>
-              <p className="text-[12px] text-[#ccc] font-light leading-relaxed">
+              <p className="text-[12px] font-light leading-relaxed" style={{ color: GRAY }}>
                 8+ characters — uppercase, lowercase,<br />number, special character.
               </p>
             </motion.div>
@@ -179,11 +177,11 @@ export default function RegisterPage() {
           transition={{ duration: 0.9, delay: 0.3, ease: smooth }}
           className="flex flex-col justify-center md:w-[55%]"
         >
-
           {!isSuccess ? (
             <>
               {errors.general && (
                 <motion.div
+                  role="alert"
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="mb-6 px-4 py-3 border border-[#CC0033]/30 bg-[#CC0033]/5 text-[13px] text-[#CC0033]"
@@ -192,81 +190,141 @@ export default function RegisterPage() {
                 </motion.div>
               )}
 
-              <form onSubmit={handleSubmit} className="flex flex-col gap-0">
+              <form onSubmit={handleSubmit} aria-label="Create account" noValidate className="flex flex-col gap-0">
 
                 {/* First + Last Name row */}
                 <div className="border-t border-[#eee] pt-5 pb-5 grid grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2">
+                    <label
+                      htmlFor="reg-first-name"
+                      className="block text-[11px] font-semibold tracking-[0.12em] uppercase mb-2"
+                      style={{ color: GRAY }}
+                    >
                       First Name
                     </label>
                     <input
+                      id="reg-first-name"
                       type="text"
+                      autoComplete="given-name"
                       placeholder="Jane"
                       value={registerData.firstName}
                       onChange={(e) => setRegisterData({ ...registerData, firstName: e.target.value })}
+                      aria-describedby={errors.firstName ? 'reg-first-name-error' : undefined}
+                      aria-invalid={!!errors.firstName}
                       className="w-full bg-transparent text-[15px] font-light text-[#111] placeholder-[#ccc] border-0 border-b border-[#e0e0e0] focus:border-[#CC0033] focus:outline-none pb-2 transition-colors duration-200"
                     />
-                    {errors.firstName && <p className="mt-2 text-[12px] text-[#CC0033]">{errors.firstName}</p>}
+                    {errors.firstName && (
+                      <p id="reg-first-name-error" role="alert" className="mt-2 text-[12px] text-[#CC0033]">
+                        {errors.firstName}
+                      </p>
+                    )}
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2">
+                    <label
+                      htmlFor="reg-last-name"
+                      className="block text-[11px] font-semibold tracking-[0.12em] uppercase mb-2"
+                      style={{ color: GRAY }}
+                    >
                       Last Name
                     </label>
                     <input
+                      id="reg-last-name"
                       type="text"
+                      autoComplete="family-name"
                       placeholder="Doe"
                       value={registerData.lastName}
                       onChange={(e) => setRegisterData({ ...registerData, lastName: e.target.value })}
+                      aria-describedby={errors.lastName ? 'reg-last-name-error' : undefined}
+                      aria-invalid={!!errors.lastName}
                       className="w-full bg-transparent text-[15px] font-light text-[#111] placeholder-[#ccc] border-0 border-b border-[#e0e0e0] focus:border-[#CC0033] focus:outline-none pb-2 transition-colors duration-200"
                     />
-                    {errors.lastName && <p className="mt-2 text-[12px] text-[#CC0033]">{errors.lastName}</p>}
+                    {errors.lastName && (
+                      <p id="reg-last-name-error" role="alert" className="mt-2 text-[12px] text-[#CC0033]">
+                        {errors.lastName}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 {/* Email */}
                 <div className="border-t border-[#eee] pt-5 pb-5">
-                  <label className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2">
+                  <label
+                    htmlFor="reg-email"
+                    className="block text-[11px] font-semibold tracking-[0.12em] uppercase mb-2"
+                    style={{ color: GRAY }}
+                  >
                     CSUN Email
                   </label>
                   <input
+                    id="reg-email"
                     type="email"
+                    autoComplete="email"
                     placeholder="your.name@my.csun.edu"
                     value={registerData.email}
                     onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                    aria-describedby={errors.email ? 'reg-email-error' : undefined}
+                    aria-invalid={!!errors.email}
                     className="w-full bg-transparent text-[15px] font-light text-[#111] placeholder-[#ccc] border-0 border-b border-[#e0e0e0] focus:border-[#CC0033] focus:outline-none pb-2 transition-colors duration-200"
                   />
-                  {errors.email && <p className="mt-2 text-[12px] text-[#CC0033]">{errors.email}</p>}
+                  {errors.email && (
+                    <p id="reg-email-error" role="alert" className="mt-2 text-[12px] text-[#CC0033]">
+                      {errors.email}
+                    </p>
+                  )}
                 </div>
 
                 {/* Phone Number */}
                 <div className="border-t border-[#eee] pt-5 pb-5">
-                  <label className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2">
+                  <label
+                    htmlFor="reg-phone"
+                    className="block text-[11px] font-semibold tracking-[0.12em] uppercase mb-2"
+                    style={{ color: GRAY }}
+                  >
                     Phone Number{' '}
-                    <span className="text-[#ccc] normal-case font-light tracking-normal">— optional</span>
+                    <span className="normal-case font-light tracking-normal" style={{ color: GRAY }}>— optional</span>
                   </label>
                   <input
+                    id="reg-phone"
                     type="tel"
+                    autoComplete="tel"
                     placeholder="+1 (818) 555-0100"
                     value={registerData.phoneNumber || ''}
                     onChange={(e) => setRegisterData({ ...registerData, phoneNumber: e.target.value })}
+                    aria-describedby={
+                      errors.phoneNumber
+                        ? 'reg-phone-hint reg-phone-error'
+                        : 'reg-phone-hint'
+                    }
+                    aria-invalid={!!errors.phoneNumber}
                     className="w-full bg-transparent text-[15px] font-light text-[#111] placeholder-[#ccc] border-0 border-b border-[#e0e0e0] focus:border-[#CC0033] focus:outline-none pb-2 transition-colors duration-200"
                   />
-                  <p className="mt-2 text-[11px] text-[#ccc] font-light">
+                  <p id="reg-phone-hint" className="mt-2 text-[11px] font-light" style={{ color: GRAY }}>
                     Only used for emergency safety alerts. Never shared or used for marketing.
                   </p>
-                  {errors.phoneNumber && <p className="mt-1 text-[12px] text-[#CC0033]">{errors.phoneNumber}</p>}
+                  {errors.phoneNumber && (
+                    <p id="reg-phone-error" role="alert" className="mt-1 text-[12px] text-[#CC0033]">
+                      {errors.phoneNumber}
+                    </p>
+                  )}
                 </div>
 
                 {/* Password */}
                 <div className="border-t border-[#eee] pt-5 pb-5">
-                  <label className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2">
+                  <label
+                    htmlFor="reg-password"
+                    className="block text-[11px] font-semibold tracking-[0.12em] uppercase mb-2"
+                    style={{ color: GRAY }}
+                  >
                     Password
                   </label>
                   <PasswordField
+                    id="reg-password"
                     value={registerData.password}
                     onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                     placeholder="••••••••"
+                    autoComplete="new-password"
+                    aria-describedby={errors.password ? 'reg-password-error' : undefined}
+                    aria-invalid={!!errors.password}
                     style={{
                       width: '100%',
                       background: 'transparent',
@@ -280,18 +338,30 @@ export default function RegisterPage() {
                       outline: 'none',
                     }}
                   />
-                  {errors.password && <p className="mt-2 text-[12px] text-[#CC0033]">{errors.password}</p>}
+                  {errors.password && (
+                    <p id="reg-password-error" role="alert" className="mt-2 text-[12px] text-[#CC0033]">
+                      {errors.password}
+                    </p>
+                  )}
                 </div>
 
                 {/* Confirm Password */}
                 <div className="border-t border-[#eee] pt-5 pb-5">
-                  <label className="block text-[11px] font-semibold tracking-[0.12em] text-[#999] uppercase mb-2">
+                  <label
+                    htmlFor="reg-confirm-password"
+                    className="block text-[11px] font-semibold tracking-[0.12em] uppercase mb-2"
+                    style={{ color: GRAY }}
+                  >
                     Confirm Password
                   </label>
                   <PasswordField
+                    id="reg-confirm-password"
                     value={registerData.confirmPassword}
                     onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
                     placeholder="••••••••"
+                    autoComplete="new-password"
+                    aria-describedby={errors.confirmPassword ? 'reg-confirm-password-error' : undefined}
+                    aria-invalid={!!errors.confirmPassword}
                     style={{
                       width: '100%',
                       background: 'transparent',
@@ -305,36 +375,43 @@ export default function RegisterPage() {
                       outline: 'none',
                     }}
                   />
-                  {errors.confirmPassword && <p className="mt-2 text-[12px] text-[#CC0033]">{errors.confirmPassword}</p>}
+                  {errors.confirmPassword && (
+                    <p id="reg-confirm-password-error" role="alert" className="mt-2 text-[12px] text-[#CC0033]">
+                      {errors.confirmPassword}
+                    </p>
+                  )}
                 </div>
 
                 <div className="border-t border-[#eee]" />
 
                 {/* Submit */}
                 <div className="flex items-center justify-between mt-8">
-                  <p className="text-[13px] text-[#aaa] font-light">
+                  <p className="text-[13px] font-light" style={{ color: GRAY }}>
                     Already have an account?{' '}
                     <Link href="/login" className="text-[#CC0033] font-semibold hover:underline underline-offset-4">
                       Sign in
                     </Link>
                   </p>
-
                   <motion.button
                     type="submit"
                     disabled={isSubmitting}
+                    aria-busy={isSubmitting}
                     whileHover={{ x: 3 }}
                     whileTap={{ scale: 0.98 }}
                     className="group inline-flex items-center gap-3 bg-[#CC0033] text-white px-8 py-4 text-[13px] font-semibold hover:bg-[#a80028] transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? 'Creating account…' : 'Create account'}
-                    <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                    <ArrowRight aria-hidden="true" className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                   </motion.button>
                 </div>
 
               </form>
             </>
           ) : (
+            /* Success state */
             <motion.div
+              role="status"
+              aria-label="Account created successfully"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: smooth }}
@@ -360,12 +437,14 @@ export default function RegisterPage() {
                 </motion.h2>
               </div>
 
-              <p className="text-[14px] text-[#aaa] font-light leading-relaxed mb-10">
+              <p className="text-[14px] font-light leading-relaxed mb-10" style={{ color: GRAY }}>
                 Check your inbox and verify your email to get started.
                 <br />
-                <span className="text-[12px] text-[#ccc]">
+                <span className="text-[12px]" style={{ color: GRAY }}>
                   Heading to login in{' '}
-                  <span className="text-[#CC0033] font-semibold tabular-nums">{countdown}s</span>…
+                  <span aria-live="polite" className="text-[#CC0033] font-semibold tabular-nums">
+                    {countdown}s
+                  </span>…
                 </span>
               </p>
 
@@ -376,7 +455,7 @@ export default function RegisterPage() {
                 className="group inline-flex items-center gap-3 bg-[#111] text-white px-8 py-4 text-[13px] font-semibold hover:bg-[#CC0033] transition-colors duration-300"
               >
                 Go to login
-                <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                <ArrowRight aria-hidden="true" className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
               </motion.button>
             </motion.div>
           )}
@@ -391,8 +470,8 @@ export default function RegisterPage() {
         transition={{ duration: 1, delay: 0.8 }}
         className="px-6 md:px-14 py-6 border-t border-black/[0.04] flex items-center justify-between"
       >
-        <p className="text-[11px] text-[#ccc] font-light">© 2026 CampusConnect. COMP 490 Senior Design.</p>
-        <p className="text-[11px] text-[#ccc] font-light">Not affiliated with CSUN.</p>
+        <p className="text-[11px] font-light" style={{ color: GRAY }}>© 2026 CampusConnect. COMP 490 Senior Design.</p>
+        <p className="text-[11px] font-light" style={{ color: GRAY }}>Not affiliated with CSUN.</p>
       </motion.div>
 
     </div>

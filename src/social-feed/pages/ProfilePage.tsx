@@ -89,7 +89,7 @@ export default function ProfilePage({
         <div style={{ fontFamily:"var(--font-display)", fontSize:22, fontWeight:700, color:"var(--text-primary)", marginBottom:2 }}>
           {profile.firstName} {profile.lastName}
           {profile.isVerified && (
-            <svg style={{ display:"inline", marginLeft:6, verticalAlign:"middle" }} width="18" height="18" viewBox="0 0 24 24" fill="var(--csun-red)">
+            <svg aria-label="Verified" role="img" style={{ display:"inline", marginLeft:6, verticalAlign:"middle" }} width="18" height="18" viewBox="0 0 24 24" fill="var(--csun-red)">
               <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
             </svg>
           )}
@@ -137,6 +137,7 @@ export default function ProfilePage({
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
+            aria-pressed={activeTab === tab}
             style={{
               flex:1, padding:"16px", border:"none", background:"transparent",
               color: activeTab === tab ? "var(--text-primary)" : "var(--text-muted)",
@@ -156,7 +157,7 @@ export default function ProfilePage({
       {/* Post list */}
       {shownPosts.length === 0 ? (
         <div className="empty-state">
-          <svg className="empty-icon" width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.3" viewBox="0 0 24 24">
+          <svg aria-hidden="true" className="empty-icon" width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.3" viewBox="0 0 24 24">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
           <div className="empty-title">
@@ -199,6 +200,6 @@ function ProfileSkeleton() {
 }
 
 // Icons
-const PinIcon  = () => <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>;
-const CalIcon  = () => <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>;
-const LinkIcon = () => <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>;
+const PinIcon  = () => <svg aria-hidden="true" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>;
+const CalIcon  = () => <svg aria-hidden="true" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>;
+const LinkIcon = () => <svg aria-hidden="true" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>;

@@ -110,6 +110,7 @@ function ActionRow({
       <Box
         role="button"
         tabIndex={0}
+        aria-expanded={external ? undefined : isOpen}
         onClick={handleClick}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {

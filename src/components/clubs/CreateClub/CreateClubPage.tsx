@@ -317,7 +317,7 @@ function ChipInput({ label: labelText, chips, onChange, suggestions = [], placeh
           {chips.map(c => (
             <span key={c} style={{ display:'inline-flex', alignItems:'center', gap:5, background:`${accentColor}14`, border:`1px solid ${accentColor}40`, borderRadius:99, padding:'4px 12px', fontSize:12, fontWeight:700, color: accentColor }}>
               {c}
-              <button onClick={() => remove(c)} style={{ background:'none', border:'none', cursor:'pointer', padding:0, color: accentColor, display:'flex', alignItems:'center', opacity:0.7, lineHeight:1 }}><XIcon /></button>
+              <button onClick={() => remove(c)} aria-label={`Remove ${c} tag`} style={{ background:'none', border:'none', cursor:'pointer', padding:0, color: accentColor, display:'flex', alignItems:'center', opacity:0.7, lineHeight:1 }}><XIcon /></button>
             </span>
           ))}
         </div>
@@ -456,7 +456,7 @@ function StepAppearance({ draft, set }: { draft: ClubDraft; set: (k: keyof ClubD
         </div>
         <div style={{ display:'flex', gap:8, marginTop:10, flexWrap:'wrap' }}>
           {[RED,'#3b82f6','#10b981','#f59e0b','#ec4899','#8b5cf6','#14b8a6','#ef4444'].map(c => (
-            <button key={c} onClick={() => set('accentColor',c)} style={{ width:28, height:28, borderRadius:'50%', background:c, border:draft.accentColor===c?'3px solid #111':'2px solid rgba(0,0,0,0.10)', cursor:'pointer', transition:'all 0.15s', flexShrink:0 }} />
+            <button key={c} onClick={() => set('accentColor',c)} aria-label={`Select accent color ${c}`} style={{ width:28, height:28, borderRadius:'50%', background:c, border:draft.accentColor===c?'3px solid #111':'2px solid rgba(0,0,0,0.10)', cursor:'pointer', transition:'all 0.15s', flexShrink:0 }} />
           ))}
         </div>
       </div>

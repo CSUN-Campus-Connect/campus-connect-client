@@ -243,6 +243,7 @@ export default function EventRegisterModal({
                       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent, rgba(10,3,5,0.9))' }} />
                       <button
                         onClick={resetAndClose}
+                        aria-label="Close registration"
                         style={{
                           position: 'absolute', top: 12, right: 12,
                           width: 30, height: 30, borderRadius: '50%',
@@ -252,7 +253,7 @@ export default function EventRegisterModal({
                           alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                         }}
                       >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                           <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                         </svg>
                       </button>

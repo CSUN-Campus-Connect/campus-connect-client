@@ -228,10 +228,11 @@ function InterestForm({ club, onClose }: { club: Club; onClose: () => void }) {
       }}
     >
       <div>
-        <label style={lbl}>
+        <label htmlFor="tryout-email" style={lbl}>
           CSUN Email <span style={{ color: RED }}>*</span>
         </label>
         <input
+          id="tryout-email"
           type="email"
           placeholder="yourname@my.csun.edu"
           value={f.email}
@@ -245,10 +246,11 @@ function InterestForm({ club, onClose }: { club: Club; onClose: () => void }) {
         )}
       </div>
       <div>
-        <label style={lbl}>
+        <label htmlFor="tryout-experience" style={lbl}>
           Years of Experience <span style={{ color: RED }}>*</span>
         </label>
         <select
+          id="tryout-experience"
           value={f.experience}
           onChange={set("experience")}
           style={{ ...(touched && !f.experience ? errS : base), cursor: "pointer" }}
@@ -262,10 +264,11 @@ function InterestForm({ club, onClose }: { club: Club; onClose: () => void }) {
         </select>
       </div>
       <div>
-        <label style={lbl}>
+        <label htmlFor="tryout-contact" style={lbl}>
           Best Way to Reach You <span style={{ color: RED }}>*</span>
         </label>
         <textarea
+          id="tryout-contact"
           rows={2}
           value={f.contact}
           onChange={set("contact")}
@@ -275,10 +278,11 @@ function InterestForm({ club, onClose }: { club: Club; onClose: () => void }) {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         <div>
-          <label style={lbl}>
+          <label htmlFor="tryout-phone" style={lbl}>
             Cell <span style={opt}>(optional)</span>
           </label>
           <input
+            id="tryout-phone"
             type="tel"
             placeholder="818-555-0199"
             value={f.phone}
@@ -287,10 +291,11 @@ function InterestForm({ club, onClose }: { club: Club; onClose: () => void }) {
           />
         </div>
         <div>
-          <label style={lbl}>
+          <label htmlFor="tryout-age" style={lbl}>
             Age <span style={opt}>(optional)</span>
           </label>
           <input
+            id="tryout-age"
             type="number"
             min={17}
             max={40}
@@ -302,10 +307,11 @@ function InterestForm({ club, onClose }: { club: Club; onClose: () => void }) {
         </div>
       </div>
       <div>
-        <label style={lbl}>
+        <label htmlFor="tryout-major" style={lbl}>
           Major <span style={opt}>(optional)</span>
         </label>
         <input
+          id="tryout-major"
           type="text"
           placeholder="e.g. Kinesiology"
           value={f.major}
@@ -584,6 +590,7 @@ export default function TryoutModal({
               </div>
               <button
                 onClick={onClose}
+                aria-label="Close"
                 style={{
                   flexShrink: 0,
                   width: 32,
@@ -598,7 +605,7 @@ export default function TryoutModal({
                   color: "#6b7280",
                 }}
               >
-                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

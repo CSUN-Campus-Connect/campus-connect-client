@@ -59,7 +59,12 @@ export default function BugReportsPage() {
             {bugs.map((bug) => (
               <div
                 key={bug.id}
+                role="button"
+                tabIndex={0}
+                aria-pressed={selected?.id === bug.id}
+                aria-label={`${bug.title}, ${bug.severity} severity, ${bug.category}${bug.user ? `, reported by ${bug.user.firstName} ${bug.user.lastName}` : ""}, ${new Date(bug.createdAt).toLocaleDateString()}`}
                 onClick={() => setSelected(bug)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(bug); } }}
                 style={{
                   padding: "12px 16px",
                   border: "1px solid #1a1a1a",
@@ -104,9 +109,13 @@ export default function BugReportsPage() {
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px" }}>
                 <div style={{ fontSize: "11px", color: "#555", letterSpacing: "1px" }}>BUG DETAIL</div>
-                <button onClick={() => setSelected(null)} style={{
-                  background: "none", border: "none", color: "#555", cursor: "pointer", fontFamily: "inherit", fontSize: "16px",
-                }}>✕</button>
+                <button
+                  aria-label="Close bug detail"
+                  onClick={() => setSelected(null)}
+                  style={{
+                    background: "none", border: "none", color: "#555", cursor: "pointer", fontFamily: "inherit", fontSize: "16px",
+                  }}
+                >✕</button>
               </div>
 
               <div style={{ fontSize: "16px", fontWeight: 600, color: "#e5e5e5", marginBottom: "12px" }}>

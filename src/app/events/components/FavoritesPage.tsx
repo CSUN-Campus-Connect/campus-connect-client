@@ -101,7 +101,7 @@ function FavCard({ event, onOpen, onRemove }: FavCardProps) {
           {/* Remove from favorites */}
           <button
             onClick={(e) => onRemove(event.id, e)}
-            title="Remove from favorites"
+            aria-label={`Remove ${event.title} from favorites`}
             style={{
               position: 'absolute', top: 10, right: 10,
               width: 30, height: 30, borderRadius: '50%',

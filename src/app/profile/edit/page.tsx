@@ -305,7 +305,7 @@ export default function EditProfilePage(){
                       Upload
                       <input hidden type="file" accept="image/*" onChange={(e)=>onImg(e,"banner")}/>
                     </Button>
-                    <Slider sx={{width:220}} min={0.5} max={3} step={0.01}
+                    <Slider aria-label="Banner image scale" sx={{width:220}} min={0.5} max={3} step={0.01}
                       value={p.bannerPos?.scale||1}
                       onChange={(_,v)=>setP(prev=>({...prev, bannerPos:{...(prev.bannerPos||{x:0,y:0,scale:1}), scale:Number(v)}}))}
                     />
@@ -347,7 +347,7 @@ export default function EditProfilePage(){
                       Upload
                       <input hidden type="file" accept="image/*" onChange={(e)=>onImg(e,"background")}/>
                     </Button>
-                    <Slider sx={{width:220}} min={0.5} max={3} step={0.01}
+                    <Slider aria-label="Background image scale" sx={{width:220}} min={0.5} max={3} step={0.01}
                       value={p.backgroundPos?.scale||1}
                       onChange={(_,v)=>setP(prev=>({...prev, backgroundPos:{...(prev.backgroundPos||{x:0,y:0,scale:1}), scale:Number(v)}}))}
                     />
@@ -375,7 +375,7 @@ export default function EditProfilePage(){
                   Upload
                   <input hidden type="file" accept="image/*" onChange={(e)=>onImg(e,"avatar")}/>
                 </Button>
-                <Slider size="small" sx={{width:220}} min={0.5} max={3} step={0.01}
+                <Slider size="small" aria-label="Profile picture scale" sx={{width:220}} min={0.5} max={3} step={0.01}
                   value={p.avatarPos?.scale||1}
                   onChange={(_,v)=>setP(prev=>({...prev, avatarPos:{...(prev.avatarPos||{x:0,y:0,scale:1}), scale:Number(v)}}))}
                 />

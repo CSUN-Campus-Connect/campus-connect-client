@@ -123,7 +123,7 @@ export default function EventsBanner() {
     <Box>
       {/* Header */}
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
-        <CalendarMonthIcon sx={{ fontSize: 18, color: "rgba(255,255,255,0.7)" }} />
+        <CalendarMonthIcon aria-hidden="true" sx={{ fontSize: 18, color: "rgba(255,255,255,0.7)" }} />
         <Typography sx={{ fontWeight: 800, color: "#fff", fontSize: "1rem" }}>
           Upcoming SRC Events
         </Typography>
@@ -225,7 +225,7 @@ export default function EventsBanner() {
                   size="small"
                   variant="contained"
                   disabled={wasAdded}
-                  startIcon={<AddCircleOutlineIcon sx={{ fontSize: "12px !important" }} />}
+                  startIcon={<AddCircleOutlineIcon aria-hidden="true" sx={{ fontSize: "12px !important" }} />}
                   onClick={() => handleAdd(event)}
                   sx={{
                     bgcolor: wasAdded ? "rgba(34,197,94,0.3)" : "rgba(255,255,255,0.2)",
@@ -249,13 +249,14 @@ export default function EventsBanner() {
                     href={event.url}
                     target="_blank"
                     rel="noopener"
+                    aria-label={`View ${event.summary} on CSUN News (opens in new tab)`}
                     sx={{
                       minWidth: 0, px: 1, color: "rgba(255,255,255,0.7)",
                       border: "1px solid rgba(255,255,255,0.25)", borderRadius: 999,
                       "&:hover": { color: "#fff", bgcolor: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.5)" },
                     }}
                   >
-                    <OpenInNewIcon sx={{ fontSize: 13 }} />
+                    <OpenInNewIcon aria-hidden="true" sx={{ fontSize: 13 }} />
                   </Button>
                 </Tooltip>
               </Box>

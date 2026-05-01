@@ -53,7 +53,7 @@ const teamGroups = [
     group: 'Backend',
     people: [
       { name: 'Justin',  role: 'Backend' },
-      { name: 'Giselle', role: 'Backend' },
+      { name: 'Gisselle', role: 'Backend' },
     ],
   },
   {
@@ -94,6 +94,8 @@ const lookbookPhotos = [
 ];
 
 const smooth: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+const GRAY = "#767676";
 
 
 /**
@@ -357,7 +359,7 @@ export default function LandingPage() {
               priority
               className="w-9 h-9"
             />
-            <span className="text-[13px] font-light tracking-wide text-[#999]">
+            <span className="text-[13px] font-light tracking-wide" style={{ color: GRAY }}>
               Toro Campus Connect
             </span>
           </motion.div>
@@ -376,7 +378,8 @@ export default function LandingPage() {
             </Link>
             <button
               onClick={scrollToVideo}
-              className="text-[13px] text-[#999] hover:text-[#555] transition-colors"
+              className="text-[13px] hover:text-[#555] transition-colors"
+              style={{ color: GRAY }}
             >
               Explore
             </button>
@@ -409,7 +412,7 @@ export default function LandingPage() {
             transition={{ duration: 0.7, delay: 0.8 }}
             className="mt-6 md:mt-8"
           >
-            <p className="text-[15px] md:text-[16px] text-[#999] max-w-xs leading-relaxed font-light">
+            <p className="text-[15px] md:text-[16px] max-w-xs leading-relaxed font-light" style={{ color: GRAY }}>
               Experience the university in one app — it&apos;s all here.
               Made by students, for CSUN.
             </p>
@@ -423,7 +426,7 @@ export default function LandingPage() {
             transition={{ delay: 1.2 }}
             className="absolute bottom-6 left-1/2 -translate-x-1/2"
           >
-            <ArrowDown className="w-5 h-5 text-[#ccc] animate-bounce" />
+            <ArrowDown className="w-5 h-5 animate-bounce" style={{ color: GRAY }} />
           </motion.button>
         </div>
       </motion.section>
@@ -465,7 +468,7 @@ export default function LandingPage() {
               <h2 className="text-[2.5rem] md:text-[3.5rem] font-extrabold leading-[1] tracking-tight">
                 Everything you<br />actually need
               </h2>
-              <p className="text-[14px] text-[#aaa] max-w-xs leading-relaxed font-light">
+              <p className="text-[14px] max-w-xs leading-relaxed font-light" style={{ color: GRAY }}>
                 The CSUN website is confusing right? <br/>Well try this.
               </p>
             </div>
@@ -489,9 +492,9 @@ export default function LandingPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <span className="text-[15px] font-semibold">{feature.name}</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-[#ddd] opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: GRAY }} />
                     </div>
-                    <span className="text-[12px] text-[#bbb] leading-relaxed font-light block mt-0.5">
+                    <span className="text-[12px] leading-relaxed font-light block mt-0.5" style={{ color: GRAY }}>
                       {feature.desc}
                     </span>
                   </div>
@@ -608,7 +611,7 @@ export default function LandingPage() {
               Seven seniors,{' '}
               <span className="font-extralight">one semester, no sleep.</span>
             </h2>
-            <p className="text-[14px] text-[#aaa] font-light leading-relaxed max-w-md mb-10">
+            <p className="text-[14px] font-light leading-relaxed max-w-md mb-10" style={{ color: GRAY }}>
               COMP 490 Senior Design, 2025–2026. We wanted to leave something behind
               that actually helps.
             </p>
@@ -628,7 +631,7 @@ export default function LandingPage() {
                     {group.people.map((person) => (
                       <div key={person.name}>
                         <div className="text-[15px] font-semibold">{person.name}</div>
-                        <div className="text-[12px] text-[#ccc] font-light">{person.role}</div>
+                        <div className="text-[12px] font-light" style={{ color: GRAY }}>{person.role}</div>
                       </div>
                     ))}
                   </div>
@@ -645,7 +648,7 @@ export default function LandingPage() {
           <div className="flex items-end justify-between mb-8">
             <div>
               <h3 className="text-[1.2rem] font-extrabold tracking-tight">Legal</h3>
-              <p className="text-[12px] text-[#bbb] font-light mt-0.5">Effective March 2026</p>
+              <p className="text-[12px] font-light mt-0.5" style={{ color: GRAY }}>Effective March 2026</p>
             </div>
             <a
               href="mailto:support@campusconnect.com"
@@ -667,9 +670,10 @@ export default function LandingPage() {
                     {doc.title}
                   </span>
                   <ChevronDown
-                    className={`w-4 h-4 text-[#ccc] transition-transform duration-300 ${
+                    className={`w-4 h-4 transition-transform duration-300 ${
                       openLegalIndex === idx ? 'rotate-180' : ''
                     }`}
+                    style={{ color: GRAY }}
                   />
                 </button>
 
@@ -683,7 +687,7 @@ export default function LandingPage() {
                       transition={{ duration: 0.35, ease: smooth }}
                       className="overflow-hidden"
                     >
-                      <p className="text-[12px] text-[#aaa] leading-relaxed pb-5 font-light pr-8">
+                      <p className="text-[12px] leading-relaxed pb-5 font-light pr-8" style={{ color: GRAY }}>
                         {doc.body}
                       </p>
                     </motion.div>
@@ -695,10 +699,10 @@ export default function LandingPage() {
 
           {/* Footer */}
           <div className="mt-10 pt-6 border-t border-black/[0.04] flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
-            <p className="text-[11px] text-[#ccc] font-light">
+            <p className="text-[11px] font-light" style={{ color: GRAY }}>
               © 2026 CampusConnect. Not affiliated with California State University, Northridge.
             </p>
-            <p className="text-[11px] text-[#ccc] font-light">
+            <p className="text-[11px] font-light" style={{ color: GRAY }}>
               COMP 490 Senior Design 2025–2026
             </p>
           </div>

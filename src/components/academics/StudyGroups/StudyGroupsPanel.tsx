@@ -340,7 +340,7 @@ function GroupCard({ group, isMember, isOwner, onJoin, onLeave, onDelete, onAddT
                   compatible with Apple Calendar, Outlook, and Google Calendar import.
                   This is more reliable than deep-linking to Google Calendar. */}
               <Tooltip title="Add to Calendar">
-                <IconButton size="small" sx={{ p: 0.5, color: "rgba(0,0,0,0.35)", "&:hover": { color: "#A80532", bgcolor: "rgba(168,5,50,0.06)" } }}
+                <IconButton size="small" aria-label="Add to calendar" sx={{ p: 0.5, color: "rgba(0,0,0,0.35)", "&:hover": { color: "#A80532", bgcolor: "rgba(168,5,50,0.06)" } }}
                   onClick={() => onAddToCalendar(group)}>
                   <CalendarTodayIcon sx={{ fontSize: 14 }} />
                 </IconButton>
@@ -351,7 +351,7 @@ function GroupCard({ group, isMember, isOwner, onJoin, onLeave, onDelete, onAddT
                 // before allowing deletion. Never rely on the client's isOwner flag alone.
                 // On delete, CASCADE to study_group_members and study_group_invites.
                 <Tooltip title="Delete group">
-                  <IconButton size="small" sx={{ p: 0.5, color: "rgba(0,0,0,0.32)", "&:hover": { color: "#dc2626", bgcolor: "rgba(220,38,38,0.06)" } }}
+                  <IconButton size="small" aria-label="Delete study group" sx={{ p: 0.5, color: "rgba(0,0,0,0.32)", "&:hover": { color: "#dc2626", bgcolor: "rgba(220,38,38,0.06)" } }}
                     onClick={() => onDelete(group.id)}>
                     <DeleteOutlineIcon sx={{ fontSize: 14 }} />
                   </IconButton>
@@ -431,7 +431,7 @@ function JoinModal({ open, group, onClose, onJoin }: {
             <Typography fontWeight={950} sx={{ color: "#fff", fontSize: "1.05rem" }}>Join Study Group</Typography>
             {group && <Typography sx={{ color: "rgba(255,255,255,0.75)", fontSize: "0.80rem", mt: 0.15 }}>{group.topic}</Typography>}
           </Box>
-          <IconButton onClick={onClose} sx={{ color: "rgba(255,255,255,0.80)" }}><CloseIcon /></IconButton>
+          <IconButton onClick={onClose} aria-label="Close" sx={{ color: "rgba(255,255,255,0.80)" }}><CloseIcon /></IconButton>
         </Stack>
       </Box>
       <DialogContent sx={{ p: 2.5 }}>
@@ -622,7 +622,7 @@ function CreateModal({ open, onClose, onCreate }: {
             <GroupsIcon sx={{ color: "#fff", fontSize: 22 }} />
             <Typography fontWeight={950} sx={{ color: "#fff", fontSize: "1.1rem" }}>Create Study Group</Typography>
           </Stack>
-          <IconButton onClick={onClose} sx={{ color: "rgba(255,255,255,0.80)" }}><CloseIcon /></IconButton>
+          <IconButton onClick={onClose} aria-label="Close" sx={{ color: "rgba(255,255,255,0.80)" }}><CloseIcon /></IconButton>
         </Stack>
         {/* BACKEND NOTE: "Sessions auto-expire 3 days after the meeting date."
             This expiry must be enforced server-side. Recommended approaches:
