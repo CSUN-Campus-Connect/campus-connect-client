@@ -41,9 +41,9 @@ export type TestSkillTreeResponse = {
   electiveOptions?: ElectiveOption[];
 };
 
-export const CSUN_CS_2022_TEST_CASE = {
+export const CSUN_CS_2023_TEST_CASE = {
   majorName: "Computer Science",
-  year: "2022",
+  year: "2023",
   level: "undergraduate" as const,
   roadmapUrl: "https://catalog.csun.edu/resource/road-map/2021/computer-science-2021/",
   pace: "full-time" as const,
@@ -66,11 +66,11 @@ export const CSUN_CS_2022_TEST_CASE = {
 // Year 4 Sem 1 (16u): COMP 482(3), COMP 490/L(4), CS UD Elec x2(6), GE UD D1(3)
 // Year 4 Sem 2 (13u): COMP 491L(1), CS UD Elec(3), GE C2(3), GE UD F(3), Elective(3)
 
-export const CSUN_CS_2022_FIXTURE: TestSkillTreeResponse = {
+export const CSUN_CS_2023_FIXTURE: TestSkillTreeResponse = {
   majorName: "Computer Science",
-  catalogYear: "2022",
+  catalogYear: "2023",
   matchedRoadmap: {
-    title: "Computer Science B.S. — 2021/2022 Catalog",
+    title: "Computer Science B.S. — 2021/2023 Catalog",
     url: "https://catalog.csun.edu/resource/road-map/2021/computer-science-2021/",
   },
   semesters: [
@@ -174,7 +174,7 @@ export async function loadCSUNTestCase(): Promise<TestSkillTreeResponse> {
   const {
     majorName, year, level, pace, startTerm, startYear,
     includeSummer, includeWinter, maxTiers, completedCourses, selectedElectives,
-  } = CSUN_CS_2022_TEST_CASE;
+  } = CSUN_CS_2023_TEST_CASE;
   try {
     const res = await fetch("/api/academics/smartplanner/planner/skill-tree", {
       method: "POST",
@@ -187,11 +187,11 @@ export async function loadCSUNTestCase(): Promise<TestSkillTreeResponse> {
       if (data?.nodes?.length && data?.semesters?.length) return data as TestSkillTreeResponse;
     }
   } catch { /* fall through */ }
-  return CSUN_CS_2022_FIXTURE;
+  return CSUN_CS_2023_FIXTURE;
 }
 
 export const CSUN_CS_2022_META = {
-  label: "CSUN Computer Science B.S. (2021/2022)",
+  label: "CSUN Computer Science B.S. (2021/2023)",
   description: "4-year full-time roadmap — 120 units",
   sourceUrl: "https://catalog.csun.edu/resource/road-map/2021/computer-science-2021/",
   totalUnits: 120,

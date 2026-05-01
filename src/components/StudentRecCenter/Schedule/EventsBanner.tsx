@@ -4,6 +4,8 @@ import * as React from "react";
 import useSWR from "swr";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import {
   Box, Typography, Chip, Button, Snackbar, Alert, Tooltip,
   Skeleton,
@@ -11,70 +13,146 @@ import {
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import PoolIcon from "@mui/icons-material/Pool";
+import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
+import SportsMartialArtsIcon from "@mui/icons-material/SportsMartialArts";
+import SportsSoccerIcon from "@mui/icons-material/SportsSoccer";
+import SelfImprovementIcon from "@mui/icons-material/SelfImprovement";
+import CelebrationIcon from "@mui/icons-material/Celebration";
 
 dayjs.extend(isBetween);
-
-// ── Types ────────────────────────────────────────────────────────────────────
+dayjs.extend(isSameOrBefore);
+dayjs.extend(isSameOrAfter);
 
 export type CalEvent = {
   uid: string;
   summary: string;
   description: string;
   location: string;
-  dtstart: string;
-  dtend: string;
+  dtstart: string | null;
+  dtend: string | null;
   url: string;
-  imageUrl?: string;
+  imageUrl?: string | null;
   allDay: boolean;
   categories: string[];
 };
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+type CatKey = "aquatics" | "cardio" | "hiit" | "intramural" | "outdoor" | "special" | "other";
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+const CAT_STYLE: Record<CatKey, { bg: string; border: string; icon: React.ReactNode }> = {
+  aquatics: { bg: "rgba(21,142,212,0.75)", border: "rgba(170,225,235,0.5)", icon: <PoolIcon sx={{ fontSize: 14 }} /> },
+  cardio: { bg: "rgba(95,202,113,0.75)", border: "rgba(205,245,205,0.5)", icon: <FitnessCenterIcon sx={{ fontSize: 14 }} /> },
+  hiit: { bg: "rgba(253,110,44,0.75)", border: "rgba(235,197,169,0.5)", icon: <SportsMartialArtsIcon sx={{ fontSize: 14 }} /> },
+  intramural: { bg: "rgba(219,177,38,0.80)", border: "rgba(245,218,139,0.5)", icon: <SportsSoccerIcon sx={{ fontSize: 14 }} /> },
+  outdoor: { bg: "rgba(46,160,67,0.78)", border: "rgba(160,220,160,0.5)", icon: <SelfImprovementIcon sx={{ fontSize: 14 }} /> },
+  special: { bg: "rgba(162,98,218,0.78)", border: "rgba(203,161,241,0.5)", icon: <CelebrationIcon sx={{ fontSize: 14 }} /> },
+  other: { bg: "rgba(160,14,55,0.75)", border: "rgba(255,255,255,0.2)", icon: <CalendarMonthIcon sx={{ fontSize: 14 }} /> },
+};
 
-function isActive(event: CalEvent): boolean {
-  const now   = dayjs();
-  const start = dayjs(event.dtstart);
-  const end   = dayjs(event.dtend);
-  return now.isBetween(start, end, "day", "[]");
+function inferCatKey(event: CalEvent): CatKey {
+  const h = `${event.summary} ${event.categories.join(" ")}`.toLowerCase();
+  if (/swim|pool|aquatic|water/.test(h)) return "aquatics";
+  if (/intramural|basketball|volleyball|soccer|frisbee|softball|flag football|night hits/.test(h)) return "intramural";
+  if (/boxing|hiit|kickbox|bag work/.test(h)) return "hiit";
+  if (/outdoor|rock wall|climb|hike|kayak|surf/.test(h)) return "outdoor";
+  if (/cpr|first.?aid|aed|certification|membership|locker|special|orientation|expo|open house/.test(h)) return "special";
+  if (/yoga|zumba|cardio|pilates|barre|fitness|cycle|spin|aerobic/.test(h)) return "cardio";
+  return "other";
 }
 
-// ── Component ────────────────────────────────────────────────────────────────
+const fetcher = async (url: string): Promise<CalEvent[]> => {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch ${url}: ${res.status}`);
+  }
+  return res.json();
+};
+
+function getEventBounds(event: CalEvent) {
+  if (!event.dtstart) return null;
+
+  const start = dayjs(event.dtstart);
+  if (!event.dtend) {
+    return {
+      start,
+      end: event.allDay ? start.endOf("day") : start.add(1, "hour"),
+    };
+  }
+
+  const rawEnd = dayjs(event.dtend);
+  return {
+    start,
+    end: event.allDay ? rawEnd.subtract(1, "millisecond") : rawEnd,
+  };
+}
+
+function isOngoing(event: CalEvent): boolean {
+  const bounds = getEventBounds(event);
+  if (!bounds) return false;
+  const now = dayjs();
+  return now.isSameOrAfter(bounds.start) && now.isSameOrBefore(bounds.end);
+}
+
+function dateLabel(event: CalEvent): string {
+  if (!event.dtstart) return "Ongoing";
+
+  const start = dayjs(event.dtstart);
+
+  if (event.allDay) {
+    if (!event.dtend) return start.format("MMM D");
+    const end = dayjs(event.dtend).subtract(1, "day");
+    if (end.isSame(start, "day")) return start.format("MMM D");
+    if (end.isSame(start, "month")) return `${start.format("MMM D")}–${end.format("D")}`;
+    return `${start.format("MMM D")} – ${end.format("MMM D")}`;
+  }
+
+  return start.format("MMM D · h:mma");
+}
 
 export default function EventsBanner() {
   const [added, setAdded] = React.useState<Set<string>>(new Set());
   const [toast, setToast] = React.useState<string | null>(null);
 
   const { data: allEvents = [], isLoading, error } = useSWR<CalEvent[]>(
-    "/StudentRecCenter/api/src-events",
+    "/api/src-events",
     fetcher,
-    { refreshInterval: 60 * 60 * 1000 } // re-poll every hour (matches ICS TTL)
+    {
+      refreshInterval: 60 * 60 * 1000,
+      revalidateOnFocus: true,
+      revalidateIfStale: true,
+      keepPreviousData: true,
+    }
   );
 
-  const activeEvents   = allEvents.filter(isActive);
-  const upcomingEvents = allEvents.filter((e) => dayjs(e.dtstart).isAfter(dayjs()));
-  const displayEvents  = [
-    ...activeEvents,
-    ...upcomingEvents.filter((e) => !activeEvents.includes(e)),
-  ];
+  const displayEvents = React.useMemo(() => {
+    const sorted = [...allEvents].sort((a, b) => {
+      const aOngoing = isOngoing(a) ? 1 : 0;
+      const bOngoing = isOngoing(b) ? 1 : 0;
+      if (aOngoing !== bOngoing) return bOngoing - aOngoing;
+
+      const at = a.dtstart ? dayjs(a.dtstart).valueOf() : 0;
+      const bt = b.dtstart ? dayjs(b.dtstart).valueOf() : 0;
+      return at - bt;
+    });
+
+    return sorted;
+  }, [allEvents]);
 
   async function handleAdd(event: CalEvent) {
-    // Optimistic UI update
     setAdded((prev) => new Set(prev).add(event.uid));
     setToast(`"${event.summary}" added to your events!`);
 
     try {
       const res = await fetch("/api/user-events", {
-        method:  "POST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           eventUid: event.uid,
-          summary:  event.summary,
-          dtstart:  event.dtstart,
-          dtend:    event.dtend,
+          summary: event.summary,
+          dtstart: event.dtstart,
+          dtend: event.dtend,
           location: event.location,
-          url:      event.url,
+          url: event.url,
         }),
       });
       if (res.status === 409) {
@@ -82,24 +160,30 @@ export default function EventsBanner() {
         return;
       }
       if (!res.ok) {
-        // Roll back optimistic update
-        setAdded((prev) => { const s = new Set(prev); s.delete(event.uid); return s; });
-        setToast("Something went wrong — try again.");
+        setAdded((prev) => {
+          const s = new Set(prev);
+          s.delete(event.uid);
+          return s;
+        });
+        setToast("Something went wrong. Try again.");
       }
     } catch {
-      setAdded((prev) => { const s = new Set(prev); s.delete(event.uid); return s; });
-      setToast("Something went wrong — try again.");
+      setAdded((prev) => {
+        const s = new Set(prev);
+        s.delete(event.uid);
+        return s;
+      });
+      setToast("Something went wrong. Try again.");
     }
   }
 
-  // Loading skeleton
-  if (isLoading) {
+  if (isLoading && displayEvents.length === 0) {
     return (
       <Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
           <CalendarMonthIcon sx={{ fontSize: 18, color: "rgba(255,255,255,0.7)" }} />
           <Typography sx={{ fontWeight: 800, color: "#fff", fontSize: "1rem" }}>
-            Upcoming SRC Events
+            SRC Events
           </Typography>
         </Box>
         <Box sx={{ display: "flex", gap: 1.5 }}>
@@ -108,7 +192,7 @@ export default function EventsBanner() {
               key={i}
               variant="rectangular"
               width={260}
-              height={140}
+              height={160}
               sx={{ borderRadius: 3, flexShrink: 0, bgcolor: "rgba(255,255,255,0.08)" }}
             />
           ))}
@@ -121,25 +205,39 @@ export default function EventsBanner() {
 
   return (
     <Box>
-      {/* Header */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5, flexWrap: "wrap" }}>
         <CalendarMonthIcon aria-hidden="true" sx={{ fontSize: 18, color: "rgba(255,255,255,0.7)" }} />
         <Typography sx={{ fontWeight: 800, color: "#fff", fontSize: "1rem" }}>
-          Upcoming SRC Events
+          SRC Events
         </Typography>
         <Chip
           label={`${displayEvents.length} events`}
           size="small"
           sx={{
-            fontSize: 10, height: 20, fontWeight: 700,
-            bgcolor: "rgba(255,255,255,0.15)", color: "#fff",
+            fontSize: 10,
+            height: 20,
+            fontWeight: 700,
+            bgcolor: "rgba(255,255,255,0.15)",
+            color: "#fff",
             border: "1px solid rgba(255,255,255,0.3)",
+            "& .MuiChip-label": { px: 1 },
+          }}
+        />
+        <Chip
+          label={`${displayEvents.filter(isOngoing).length} ongoing`}
+          size="small"
+          sx={{
+            fontSize: 10,
+            height: 20,
+            fontWeight: 700,
+            bgcolor: "rgba(34,197,94,0.18)",
+            color: "#86efac",
+            border: "1px solid rgba(134,239,172,0.35)",
             "& .MuiChip-label": { px: 1 },
           }}
         />
       </Box>
 
-      {/* Scrollable row */}
       <Box
         sx={{
           display: "flex",
@@ -154,111 +252,153 @@ export default function EventsBanner() {
         }}
       >
         {displayEvents.map((event) => {
-          const active   = isActive(event);
+          const active = isOngoing(event);
           const wasAdded = added.has(event.uid);
-          const start    = dayjs(event.dtstart);
-          const end      = dayjs(event.dtend);
-          const dateLabel = event.allDay
-            ? start.format("MMM D") +
-              (end.diff(start, "day") > 1 ? ` – ${end.subtract(1, "day").format("MMM D")}` : "")
-            : start.format("MMM D · h:mma");
+          const label = dateLabel(event);
+          const catKey = inferCatKey(event);
+          const catStyle = CAT_STYLE[catKey];
 
           return (
             <Box
               key={event.uid}
               sx={{
-                flexShrink: 0, width: 260, borderRadius: 3,
-                bgcolor: active ? "#7a01217e" : "#a00e37b7",
-                border: active
-                  ? "1.5px solid rgba(255,255,255,0.35)"
-                  : "1.5px solid rgba(255,255,255,0.15)",
-                p: 2, display: "flex", flexDirection: "column", gap: 1,
+                flexShrink: 0,
+                width: 260,
+                borderRadius: 3,
+                overflow: "hidden",
+                bgcolor: active ? "rgba(122,1,33,0.55)" : "rgba(40,10,22,0.75)",
+                border: active ? `1.5px solid ${catStyle.border}` : "1.5px solid rgba(255,255,255,0.12)",
+                display: "flex",
+                flexDirection: "column",
                 transition: "all 0.2s ease",
                 "&:hover": {
-                  bgcolor: active ? "#8f0129" : "#6e0020",
-                  border: "1.5px solid rgba(255,255,255,0.5)",
                   transform: "translateY(-2px)",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+                  border: `1.5px solid ${catStyle.border}`,
                 },
               }}
             >
-              {/* Date + active badge */}
-              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <Typography sx={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.75)", letterSpacing: 0.3 }}>
-                  {dateLabel}
-                </Typography>
-                {active && (
+              {event.imageUrl && (
+                <Box
+                  component="img"
+                  src={event.imageUrl}
+                  alt={event.summary}
+                  sx={{
+                    width: "100%",
+                    height: 100,
+                    objectFit: "cover",
+                    display: "block",
+                    bgcolor: "rgba(255,255,255,0.04)",
+                  }}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              )}
+
+              <Box sx={{ p: 1.25, display: "flex", flexDirection: "column", gap: 1, flex: 1 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, flexWrap: "wrap" }}>
                   <Chip
-                    label="● Active"
+                    icon={catStyle.icon as React.ReactElement}
+                    label={catKey === "other" ? "Event" : catKey.replace("intramural", "sports")}
                     size="small"
                     sx={{
-                      fontSize: 9, height: 18, fontWeight: 800, letterSpacing: 0.5,
-                      bgcolor: "rgba(34,197,94,0.25)", color: "#86efac",
-                      border: "1px solid rgba(34,197,94,0.5)",
-                      "& .MuiChip-label": { px: 0.75 },
-                      animation: "pulse 2s infinite",
-                      "@keyframes pulse": { "0%,100%": { opacity: 1 }, "50%": { opacity: 0.6 } },
+                      height: 22,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      bgcolor: catStyle.bg,
+                      color: "#fff",
+                      border: `1px solid ${catStyle.border}`,
                     }}
                   />
+                  {active && (
+                    <Chip
+                      label="Ongoing"
+                      size="small"
+                      sx={{
+                        height: 22,
+                        fontSize: 10,
+                        fontWeight: 800,
+                        bgcolor: "rgba(34,197,94,0.18)",
+                        color: "#86efac",
+                        border: "1px solid rgba(134,239,172,0.35)",
+                      }}
+                    />
+                  )}
+                </Box>
+
+                <Typography sx={{ color: "#fff", fontWeight: 800, fontSize: "0.95rem", lineHeight: 1.25 }}>
+                  {event.summary}
+                </Typography>
+
+                <Typography sx={{ color: "rgba(255,255,255,0.75)", fontSize: "0.78rem", fontWeight: 700 }}>
+                  {label}
+                </Typography>
+
+                {event.location && (
+                  <Typography sx={{ color: "rgba(255,255,255,0.62)", fontSize: "0.76rem", lineHeight: 1.35 }}>
+                    {event.location}
+                  </Typography>
                 )}
-              </Box>
 
-              {/* Title */}
-              <Typography sx={{ fontWeight: 800, color: "#fff", fontSize: "0.88rem", lineHeight: 1.3 }}>
-                {event.summary}
-              </Typography>
+                {event.description && (
+                  <Tooltip title={event.description} placement="top" arrow>
+                    <Typography
+                      sx={{
+                        color: "rgba(255,255,255,0.58)",
+                        fontSize: "0.74rem",
+                        lineHeight: 1.4,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {event.description}
+                    </Typography>
+                  </Tooltip>
+                )}
 
-              {/* Description */}
-              <Typography
-                sx={{
-                  fontSize: "0.75rem", color: "rgba(255,255,255,0.75)", lineHeight: 1.4,
-                  display: "-webkit-box", WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical", overflow: "hidden",
-                }}
-              >
-                {event.description}
-              </Typography>
-
-              {/* Actions */}
-              <Box sx={{ display: "flex", gap: 0.75, mt: "auto", pt: 0.5 }}>
-                <Button
-                  size="small"
-                  variant="contained"
-                  disabled={wasAdded}
-                  startIcon={<AddCircleOutlineIcon aria-hidden="true" sx={{ fontSize: "12px !important" }} />}
-                  onClick={() => handleAdd(event)}
-                  sx={{
-                    bgcolor: wasAdded ? "rgba(34,197,94,0.3)" : "rgba(255,255,255,0.2)",
-                    color: "#fff", fontSize: 10, fontWeight: 700,
-                    borderRadius: 999, px: 1.25, py: 0.4, textTransform: "none",
-                    flexShrink: 0, border: "1px solid rgba(255,255,255,0.3)",
-                    backdropFilter: "blur(4px)",
-                    "&:hover": { bgcolor: "rgba(255,255,255,0.32)" },
-                    "&.Mui-disabled": {
-                      bgcolor: "rgba(34,197,94,0.2)", color: "#86efac",
-                      border: "1px solid rgba(34,197,94,0.35)",
-                    },
-                  }}
-                >
-                  {wasAdded ? "Added ✓" : "Add to Events"}
-                </Button>
-                <Tooltip title="View on CSUN News" placement="top">
+                <Box sx={{ display: "flex", gap: 1, mt: "auto", pt: 0.5 }}>
                   <Button
                     size="small"
-                    component="a"
-                    href={event.url}
-                    target="_blank"
-                    rel="noopener"
-                    aria-label={`View ${event.summary} on CSUN News (opens in new tab)`}
+                    variant="contained"
+                    startIcon={<AddCircleOutlineIcon sx={{ fontSize: "15px !important" }} />}
+                    onClick={() => handleAdd(event)}
+                    disabled={wasAdded}
                     sx={{
-                      minWidth: 0, px: 1, color: "rgba(255,255,255,0.7)",
-                      border: "1px solid rgba(255,255,255,0.25)", borderRadius: 999,
-                      "&:hover": { color: "#fff", bgcolor: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.5)" },
+                      textTransform: "none",
+                      fontWeight: 700,
+                      borderRadius: 999,
+                      bgcolor: wasAdded ? "rgba(34,197,94,0.3)" : "#A80532",
+                      color: "#fff",
+                      boxShadow: "none",
+                      "&:hover": { bgcolor: wasAdded ? "rgba(34,197,94,0.3)" : "#8f0229" },
                     }}
                   >
-                    <OpenInNewIcon aria-hidden="true" sx={{ fontSize: 13 }} />
+                    {wasAdded ? "Added" : "Add"}
                   </Button>
-                </Tooltip>
+                  {event.url && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      endIcon={<OpenInNewIcon sx={{ fontSize: "14px !important" }} />}
+                      component="a"
+                      href={event.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      sx={{
+                        textTransform: "none",
+                        fontWeight: 700,
+                        borderRadius: 999,
+                        color: "rgba(255,255,255,0.85)",
+                        borderColor: "rgba(255,255,255,0.22)",
+                      }}
+                    >
+                      Details
+                    </Button>
+                  )}
+                </Box>
               </Box>
             </Box>
           );

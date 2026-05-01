@@ -27,7 +27,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
-import { CSUN_CS_2022_TEST_CASE, loadCSUNTestCase } from "./CSUNCompSciTestCase";
+import { CSUN_CS_2023_TEST_CASE, loadCSUNTestCase } from "./CSUNCompSciTestCase";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -853,7 +853,7 @@ export default function SmartPlannerClient() {
   const [majorResults, setMajorResults] = useState<MajorHit[]>([]);
   const [selectedMajor, setSelectedMajor] = useState<MajorHit | null>(null);
   const [showMajorDropdown, setShowMajorDropdown] = useState(false);
-  const [catalogYear, setCatalogYear] = useState("2022");
+  const [catalogYear, setCatalogYear] = useState("2023");
   const [pace, setPace] = useState<"full-time" | "part-time">("full-time");
   const [startYear, setStartYear] = useState<number>(new Date().getFullYear());
   const [startTerm, setStartTerm] = useState<"Fall" | "Spring" | "Summer" | "Winter">("Fall");
@@ -956,12 +956,12 @@ export default function SmartPlannerClient() {
   async function onLoadTestCase() {
     setError(""); setStatus(""); setTestLoading(true); setDeletedKeys(new Set());
     try {
-      setStatus("Loading CSUN Computer Science 2022 roadmap…");
+      setStatus("Loading CSUN Computer Science 2023 roadmap…");
       const out = await loadCSUNTestCase();
       setRaw(out as any);
       setStatus("Test roadmap loaded.");
-      setMajorInput(CSUN_CS_2022_TEST_CASE.majorName);
-      setCatalogYear(CSUN_CS_2022_TEST_CASE.year);
+      setMajorInput(CSUN_CS_2023_TEST_CASE.majorName);
+      setCatalogYear(CSUN_CS_2023_TEST_CASE.year);
       setLevel("undergraduate");
       if ((out as any).electiveOptions?.length) setShowElectiveModal(true);
     } catch (e: any) {
@@ -1175,7 +1175,7 @@ export default function SmartPlannerClient() {
             {/* Catalog Year */}
             <div style={{ marginBottom:12 }}>
               <span className="sp-label">Catalog Year</span>
-              <input className="sp-field" value={catalogYear} onChange={(e) => setCatalogYear(e.target.value)} placeholder="e.g. 2022"/>
+              <input className="sp-field" value={catalogYear} onChange={(e) => setCatalogYear(e.target.value)} placeholder="e.g. 2023"/>
             </div>
 
             {/* Pace */}
@@ -1394,11 +1394,11 @@ export default function SmartPlannerClient() {
             </button>
 
             {/* Test case button */}
-            <button className="sp-test-btn" onClick={onLoadTestCase} disabled={loading||testLoading} title="Load CSUN CS 2022 roadmap">
+            <button className="sp-test-btn" onClick={onLoadTestCase} disabled={loading||testLoading} title="Load CSUN CS 2023 roadmap">
               {testLoading ? (
                 <><span style={{ width:11, height:11, border:"2px solid rgba(196,181,253,0.28)", borderTopColor:"#c4b5fd", borderRadius:"50%", display:"inline-block", animation:"sp-spin 0.7s linear infinite" }}/>Loading…</>
               ) : (
-                <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4"/><path d="M9 21H5a2 2 0 0 1-2-2v-4"/><path d="M15 3h4a2 2 0 0 1 2 2v4"/><path d="M15 21h4a2 2 0 0 0 2-2v-4"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>Test: CSUN CS 2022 Roadmap</>
+                <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4"/><path d="M9 21H5a2 2 0 0 1-2-2v-4"/><path d="M15 3h4a2 2 0 0 1 2 2v4"/><path d="M15 21h4a2 2 0 0 0 2-2v-4"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>Test: CSUN CS 2023 Roadmap</>
               )}
             </button>
 
