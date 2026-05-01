@@ -105,49 +105,6 @@ export default function StudentRecCenterHomePage() {
 
         <Container maxWidth="xl" sx={{ pt: 2, pb: 2 }}>
           {/* ── HERO ── */}
-    <Box sx={{ minHeight: "100vh", position: "relative" }}>
-      <Header value="" />
-
-      {/* ── Compositor break ────────────────────────────────────────────── */}
-      <Box sx={{ height: "1px", bgcolor: "rgba(168,5,50,0.6)", mx: 2 }} />
-
-      {/* ─── HERO ──────────────────────────────────────────────────────── */}
-      <Container maxWidth="xl" sx={{ pt: 2, pb: 2 }}>
-        <Box
-          sx={{
-            position: "relative",
-            borderRadius: 5,
-            overflow: "hidden",
-            height: { xs: 280, sm: 360, md: 480 },
-            mb: 2,
-            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
-            isolation: "isolate",
-            transform: "translateZ(0)",
-          }}
-        >
-          <video
-            src="../videos/hero-src.mp4"
-            autoPlay muted loop playsInline
-            aria-hidden="true"
-            style={{
-              position: "absolute", inset: 0, width: "100%", height: "100%",
-              objectFit: "cover",
-              filter: "blur(20px) brightness(0.65) saturate(0.85)",
-              transform: "scale(1.1) translateZ(0)",
-              willChange: "transform",
-            }}
-          />
-          <video
-            src="../videos/hero-src.mp4"
-            autoPlay muted loop playsInline
-            aria-hidden="true"
-            style={{
-              position: "absolute", inset: 0, width: "100%", height: "100%",
-              objectFit: "contain",
-              transform: "translateZ(0)",
-              willChange: "transform",
-            }}
-          />
           <Box
             sx={{
               position: "relative", borderRadius: 5, overflow: "hidden",
