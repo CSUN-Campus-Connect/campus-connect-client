@@ -20,7 +20,7 @@ function Shimmer({ width = '100%', height = 14, borderRadius = 6 }: {
         width,
         height,
         borderRadius,
-        background: 'linear-gradient(90deg, #2c0812 0%, #4a1020 40%, #2c0812 100%)',
+        background: 'linear-gradient(90deg, #f0f0f0 0%, #e8e8e8 40%, #f0f0f0 100%)',
         backgroundSize: '200% 100%',
         animation: 'shimmerSweep 1.6s ease-in-out infinite',
       }}
@@ -49,15 +49,15 @@ function RelatedCard({ slot, onOpen }: RelatedCardProps) {
       whileHover={{ y: -3 }}
       onClick={() => onOpen(event)}
       style={{
-        background: 'rgba(255,255,255,0.03)',
-        border: `1px solid rgba(255,255,255,0.07)`,
+        background: '#ffffff',
+        border: `1px solid rgba(0,0,0,0.08)`,
         borderRadius: 14,
         overflow: 'hidden',
         cursor: 'pointer',
         transition: 'border-color 0.2s',
       }}
       onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = `${catColor}44`; }}
-      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.07)'; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0,0,0,0.08)'; }}
     >
       <div style={{ height: 80, overflow: 'hidden', position: 'relative' }}>
         <img
@@ -66,7 +66,7 @@ function RelatedCard({ slot, onOpen }: RelatedCardProps) {
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
         />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 30%, rgba(10,3,5,0.85))' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.15))' }} />
         <div
           style={{
             position: 'absolute',
@@ -88,10 +88,10 @@ function RelatedCard({ slot, onOpen }: RelatedCardProps) {
         </div>
       </div>
       <div style={{ padding: '10px 12px 12px' }}>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 12, color: '#fff', marginBottom: 3, lineHeight: 1.3 }}>
+        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 12, color: '#111', marginBottom: 3, lineHeight: 1.3 }}>
           {event.title}
         </div>
-        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', fontFamily: "'DM Sans', sans-serif" }}>
+        <div style={{ fontSize: 10, color: '#999', fontFamily: "'DM Sans', sans-serif" }}>
           {event.date}
         </div>
       </div>
@@ -165,11 +165,11 @@ export default function EventRegisterModal({
           background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(210,32,48,0.3);
+          background: rgba(204,0,51,0.3);
           border-radius: 2px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(210,32,48,0.5);
+          background: rgba(204,0,51,0.5);
         }
       `}</style>
 
@@ -213,8 +213,8 @@ export default function EventRegisterModal({
                 zIndex: 201,
                 width: 'min(540px, 95vw)',
                 maxHeight: '95vh',
-                background: '#130608',
-                border: `1px solid ${catColor}33`,
+                background: '#ffffff',
+                border: `1px solid rgba(0,0,0,0.08)`,
                 borderRadius: 22,
                 display: 'flex',
                 flexDirection: 'column',
@@ -240,16 +240,16 @@ export default function EventRegisterModal({
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
                       />
-                      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent, rgba(10,3,5,0.9))' }} />
+                      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.35))' }} />
                       <button
                         onClick={resetAndClose}
                         aria-label="Close registration"
                         style={{
                           position: 'absolute', top: 12, right: 12,
                           width: 30, height: 30, borderRadius: '50%',
-                          background: 'rgba(0,0,0,0.6)',
-                          border: '1px solid rgba(255,255,255,0.15)',
-                          color: '#fff', display: 'flex',
+                          background: 'rgba(255,255,255,0.9)',
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          color: '#111', display: 'flex',
                           alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                         }}
                       >
@@ -273,10 +273,10 @@ export default function EventRegisterModal({
                         </span>
                       </div>
 
-                      <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 18, color: '#fff', marginBottom: 4, lineHeight: 1.2 }}>
+                      <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 4, lineHeight: 1.2 }}>
                         {event.title}
                       </h3>
-                      <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20, fontFamily: "'DM Sans', sans-serif" }}>
+                      <p style={{ fontSize: 12, color: '#999', marginBottom: 20, fontFamily: "'DM Sans', sans-serif" }}>
                         {event.date} &nbsp;&middot;&nbsp; {event.time} &nbsp;&middot;&nbsp; {event.location}
                       </p>
 
@@ -290,7 +290,7 @@ export default function EventRegisterModal({
                           <div key={key} style={{ marginBottom: 14 }}>
                             <label style={{
                               display: 'block', fontSize: 10, textTransform: 'uppercase',
-                              letterSpacing: '1px', color: 'rgba(255,255,255,0.35)',
+                              letterSpacing: '1px', color: '#666',
                               marginBottom: 6, fontFamily: "'DM Sans', sans-serif",
                             }}>
                               {label}
@@ -303,15 +303,15 @@ export default function EventRegisterModal({
                               onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
                               style={{
                                 width: '100%',
-                                background: 'rgba(255,255,255,0.04)',
-                                border: '1px solid rgba(255,255,255,0.1)',
+                                background: '#f5f5f5',
+                                border: '1px solid rgba(0,0,0,0.08)',
                                 borderRadius: 10, padding: '11px 14px',
-                                color: '#fff', fontFamily: "'DM Sans', sans-serif",
+                                color: '#111', fontFamily: "'DM Sans', sans-serif",
                                 fontSize: 13, outline: 'none',
                                 transition: 'border-color 0.2s',
                               }}
                               onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = `${catColor}66`; }}
-                              onBlur={(e)  => { (e.target as HTMLInputElement).style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                              onBlur={(e)  => { (e.target as HTMLInputElement).style.borderColor = 'rgba(0,0,0,0.08)'; }}
                             />
                           </div>
                         ))}
@@ -321,10 +321,10 @@ export default function EventRegisterModal({
                             type="button"
                             onClick={resetAndClose}
                             style={{
-                              flex: 1, background: 'transparent',
-                              border: '1px solid rgba(255,255,255,0.1)',
+                              flex: 1, background: '#f5f5f5',
+                              border: '1px solid rgba(0,0,0,0.08)',
                               borderRadius: 12, padding: 12,
-                              color: 'rgba(255,255,255,0.45)',
+                              color: '#666',
                               fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', fontSize: 13,
                             }}
                           >
@@ -334,7 +334,7 @@ export default function EventRegisterModal({
                             type="submit"
                             disabled={loading}
                             style={{
-                              flex: 2, background: loading ? 'rgba(210,32,48,0.5)' : catColor,
+                              flex: 2, background: loading ? 'rgba(204,0,51,0.5)' : '#CC0033',
                               border: 'none', borderRadius: 12, padding: 12,
                               color: '#fff', fontFamily: "'Syne', sans-serif",
                               fontWeight: 700, fontSize: 13, cursor: loading ? 'not-allowed' : 'pointer',
@@ -389,10 +389,10 @@ export default function EventRegisterModal({
                       </div>
                     </div>
 
-                    <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 20, color: '#fff', textAlign: 'center', marginBottom: 6 }}>
+                    <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 20, color: '#111', textAlign: 'center', marginBottom: 6 }}>
                       You are registered!
                     </h3>
-                    <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', textAlign: 'center', marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
+                    <p style={{ fontSize: 13, color: '#999', textAlign: 'center', marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
                       {event.title}
                     </p>
                     <p style={{ fontSize: 12, color: '#16c878', textAlign: 'center', marginBottom: 24, fontFamily: "'DM Sans', sans-serif" }}>
@@ -402,8 +402,8 @@ export default function EventRegisterModal({
                     {/* Registration summary */}
                     <div
                       style={{
-                        background: 'rgba(22,200,120,0.06)',
-                        border: '1px solid rgba(22,200,120,0.15)',
+                        background: '#f5f5f5',
+                        border: '1px solid rgba(0,0,0,0.08)',
                         borderRadius: 14, padding: '14px 16px', marginBottom: 24,
                       }}
                     >
@@ -414,12 +414,12 @@ export default function EventRegisterModal({
                         { label: 'Price',    value: event.price },
                       ].map(({ label, value }) => (
                         <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', fontFamily: "'DM Sans', sans-serif" }}>{label}</span>
-                          <span style={{ fontSize: 12, color: '#fff', fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>{value}</span>
+                          <span style={{ fontSize: 11, color: '#999', fontFamily: "'DM Sans', sans-serif" }}>{label}</span>
+                          <span style={{ fontSize: 12, color: '#111', fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>{value}</span>
                         </div>
                       ))}
                       {event.csunUrl && (
-                        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 10, marginTop: 6 }}>
+                        <div style={{ borderTop: '1px solid rgba(0,0,0,0.08)', paddingTop: 10, marginTop: 6 }}>
                           <a
                             href={event.csunUrl}
                             target="_blank"
@@ -445,7 +445,7 @@ export default function EventRegisterModal({
                       <div>
                         <div style={{
                           fontSize: 9, textTransform: 'uppercase', letterSpacing: '2px',
-                          color: 'rgba(255,255,255,0.3)', fontFamily: "'Syne', sans-serif",
+                          color: '#999', fontFamily: "'Syne', sans-serif",
                           fontWeight: 700, marginBottom: 12,
                         }}>
                           You might also like
@@ -466,10 +466,10 @@ export default function EventRegisterModal({
                       onClick={resetAndClose}
                       style={{
                         width: '100%', marginTop: 20,
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        background: '#f5f5f5',
+                        border: '1px solid rgba(0,0,0,0.08)',
                         borderRadius: 12, padding: 12,
-                        color: 'rgba(255,255,255,0.6)',
+                        color: '#666',
                         fontFamily: "'DM Sans', sans-serif", fontSize: 13,
                         cursor: 'pointer',
                       }}

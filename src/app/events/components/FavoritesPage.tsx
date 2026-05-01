@@ -13,8 +13,8 @@ function ShimmerCard() {
   return (
     <div
       style={{
-        background: 'rgba(255,255,255,0.02)',
-        border: '1px solid rgba(255,255,255,0.06)',
+        background: '#f5f5f5',
+        border: '1px solid rgba(0,0,0,0.08)',
         borderRadius: 20,
         overflow: 'hidden',
         height: 320,
@@ -63,14 +63,14 @@ function FavCard({ event, onOpen, onRemove }: FavCardProps) {
     >
       <div
         style={{
-          background: 'rgba(255,255,255,0.025)',
-          border: '1px solid rgba(255,255,255,0.07)',
+          background: '#ffffff',
+          border: '1px solid rgba(0,0,0,0.08)',
           borderRadius: 20,
           overflow: 'hidden',
           transition: 'border-color 0.25s',
         }}
         onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = `${catColor}44`; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.07)'; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0,0,0,0.08)'; }}
       >
         {/* Image */}
         <div style={{ position: 'relative', height: 160, overflow: 'hidden' }}>
@@ -82,7 +82,7 @@ function FavCard({ event, onOpen, onRemove }: FavCardProps) {
             onMouseLeave={(e) => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'; }}
             onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
           />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(10,3,5,0.85))' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.15))' }} />
 
           {/* Category pill */}
           <div style={{
@@ -123,7 +123,7 @@ function FavCard({ event, onOpen, onRemove }: FavCardProps) {
 
         {/* Body */}
         <div style={{ padding: '14px 16px 16px' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 14, color: '#fff', marginBottom: 5, lineHeight: 1.3 }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 14, color: '#111', marginBottom: 5, lineHeight: 1.3 }}>
             {event.title}
           </div>
 
@@ -132,18 +132,18 @@ function FavCard({ event, onOpen, onRemove }: FavCardProps) {
             { icon: pinIcon, text: event.location },
           ].map(({ icon, text }) => (
             <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5 }}>
-              <div style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>{icon}</div>
-              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontFamily: "'DM Sans', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{text}</span>
+              <div style={{ color: '#999', flexShrink: 0 }}>{icon}</div>
+              <span style={{ fontSize: 11, color: '#666', fontFamily: "'DM Sans', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{text}</span>
             </div>
           ))}
 
           {/* Capacity */}
           <div style={{ margin: '10px 0 12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontFamily: "'DM Sans', sans-serif" }}>Attendance</span>
-              <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', fontFamily: "'DM Sans', sans-serif" }}>{event.registered} / {event.capacity}</span>
+              <span style={{ fontSize: 10, color: '#999', fontFamily: "'DM Sans', sans-serif" }}>Attendance</span>
+              <span style={{ fontSize: 10, color: '#666', fontFamily: "'DM Sans', sans-serif" }}>{event.registered} / {event.capacity}</span>
             </div>
-            <div style={{ height: 3, background: 'rgba(255,255,255,0.07)', borderRadius: 2, overflow: 'hidden' }}>
+            <div style={{ height: 3, background: 'rgba(204,0,51,0.1)', borderRadius: 2, overflow: 'hidden' }}>
               <div style={{ width: `${pct}%`, height: '100%', background: pct >= 90 ? '#ef4444' : catColor, borderRadius: 2 }} />
             </div>
           </div>
@@ -168,17 +168,17 @@ function FavCard({ event, onOpen, onRemove }: FavCardProps) {
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
                 style={{
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: '#f5f5f5',
+                  border: '1px solid rgba(0,0,0,0.08)',
                   borderRadius: 9, padding: '9px 12px',
                   display: 'flex', alignItems: 'center',
                   textDecoration: 'none',
                   transition: 'border-color 0.2s',
                 }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = `${catColor}55`; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(0,0,0,0.08)'; }}
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2.5">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                   <polyline points="15,3 21,3 21,9" /><line x1="10" y1="14" x2="21" y2="3" />
                 </svg>
@@ -214,16 +214,16 @@ function EmptyFavorites({ onDiscover }: { onDiscover: () => void }) {
         </svg>
       </div>
 
-      <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 20, color: '#fff', marginBottom: 8 }}>
+      <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 20, color: '#111', marginBottom: 8 }}>
         No saved events yet
       </h3>
-      <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 28, maxWidth: 340, margin: '0 auto 28px', lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>
+      <p style={{ fontSize: 14, color: '#999', marginBottom: 28, maxWidth: 340, margin: '0 auto 28px', lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>
         Press the heart icon on any event card to save it here for quick access.
       </p>
       <button
         onClick={onDiscover}
         style={{
-          background: '#D22030', border: 'none', borderRadius: 12,
+          background: '#CC0033', border: 'none', borderRadius: 12,
           padding: '12px 28px', color: '#fff',
           fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 13,
           cursor: 'pointer', letterSpacing: '0.3px',
@@ -297,7 +297,7 @@ export default function FavoritesPage({ allEvents, favorites, onOpen, onRemove, 
                     borderRadius: 20, padding: '4px 12px',
                   }}>
                     <div style={{ width: 5, height: 5, borderRadius: '50%', background: color }} />
-                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', fontFamily: "'DM Sans', sans-serif" }}>
+                    <span style={{ fontSize: 11, color: '#666', fontFamily: "'DM Sans', sans-serif" }}>
                       {count} {cat}
                     </span>
                   </div>

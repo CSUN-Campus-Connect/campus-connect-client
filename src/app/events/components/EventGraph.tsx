@@ -243,10 +243,10 @@ export default function EventGraph({ events, onSelectEvent }: Props) {
         <div style={{ fontSize: 9, letterSpacing: '3px', textTransform: 'uppercase', color: '#D22030', fontFamily: "'Syne', sans-serif", fontWeight: 700, marginBottom: 6 }}>
           Algorithmic Cluster View
         </div>
-        <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 24, color: '#fff', marginBottom: 6 }}>
+        <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 24, color: '#111', marginBottom: 6 }}>
           Event Engagement Graph
         </h2>
-        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontFamily: "'DM Sans', sans-serif", maxWidth: 560 }}>
+        <p style={{ fontSize: 13, color: '#999', fontFamily: "'DM Sans', sans-serif", maxWidth: 560 }}>
           Nodes sized by RSVP density, placed by engagement score. Edges connect events sharing a category or audience. Hover to inspect — click to open details.
         </p>
       </div>
@@ -255,8 +255,8 @@ export default function EventGraph({ events, onSelectEvent }: Props) {
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 16 }}>
         {legendCats.map((cat) => (
           <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: CATEGORY_COLOR_MAP[cat as keyof typeof CATEGORY_COLOR_MAP] ?? '#D22030' }} />
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', fontFamily: "'DM Sans', sans-serif" }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: CATEGORY_COLOR_MAP[cat as keyof typeof CATEGORY_COLOR_MAP] ?? '#CC0033' }} />
+            <span style={{ fontSize: 11, color: '#666', fontFamily: "'DM Sans', sans-serif" }}>
               {cat.charAt(0).toUpperCase() + cat.slice(1)}
             </span>
           </div>
@@ -267,8 +267,8 @@ export default function EventGraph({ events, onSelectEvent }: Props) {
       <div
         style={{
           position: 'relative',
-          background: 'rgba(255,255,255,0.012)',
-          border: '1px solid rgba(255,255,255,0.06)',
+          background: '#ffffff',
+          border: '1px solid rgba(0,0,0,0.08)',
           borderRadius: 20,
           overflow: 'hidden',
         }}

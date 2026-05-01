@@ -39,24 +39,25 @@ import FavoritesPage from './components/FavoritesPage';
 function PageBackground() {
   return (
     <div aria-hidden style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}>
-      {/* Base */}
-      <div style={{ position: 'absolute', inset: 0, background: '#100608' }} />
-      {/* Primary crimson ember — bottom-left */}
+      {/* Base - White */}
+      <div style={{ position: 'absolute', inset: 0, background: '#ffffff' }} />
+      
+      {/* Subtle red accent - bottom left */}
       <motion.div
-        style={{ position: 'absolute', bottom: '-20%', left: '-10%', width: '65vw', height: '65vw', borderRadius: '50%', background: 'radial-gradient(circle, rgba(180,18,28,0.32) 0%, rgba(130,10,18,0.15) 40%, transparent 70%)', filter: 'blur(60px)' }}
-        animate={{ x: [0, 28, -18, 0], y: [0, -18, 14, 0] }}
-        transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ position: 'absolute', bottom: '-25%', left: '-15%', width: '55vw', height: '55vw', borderRadius: '50%', background: 'radial-gradient(circle, rgba(204, 0, 51, 0.04) 0%, rgba(204, 0, 51, 0.01) 40%, transparent 70%)', filter: 'blur(80px)' }}
+        animate={{ x: [0, 20, -15, 0], y: [0, -20, 12, 0] }}
+        transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
       />
-      {/* Secondary highlight — top-right */}
+      
+      {/* Subtle accent - top right */}
       <motion.div
-        style={{ position: 'absolute', top: '-15%', right: '-15%', width: '50vw', height: '50vw', borderRadius: '50%', background: 'radial-gradient(circle, rgba(210,32,48,0.18) 0%, rgba(160,24,36,0.08) 45%, transparent 70%)', filter: 'blur(80px)' }}
-        animate={{ x: [0, -22, 8, 0], y: [0, 18, -10, 0] }}
-        transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+        style={{ position: 'absolute', top: '-15%', right: '-10%', width: '45vw', height: '45vw', borderRadius: '50%', background: 'radial-gradient(circle, rgba(100, 100, 150, 0.02) 0%, transparent 70%)', filter: 'blur(80px)' }}
+        animate={{ x: [0, -18, 10, 0], y: [0, 16, -8, 0] }}
+        transition={{ duration: 24, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
       />
-      {/* SVG noise grain */}
-      <div style={{ position: 'absolute', inset: 0, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`, backgroundRepeat: 'repeat', opacity: 0.55, mixBlendMode: 'overlay' }} />
-      {/* Top vignette */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '28vh', background: 'linear-gradient(to bottom, rgba(8,2,3,0.65) 0%, transparent 100%)' }} />
+      
+      {/* Fine noise grain */}
+      <div style={{ position: 'absolute', inset: 0, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E")`, backgroundRepeat: 'repeat', opacity: 0.8, mixBlendMode: 'overlay' }} />
     </div>
   );
 }
@@ -71,15 +72,15 @@ interface NavBarProps {
 
 function NavBar({ activeSection, onSection, favoriteCount }: NavBarProps) {
   return (
-    <div style={{ position: 'sticky', top: 0, zIndex: 50, backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', background: 'rgba(16,4,6,0.82)', borderBottom: '1px solid rgba(210,32,48,0.12)' }}>
+    <div style={{ position: 'sticky', top: 0, zIndex: 50, backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', background: 'rgba(255, 255, 255, 0.92)', borderBottom: '1px solid rgba(0, 0, 0, 0.05)' }}>
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', height: 54 }}>
         {/* Brand mark */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginRight: '1.5rem' }}>
-          <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(135deg, #D22030 0%, #8b1220 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(135deg, #CC0033 0%, #9a0029 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ width: 9, height: 9, borderRadius: '50%', background: 'rgba(255,255,255,0.9)' }} />
           </div>
-          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 13, color: '#fff', letterSpacing: '0.02em' }}>
-            CSUN <span style={{ color: '#D22030' }}>Events</span>
+          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 13, color: '#111', letterSpacing: '0.02em' }}>
+            CSUN <span style={{ color: '#CC0033' }}>Events</span>
           </span>
         </div>
 
@@ -94,9 +95,9 @@ function NavBar({ activeSection, onSection, favoriteCount }: NavBarProps) {
                 position: 'relative',
                 padding: '0.45rem 0.875rem',
                 borderRadius: 10,
-                border: active ? '1px solid rgba(210,32,48,0.45)' : '1px solid transparent',
-                background: active ? 'rgba(210,32,48,0.1)' : 'transparent',
-                color: active ? '#fff' : 'rgba(255,255,255,0.45)',
+                border: active ? '1px solid #CC0033' : '1px solid transparent',
+                background: active ? 'rgba(204, 0, 51, 0.08)' : 'transparent',
+                color: active ? '#CC0033' : '#999',
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: 13,
                 fontWeight: active ? 600 : 400,
@@ -123,7 +124,7 @@ function NavBar({ activeSection, onSection, favoriteCount }: NavBarProps) {
         {/* Live indicator */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#16c878', boxShadow: '0 0 7px rgba(22,200,120,0.7)', animation: 'livePulse 2s ease-in-out infinite' }} />
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', fontFamily: "'DM Sans', sans-serif" }}>Live</span>
+          <span style={{ fontSize: 11, color: '#999', fontFamily: "'DM Sans', sans-serif" }}>Live</span>
         </div>
       </div>
     </div>
@@ -136,35 +137,35 @@ function HeroSection({ totalEvents, search, onSearch }: { totalEvents: number; s
   return (
     <div style={{ padding: '5rem 2rem 3rem', maxWidth: 1400, margin: '0 auto', position: 'relative', zIndex: 1 }}>
       <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(210,32,48,0.1)', border: '1px solid rgba(210,32,48,0.24)', borderRadius: 20, padding: '5px 14px', marginBottom: 18 }}>
-        <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#D22030', animation: 'livePulse 1.5s ease-in-out infinite' }} />
-        <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 10, letterSpacing: '2.5px', color: '#D22030', textTransform: 'uppercase' }}>
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(204,0,51,0.08)', border: '1px solid rgba(204,0,51,0.2)', borderRadius: 20, padding: '5px 14px', marginBottom: 18 }}>
+        <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#CC0033', animation: 'livePulse 1.5s ease-in-out infinite' }} />
+        <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 10, letterSpacing: '2.5px', color: '#CC0033', textTransform: 'uppercase' }}>
           California State University, Northridge
         </span>
       </motion.div>
 
       <motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.65, delay: 0.08 }}
-        style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 'clamp(42px, 5.5vw, 76px)', lineHeight: 0.95, letterSpacing: '-3px', color: '#fff', marginBottom: 14 }}>
+        style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 'clamp(42px, 5.5vw, 76px)', lineHeight: 0.95, letterSpacing: '-3px', color: '#111', marginBottom: 14 }}>
         Campus<br />
-        <span style={{ color: 'transparent', WebkitTextStroke: '1.5px rgba(210,32,48,0.55)' }}>Events</span>
-        <span style={{ color: '#D22030' }}> Nexus</span>
+        <span style={{ color: 'transparent', WebkitTextStroke: '1.5px rgba(204,0,51,0.6)' }}>Events</span>
+        <span style={{ color: '#CC0033' }}> Nexus</span>
       </motion.h1>
 
       <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.18 }}
-        style={{ color: 'rgba(255,255,255,0.45)', fontSize: 15, maxWidth: 500, marginBottom: 28, lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>
+        style={{ color: '#666', fontSize: 15, maxWidth: 500, marginBottom: 28, lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>
         Every event at CSUN — algorithmically ranked by engagement, directly linked to the official event pages.
       </motion.p>
 
       <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.26 }}
         style={{ display: 'flex', gap: 10, maxWidth: 620, marginBottom: 36 }}>
-        <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 13, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+        <div style={{ flex: 1, background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 13, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
           <input value={search} onChange={(e) => onSearch(e.target.value)}
             placeholder="Search events, buildings, organizers..."
             aria-label="Search events, buildings, organizers"
-            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }} />
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#111', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }} />
         </div>
-        <button style={{ background: '#D22030', border: 'none', borderRadius: 13, padding: '12px 22px', color: '#fff', fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 13, cursor: 'pointer', letterSpacing: '0.3px', whiteSpace: 'nowrap' }}>
+        <button style={{ background: '#CC0033', border: 'none', borderRadius: 13, padding: '12px 22px', color: '#fff', fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 13, cursor: 'pointer', letterSpacing: '0.3px', whiteSpace: 'nowrap' }}>
           Search
         </button>
       </motion.div>
@@ -179,10 +180,10 @@ function HeroSection({ totalEvents, search, onSearch }: { totalEvents: number; s
         ].map((stat, i, arr) => (
           <React.Fragment key={stat.label}>
             <div style={{ paddingRight: 24 }}>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 26, color: stat.accent ? '#D22030' : '#fff', lineHeight: 1 }}>{stat.value}</div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', marginTop: 3, fontFamily: "'DM Sans', sans-serif" }}>{stat.label}</div>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 26, color: stat.accent ? '#CC0033' : '#111', lineHeight: 1 }}>{stat.value}</div>
+              <div style={{ fontSize: 11, color: '#999', marginTop: 3, fontFamily: "'DM Sans', sans-serif" }}>{stat.label}</div>
             </div>
-            {i < arr.length - 1 && <div style={{ width: 1, height: 38, background: 'rgba(255,255,255,0.07)', marginRight: 24, alignSelf: 'center' }} />}
+            <div style={{ width: 1, height: 38, background: 'rgba(0,0,0,0.08)', marginRight: 24, alignSelf: 'center' }} />
           </React.Fragment>
         ))}
       </motion.div>
@@ -202,34 +203,34 @@ interface FilterBarProps {
 
 function FilterBar({ category, audience, showFree, showTrending, onCategory, onAudience, onFree, onTrending }: FilterBarProps) {
   return (
-    <div style={{ position: 'sticky', top: 54, zIndex: 40, backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', background: 'rgba(14,4,6,0.72)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+    <div style={{ position: 'sticky', top: 54, zIndex: 40, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', background: 'rgba(255,255,255,0.88)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0.75rem 2rem', display: 'flex', gap: 7, alignItems: 'center', overflowX: 'auto', scrollbarWidth: 'none' }}>
         {CATEGORIES.map((cat) => {
           const active = category === cat.id;
           return (
             <button key={cat.id} onClick={() => onCategory(cat.id)}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '0.45rem 0.875rem', borderRadius: 20, border: active ? `1px solid ${cat.color}` : '1px solid rgba(255,255,255,0.07)', background: active ? `${cat.color}20` : 'rgba(255,255,255,0.025)', color: active ? '#fff' : 'rgba(255,255,255,0.42)', fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: active ? 600 : 400, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.18s' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '0.45rem 0.875rem', borderRadius: 20, border: active ? `1px solid ${cat.color}` : '1px solid rgba(0,0,0,0.08)', background: active ? `${cat.color}15` : 'rgba(0,0,0,0.02)', color: active ? cat.color : '#777', fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: active ? 600 : 400, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.18s' }}>
               <div style={{ width: 5, height: 5, borderRadius: '50%', background: cat.color, opacity: active ? 1 : 0.5 }} />
               {cat.name}
             </button>
           );
         })}
 
-        <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.07)', margin: '0 2px', flexShrink: 0 }} />
+        <div style={{ width: 1, height: 22, background: 'rgba(0,0,0,0.08)', margin: '0 2px', flexShrink: 0 }} />
 
         {[
           { label: 'Trending', active: showTrending, onClick: onTrending, color: '#D22030', activeColor: '#D22030' },
           { label: 'Free',     active: showFree,     onClick: onFree,     color: '#16c878', activeColor: '#16c878' },
         ].map(({ label, active, onClick, color, activeColor }) => (
           <button key={label} onClick={onClick}
-            style={{ padding: '0.45rem 0.875rem', borderRadius: 20, border: active ? `1px solid ${activeColor}` : '1px solid rgba(255,255,255,0.07)', background: active ? `${activeColor}15` : 'rgba(255,255,255,0.025)', color: active ? activeColor : 'rgba(255,255,255,0.42)', fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: active ? 600 : 400, cursor: 'pointer', transition: 'all 0.18s' }}>
+            style={{ padding: '0.45rem 0.875rem', borderRadius: 20, border: active ? `1px solid ${activeColor}` : '1px solid rgba(0,0,0,0.08)', background: active ? `${activeColor}12` : 'rgba(0,0,0,0.02)', color: active ? activeColor : '#777', fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: active ? 600 : 400, cursor: 'pointer', transition: 'all 0.18s' }}>
             {label}
           </button>
         ))}
 
         <select value={audience} onChange={(e) => onAudience(e.target.value as AudienceId)}
-          style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '0.42rem 0.75rem', color: 'rgba(255,255,255,0.5)', fontFamily: "'DM Sans', sans-serif", fontSize: 12, cursor: 'pointer', outline: 'none', flexShrink: 0 }}>
-          {AUDIENCES.map((a) => <option key={a.id} value={a.id} style={{ background: '#1a0408' }}>{a.name}</option>)}
+          style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.8)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 10, padding: '0.42rem 0.75rem', color: '#666', fontFamily: "'DM Sans', sans-serif", fontSize: 12, cursor: 'pointer', outline: 'none', flexShrink: 0 }}>
+          {AUDIENCES.map((a) => <option key={a.id} value={a.id} style={{ background: '#fff', color: '#111' }}>{a.name}</option>)}
         </select>
       </div>
     </div>
@@ -283,11 +284,11 @@ export default function EventsNexusPage() {
         @keyframes spin { from{transform:rotate(0deg);}to{transform:rotate(360deg);} }
         ::-webkit-scrollbar{width:3px;height:3px;}
         ::-webkit-scrollbar-thumb{background:rgba(210,32,48,0.28);border-radius:2px;}
-        input::placeholder{color:rgba(255,255,255,0.28);}
-        select option{background:#1a0408;}
+        input::placeholder{color:#aaa;}
+        select option{background:#fff;color:#111;}
       `}</style>
 
-      <div style={{ minHeight: '100vh', position: 'relative', color: '#fff' }}>
+      <div style={{ minHeight: '100vh', position: 'relative', color: '#111' }}>
         <PageBackground />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
@@ -316,7 +317,7 @@ export default function EventsNexusPage() {
                 {/* Bento grid */}
                 <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 2rem 4rem' }}>
                   {filtered.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '60px 0', color: 'rgba(255,255,255,0.28)' }}>
+                    <div style={{ textAlign: 'center', padding: '60px 0', color: '#999' }}>
                       <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 17, marginBottom: 6 }}>No events found</div>
                       <div style={{ fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>Try adjusting your filters</div>
                     </div>

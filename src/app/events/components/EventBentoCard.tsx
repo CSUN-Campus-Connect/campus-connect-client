@@ -11,14 +11,14 @@ function CapacityBar({ registered, capacity }: { registered: number; capacity: n
   if (capacity === 0) return null;
   const pct  = Math.min(Math.round((registered / capacity) * 100), 100);
   const full = registered >= capacity;
-  const color = full ? '#ef4444' : pct > 80 ? '#f59e0b' : '#D22030';
+  const color = full ? '#ef4444' : pct > 80 ? '#f59e0b' : '#CC0033';
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.07)', borderRadius: 2, overflow: 'hidden' }}>
+      <div style={{ flex: 1, height: 3, background: 'rgba(0,0,0,0.08)', borderRadius: 2, overflow: 'hidden' }}>
         <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 2, transition: 'width 0.5s ease' }} />
       </div>
-      <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap', fontFamily: "'DM Sans', sans-serif" }}>
+      <span style={{ fontSize: 10, color: '#999', whiteSpace: 'nowrap', fontFamily: "'DM Sans', sans-serif" }}>
         {registered.toLocaleString()} / {capacity.toLocaleString()}
       </span>
     </div>
@@ -37,7 +37,7 @@ interface Props {
 }
 
 export default function EventBentoCard({ event, index, isFavorite, onOpen, onToggleFav, onRegister }: Props) {
-  const catColor = CATEGORY_COLOR_MAP[event.category] ?? '#D22030';
+  const catColor = CATEGORY_COLOR_MAP[event.category] ?? '#CC0033';
   const full = event.capacity > 0 && event.registered >= event.capacity;
 
   return (
@@ -55,8 +55,8 @@ export default function EventBentoCard({ event, index, isFavorite, onOpen, onTog
     >
       <div
         style={{
-          background: 'rgba(255,255,255,0.025)',
-          border: `1px solid ${event.featured ? 'rgba(210,32,48,0.28)' : 'rgba(255,255,255,0.07)'}`,
+          background: '#ffffff',
+          border: `1px solid ${event.featured ? '#CC0033' : 'rgba(0,0,0,0.08)'}`,
           borderRadius: 20,
           overflow: 'hidden',
           backdropFilter: 'blur(6px)',
@@ -66,8 +66,8 @@ export default function EventBentoCard({ event, index, isFavorite, onOpen, onTog
           display: 'flex',
           flexDirection: 'column',
         }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = `${catColor}44`; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = event.featured ? 'rgba(210,32,48,0.28)' : 'rgba(255,255,255,0.07)'; }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = `${catColor}55`; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = event.featured ? '#CC0033' : 'rgba(0,0,0,0.08)'; }}
       >
         {/* ── Image ── */}
         <div style={{ position: 'relative', height: 180, overflow: 'hidden', flexShrink: 0 }}>
@@ -88,14 +88,14 @@ export default function EventBentoCard({ event, index, isFavorite, onOpen, onTog
           />
 
           {/* Gradient overlay */}
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 35%, rgba(10,3,5,0.82) 100%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.15) 100%)' }} />
 
           {/* Status badges */}
           <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 5 }}>
             {event.featured && <StatusBadge label="Featured" bg="rgba(251,191,36,0.2)" border="rgba(251,191,36,0.4)" color="#fbbf24" />}
             {event.trending && <StatusBadge label="Trending" bg="rgba(210,32,48,0.22)" border="rgba(210,32,48,0.45)" color="#ff6b6b" />}
             {isFreeEvent(event.price) && <StatusBadge label="Free" bg="rgba(22,200,120,0.18)" border="rgba(22,200,120,0.35)" color="#16c878" />}
-            {full && <StatusBadge label="Sold Out" bg="rgba(255,255,255,0.08)" border="rgba(255,255,255,0.15)" color="rgba(255,255,255,0.45)" />}
+            {full && <StatusBadge label="Sold Out" bg="#ffe5e5" border="#ffcccc" color="#CC0033" />}
           </div>
 
           {/* Favorites toggle */}
@@ -105,8 +105,8 @@ export default function EventBentoCard({ event, index, isFavorite, onOpen, onTog
             style={{
               position: 'absolute', top: 8, right: 8,
               width: 32, height: 32, borderRadius: '50%',
-              background: 'rgba(0,0,0,0.52)',
-              border: `1px solid ${isFavorite ? 'rgba(210,32,48,0.6)' : 'rgba(255,255,255,0.15)'}`,
+              background: '#f5f5f5',
+              border: `1px solid ${isFavorite ? '#CC0033' : 'rgba(0,0,0,0.1)'}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer',
               backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
@@ -116,8 +116,8 @@ export default function EventBentoCard({ event, index, isFavorite, onOpen, onTog
             onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
           >
             <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24"
-              fill={isFavorite ? '#D22030' : 'none'}
-              stroke={isFavorite ? '#D22030' : 'rgba(255,255,255,0.7)'} strokeWidth="2"
+              fill={isFavorite ? '#CC0033' : 'none'}
+              stroke={isFavorite ? '#CC0033' : '#999'} strokeWidth="2"
             >
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
@@ -129,12 +129,12 @@ export default function EventBentoCard({ event, index, isFavorite, onOpen, onTog
 
         {/* ── Body ── */}
         <div style={{ padding: '14px 16px 16px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 15, lineHeight: 1.3, color: '#fff', marginBottom: 6 }}>
+          <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 15, lineHeight: 1.3, color: '#111', marginBottom: 6 }}>
             {event.title}
           </h3>
 
           <p style={{
-            fontSize: 12, color: 'rgba(255,255,255,0.48)', marginBottom: 12,
+            fontSize: 12, color: '#666', marginBottom: 12,
             lineHeight: 1.6, fontFamily: "'DM Sans', sans-serif",
             display: '-webkit-box', WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical', overflow: 'hidden',
@@ -150,8 +150,8 @@ export default function EventBentoCard({ event, index, isFavorite, onOpen, onTog
               { svg: orgSVG, text: event.organizer },
             ].map(({ svg, text }) => (
               <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5 }}>
-                <span style={{ color: 'rgba(255,255,255,0.28)', flexShrink: 0 }}>{svg}</span>
-                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.52)', fontFamily: "'DM Sans', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ color: '#ccc', flexShrink: 0 }}>{svg}</span>
+                <span style={{ fontSize: 11, color: '#666', fontFamily: "'DM Sans', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {text}
                 </span>
               </div>
@@ -202,7 +202,7 @@ export default function EventBentoCard({ event, index, isFavorite, onOpen, onTog
               aria-label={`View details for ${event.title}`}
               style={{ ...iconBtnStyle }}
             >
-              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5">
+              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2.5">
                 <path d="M7 17L17 7M17 7H7M17 7v10" />
               </svg>
             </button>
@@ -217,7 +217,7 @@ export default function EventBentoCard({ event, index, isFavorite, onOpen, onTog
                 style={{ ...iconBtnStyle, textDecoration: 'none' }}
                 title="View on csun.edu"
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2.5">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                   <polyline points="15,3 21,3 21,9" /><line x1="10" y1="14" x2="21" y2="3" />
                 </svg>

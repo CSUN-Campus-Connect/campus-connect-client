@@ -16,7 +16,7 @@ interface Props {
 }
 
 export default function EventDetailsDrawer({ event, open, isFavorite, onClose, onToggleFav, onRegister }: Props) {
-  const catColor = event ? (CATEGORY_COLOR_MAP[event.category] ?? '#D22030') : '#D22030';
+  const catColor = event ? (CATEGORY_COLOR_MAP[event.category] ?? '#CC0033') : '#CC0033';
   const pct = event ? Math.min(Math.round((event.registered / event.capacity) * 100), 100) : 0;
   const full = event ? event.registered >= event.capacity : false;
 
@@ -64,8 +64,8 @@ export default function EventDetailsDrawer({ event, open, isFavorite, onClose, o
               top: 0,
               bottom: 0,
               width: 'min(520px, 95vw)',
-              background: '#130608',
-              border: '1px solid rgba(210,32,48,0.15)',
+              background: '#ffffff',
+              border: '1px solid rgba(0,0,0,0.08)',
               borderRight: 'none',
               zIndex: 101,
               overflowY: 'auto',
@@ -84,7 +84,7 @@ export default function EventDetailsDrawer({ event, open, isFavorite, onClose, o
                 style={{
                   position: 'absolute',
                   inset: 0,
-                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(12,3,5,0.9) 100%)',
+                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.35) 100%)',
                 }}
               />
 
@@ -99,9 +99,9 @@ export default function EventDetailsDrawer({ event, open, isFavorite, onClose, o
                   width: 34,
                   height: 34,
                   borderRadius: '50%',
-                  background: 'rgba(0,0,0,0.55)',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  color: '#fff',
+                  background: 'rgba(255,255,255,0.9)',
+                  border: '1px solid rgba(0,0,0,0.1)',
+                  color: '#111',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -127,8 +127,8 @@ export default function EventDetailsDrawer({ event, open, isFavorite, onClose, o
                   width: 34,
                   height: 34,
                   borderRadius: '50%',
-                  background: 'rgba(0,0,0,0.55)',
-                  border: `1px solid ${isFavorite ? 'rgba(210,32,48,0.6)' : 'rgba(255,255,255,0.15)'}`,
+                  background: 'rgba(255,255,255,0.9)',
+                  border: `1px solid ${isFavorite ? '#CC0033' : 'rgba(0,0,0,0.1)'}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -137,7 +137,7 @@ export default function EventDetailsDrawer({ event, open, isFavorite, onClose, o
                   WebkitBackdropFilter: 'blur(6px)',
                 }}
               >
-                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill={isFavorite ? '#D22030' : 'none'} stroke={isFavorite ? '#D22030' : 'rgba(255,255,255,0.7)'} strokeWidth="2">
+                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill={isFavorite ? '#CC0033' : 'none'} stroke={isFavorite ? '#CC0033' : '#999'} strokeWidth="2">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                 </svg>
               </button>
@@ -160,7 +160,7 @@ export default function EventDetailsDrawer({ event, open, isFavorite, onClose, o
                 }}
               >
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: catColor }} />
-                <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "'Syne', sans-serif", letterSpacing: '1px', color: '#fff', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "'Syne', sans-serif", letterSpacing: '1px', color: catColor, textTransform: 'uppercase' }}>
                   {event.category}
                 </span>
               </div>
@@ -174,14 +174,14 @@ export default function EventDetailsDrawer({ event, open, isFavorite, onClose, o
                   fontWeight: 800,
                   fontSize: 22,
                   lineHeight: 1.2,
-                  color: '#fff',
+                  color: '#111',
                   marginBottom: 8,
                 }}
               >
                 {event.title}
               </h2>
 
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 20, lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>
+              <p style={{ fontSize: 13, color: '#666', marginBottom: 20, lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>
                 {event.fullDescription}
               </p>
 
@@ -200,16 +200,16 @@ export default function EventDetailsDrawer({ event, open, isFavorite, onClose, o
                   <div
                     key={label}
                     style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '1px solid rgba(255,255,255,0.07)',
+                      background: '#f5f5f5',
+                      border: '1px solid rgba(0,0,0,0.06)',
                       borderRadius: 10,
                       padding: 12,
                     }}
                   >
-                    <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '1px', color: 'rgba(255,255,255,0.3)', marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>
+                    <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '1px', color: '#999', marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>
                       {label}
                     </div>
-                    <div style={{ fontSize: 12, color: '#fff', fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>
+                    <div style={{ fontSize: 12, color: '#111', fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>
                       {value}
                     </div>
                   </div>
@@ -219,13 +219,13 @@ export default function EventDetailsDrawer({ event, open, isFavorite, onClose, o
               {/* Capacity */}
               <div style={{ marginBottom: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontFamily: "'DM Sans', sans-serif" }}>Attendance</span>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', fontFamily: "'DM Sans', sans-serif" }}>
+                  <span style={{ fontSize: 11, color: '#999', fontFamily: "'DM Sans', sans-serif" }}>Attendance</span>
+                  <span style={{ fontSize: 11, color: '#666', fontFamily: "'DM Sans', sans-serif" }}>
                     {event.registered.toLocaleString()} / {event.capacity.toLocaleString()} ({pct}%)
                   </span>
                 </div>
-                <div style={{ height: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 2, overflow: 'hidden' }}>
-                  <div style={{ width: `${pct}%`, height: '100%', background: pct > 90 ? '#ef4444' : '#D22030', borderRadius: 2 }} />
+                <div style={{ height: 4, background: 'rgba(0,0,0,0.08)', borderRadius: 2, overflow: 'hidden' }}>
+                  <div style={{ width: `${pct}%`, height: '100%', background: pct > 90 ? '#ef4444' : '#CC0033', borderRadius: 2 }} />
                 </div>
               </div>
 
@@ -242,8 +242,8 @@ export default function EventDetailsDrawer({ event, open, isFavorite, onClose, o
                           width: 34,
                           height: 34,
                           borderRadius: '50%',
-                          background: `${catColor}22`,
-                          border: `1px solid ${catColor}44`,
+                          background: `${catColor}12`,
+                          border: `1px solid ${catColor}30`,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -257,8 +257,8 @@ export default function EventDetailsDrawer({ event, open, isFavorite, onClose, o
                         {s.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
                       </div>
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', fontFamily: "'DM Sans', sans-serif" }}>{s.name}</div>
-                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', fontFamily: "'DM Sans', sans-serif" }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#111', fontFamily: "'DM Sans', sans-serif" }}>{s.name}</div>
+                        <div style={{ fontSize: 11, color: '#999', fontFamily: "'DM Sans', sans-serif" }}>
                           {s.title}{s.affiliation ? ` · ${s.affiliation}` : ''}
                         </div>
                       </div>
@@ -280,7 +280,7 @@ export default function EventDetailsDrawer({ event, open, isFavorite, onClose, o
                         display: 'flex',
                         gap: 12,
                         paddingBottom: 12,
-                        borderBottom: i < event.agenda.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                        borderBottom: i < event.agenda.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none',
                         marginBottom: 12,
                       }}
                     >
@@ -301,7 +301,7 @@ export default function EventDetailsDrawer({ event, open, isFavorite, onClose, o
                         <div style={{ fontSize: 10, color: catColor, fontFamily: "'Syne', sans-serif", fontWeight: 700, letterSpacing: '0.5px', marginBottom: 2 }}>
                           {item.time}
                         </div>
-                        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', fontFamily: "'DM Sans', sans-serif" }}>
+                        <div style={{ fontSize: 13, color: '#555', fontFamily: "'DM Sans', sans-serif" }}>
                           {item.activity}
                         </div>
                       </div>
@@ -316,12 +316,12 @@ export default function EventDetailsDrawer({ event, open, isFavorite, onClose, o
                   <span
                     key={tag}
                     style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)',
+                      background: '#f5f5f5',
+                      border: '1px solid rgba(0,0,0,0.06)',
                       borderRadius: 6,
                       padding: '3px 10px',
                       fontSize: 11,
-                      color: 'rgba(255,255,255,0.6)',
+                      color: '#666',
                       fontFamily: "'DM Sans', sans-serif",
                     }}
                   >
@@ -337,11 +337,11 @@ export default function EventDetailsDrawer({ event, open, isFavorite, onClose, o
                   disabled={full}
                   style={{
                     flex: 2,
-                    background: full ? 'rgba(255,255,255,0.05)' : '#D22030',
-                    border: `1px solid ${full ? 'rgba(255,255,255,0.08)' : '#D22030'}`,
+                    background: full ? '#f5f5f5' : '#CC0033',
+                    border: `1px solid ${full ? '#ddd' : '#CC0033'}`,
                     borderRadius: 12,
                     padding: '13px 0',
-                    color: full ? 'rgba(255,255,255,0.3)' : '#fff',
+                    color: full ? '#999' : '#fff',
                     fontFamily: "'Syne', sans-serif",
                     fontWeight: 700,
                     fontSize: 13,
@@ -356,11 +356,11 @@ export default function EventDetailsDrawer({ event, open, isFavorite, onClose, o
                   onClick={handleCalendar}
                   style={{
                     flex: 1,
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: '#f5f5f5',
+                    border: '1px solid #ddd',
                     borderRadius: 12,
                     padding: '13px 0',
-                    color: 'rgba(255,255,255,0.6)',
+                    color: '#666',
                     fontFamily: "'DM Sans', sans-serif",
                     fontSize: 12,
                     cursor: 'pointer',
@@ -386,11 +386,11 @@ export default function EventDetailsDrawer({ event, open, isFavorite, onClose, o
                     rel="noopener noreferrer"
                     style={{
                       flex: 1,
-                      background: 'rgba(255,255,255,0.04)',
-                      border: '1px solid rgba(255,255,255,0.1)',
+                      background: '#f5f5f5',
+                      border: '1px solid #ddd',
                       borderRadius: 12,
                       padding: '13px 0',
-                      color: 'rgba(255,255,255,0.6)',
+                      color: '#666',
                       fontFamily: "'DM Sans', sans-serif",
                       fontSize: 12,
                       cursor: 'pointer',

@@ -47,10 +47,10 @@ export default function EventCalendarView({ events, onSelectEvent }: Props) {
         <div style={{ fontSize: 9, letterSpacing: '3px', textTransform: 'uppercase', color: '#D22030', fontFamily: "'Syne', sans-serif", fontWeight: 700, marginBottom: 6 }}>
           Monthly Overview
         </div>
-        <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 24, color: '#fff', marginBottom: 6 }}>
+        <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 24, color: '#111', marginBottom: 6 }}>
           Events Calendar
         </h2>
-        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', fontFamily: "'DM Sans', sans-serif" }}>
+        <p style={{ fontSize: 13, color: '#999', fontFamily: "'DM Sans', sans-serif" }}>
           View all CSUN events for the selected month. Dots indicate days with events.
         </p>
       </div>
@@ -67,11 +67,11 @@ export default function EventCalendarView({ events, onSelectEvent }: Props) {
         <button
           onClick={prevMonth}
           style={{
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.1)',
+            background: '#f5f5f5',
+            border: '1px solid rgba(0,0,0,0.08)',
             borderRadius: 10,
             padding: '8px 16px',
-            color: 'rgba(255,255,255,0.6)',
+            color: '#666',
             fontFamily: "'DM Sans', sans-serif",
             cursor: 'pointer',
           }}
@@ -84,7 +84,7 @@ export default function EventCalendarView({ events, onSelectEvent }: Props) {
             fontFamily: "'Syne', sans-serif",
             fontWeight: 800,
             fontSize: 18,
-            color: '#fff',
+            color: '#111',
           }}
         >
           {monthName}
@@ -93,11 +93,11 @@ export default function EventCalendarView({ events, onSelectEvent }: Props) {
         <button
           onClick={nextMonth}
           style={{
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.1)',
+            background: '#f5f5f5',
+            border: '1px solid rgba(0,0,0,0.08)',
             borderRadius: 10,
             padding: '8px 16px',
-            color: 'rgba(255,255,255,0.6)',
+            color: '#666',
             fontFamily: "'DM Sans', sans-serif",
             cursor: 'pointer',
           }}
@@ -156,11 +156,11 @@ export default function EventCalendarView({ events, onSelectEvent }: Props) {
               whileHover={{ y: -4 }}
               style={{
                 background: isToday
-                  ? 'rgba(210,32,48,0.15)'
-                  : 'rgba(255,255,255,0.02)',
+                  ? '#fff2f5'
+                  : '#ffffff',
                 border: isToday
-                  ? '1px solid rgba(210,32,48,0.3)'
-                  : '1px solid rgba(255,255,255,0.05)',
+                  ? '1px solid #ffccdd'
+                  : '1px solid rgba(0,0,0,0.08)',
                 borderRadius: 12,
                 padding: 12,
                 minHeight: 100,
@@ -172,7 +172,7 @@ export default function EventCalendarView({ events, onSelectEvent }: Props) {
                   fontFamily: "'Syne', sans-serif",
                   fontWeight: 700,
                   fontSize: 14,
-                  color: isToday ? '#D22030' : '#fff',
+                  color: isToday ? '#CC0033' : '#111',
                   marginBottom: 8,
                 }}
               >
@@ -187,12 +187,12 @@ export default function EventCalendarView({ events, onSelectEvent }: Props) {
                       whileHover={{ scale: 1.05 }}
                       onClick={() => onSelectEvent(ev)}
                       style={{
-                        background: `${CATEGORY_COLOR_MAP[ev.category] ?? '#D22030'}22`,
-                        border: `1px solid ${CATEGORY_COLOR_MAP[ev.category] ?? '#D22030'}44`,
+                        background: `${CATEGORY_COLOR_MAP[ev.category] ?? '#CC0033'}22`,
+                        border: `1px solid ${CATEGORY_COLOR_MAP[ev.category] ?? '#CC0033'}44`,
                         borderRadius: 6,
                         padding: '4px 6px',
                         fontSize: 9,
-                        color: '#fff',
+                        color: '#111',
                         fontFamily: "'DM Sans', sans-serif",
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -206,7 +206,7 @@ export default function EventCalendarView({ events, onSelectEvent }: Props) {
                     <div
                       style={{
                         fontSize: 9,
-                        color: 'rgba(255,255,255,0.4)',
+                        color: '#999',
                         fontFamily: "'DM Sans', sans-serif",
                       }}
                     >
@@ -253,8 +253,8 @@ export default function EventCalendarView({ events, onSelectEvent }: Props) {
                   whileHover={{ x: 4 }}
                   onClick={() => onSelectEvent(ev)}
                   style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.07)',
+                    background: '#ffffff',
+                    border: '1px solid rgba(0,0,0,0.08)',
                     borderRadius: 12,
                     padding: '14px',
                     cursor: 'pointer',
@@ -268,7 +268,7 @@ export default function EventCalendarView({ events, onSelectEvent }: Props) {
                       width: 6,
                       height: 6,
                       borderRadius: '50%',
-                      background: CATEGORY_COLOR_MAP[ev.category] ?? '#D22030',
+                      background: CATEGORY_COLOR_MAP[ev.category] ?? '#CC0033',
                       flexShrink: 0,
                     }}
                   />
@@ -278,7 +278,7 @@ export default function EventCalendarView({ events, onSelectEvent }: Props) {
                         fontFamily: "'Syne', sans-serif",
                         fontWeight: 700,
                         fontSize: 13,
-                        color: '#fff',
+                        color: '#111',
                         margin: 0,
                         marginBottom: 2,
                       }}
@@ -289,7 +289,7 @@ export default function EventCalendarView({ events, onSelectEvent }: Props) {
                       style={{
                         fontFamily: "'DM Sans', sans-serif",
                         fontSize: 11,
-                        color: 'rgba(255,255,255,0.4)',
+                        color: '#999',
                         margin: 0,
                       }}
                     >

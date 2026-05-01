@@ -1,7 +1,2 @@
-'use client';
+export { default } from './page-REDESIGNED';
 
-import SocialFeedPage from '@/social-feed';
-
-export default function SocialPage() {
-  return <SocialFeedPage />;
-}

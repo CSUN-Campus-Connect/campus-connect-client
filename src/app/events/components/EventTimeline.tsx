@@ -24,10 +24,10 @@ export default function EventTimeline({ events, onSelectEvent }: Props) {
         <div style={{ fontSize: 9, letterSpacing: '3px', textTransform: 'uppercase', color: '#D22030', fontFamily: "'Syne', sans-serif", fontWeight: 700, marginBottom: 6 }}>
           Chronological View
         </div>
-        <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 24, color: '#fff', marginBottom: 6 }}>
+        <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 24, color: '#111', marginBottom: 6 }}>
           Events Timeline
         </h2>
-        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', fontFamily: "'DM Sans', sans-serif" }}>
+        <p style={{ fontSize: 13, color: '#999', fontFamily: "'DM Sans', sans-serif" }}>
           Explore upcoming events organized by date. Click any event to see full details.
         </p>
       </div>
@@ -62,7 +62,7 @@ export default function EventTimeline({ events, onSelectEvent }: Props) {
                 paddingBottom: idx < sortedEvents.length - 1 ? '2rem' : 0,
                 borderBottom:
                   idx < sortedEvents.length - 1
-                    ? '1px solid rgba(255,255,255,0.05)'
+                    ? '1px solid rgba(0,0,0,0.08)'
                     : 'none',
               }}
             >
@@ -71,7 +71,7 @@ export default function EventTimeline({ events, onSelectEvent }: Props) {
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 12, color: catColor, marginBottom: 4 }}>
                   {timeStr}
                 </div>
-                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#999' }}>
                   {dateStr}
                 </div>
               </div>
@@ -81,8 +81,8 @@ export default function EventTimeline({ events, onSelectEvent }: Props) {
                 whileHover={{ x: 8 }}
                 onClick={() => onSelectEvent(event)}
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: `1px solid rgba(255,255,255,0.07)`,
+                  background: '#ffffff',
+                  border: `1px solid rgba(0,0,0,0.08)`,
                   borderRadius: 14,
                   padding: '1.5rem',
                   cursor: 'pointer',
@@ -126,7 +126,7 @@ export default function EventTimeline({ events, onSelectEvent }: Props) {
                             fontSize: 9,
                             fontFamily: "'Syne', sans-serif",
                             fontWeight: 700,
-                            color: '#fff',
+                            color: '#111',
                             textTransform: 'uppercase',
                           }}
                         >
