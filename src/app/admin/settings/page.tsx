@@ -45,17 +45,61 @@ export default function SettingsAdminPage() {
         <div style={{ fontSize: "11px", color: t.textLight, fontWeight: 500, letterSpacing: "0.5px", marginBottom: "12px" }}>FEATURE FLAGS & CONFIG</div>
         {configs.length > 0 && (
           <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "8px", overflow: "hidden", marginBottom: "12px" }}>
-            {configs.map((c) => (
-              <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 18px", borderBottom: `1px solid ${t.border}`, fontSize: "13px" }}>
-                <div><span style={{ color: t.textPrimary, fontWeight: 500 }}>{c.key}</span><span style={{ color: t.textMuted, marginLeft: "12px" }}>{JSON.stringify(c.value)}</span></div>
-                <span style={{ fontSize: "11px", color: t.textLight }}>{new Date(c.updatedAt).toLocaleDateString()}</span>
-              </div>
-            ))}
+            {configs.map((c) => {
+              const isBool = typeof c.value === "boolean";
+              return (
+                <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 18px", borderBottom: `1px solid ${t.border}`, fontSize: "13px" }}>
+                  <div>
+                    <span style={{ color: t.textPrimary, fontWeight: 500 }}>{c.key}</span>
+                    {!isBool && <span style={{ color: t.textMuted, marginLeft: "12px" }}>{JSON.stringify(c.value)}</span>}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    {isBool ? (
+                      // toggle for boolean flags
+                      <button
+                        onClick={async () => {
+                          try {
+                            await api.post("/api/v1/admin/config", { key: c.key, value: !c.value }, { headers });
+                            fetchAll();
+                          } catch {}
+                        }}
+                        style={{
+                          width: "40px", height: "22px", borderRadius: "11px", border: "none", cursor: "pointer",
+                          background: c.value ? t.accent : t.borderDark,
+                          position: "relative", transition: "background 0.2s",
+                        }}
+                      >
+                        <span style={{
+                          position: "absolute", top: "3px",
+                          left: c.value ? "20px" : "3px",
+                          width: "16px", height: "16px", borderRadius: "50%",
+                          background: "#fff", transition: "left 0.2s",
+                        }} />
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: "11px", color: t.textMuted }}>{JSON.stringify(c.value)}</span>
+                    )}
+                    <span style={{ fontSize: "11px", color: t.textLight }}>{new Date(c.updatedAt).toLocaleDateString()}</span>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await api.delete(`/api/v1/admin/config/${c.id}`, { headers });
+                          fetchAll();
+                        } catch {}
+                      }}
+                      style={{ ...t.btnDanger, fontFamily: t.font }}
+                    >
+                      remove
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
         <form onSubmit={handleAddConfig} style={{ display: "flex", gap: "8px" }}>
           <input type="text" value={newKey} onChange={(e) => setNewKey(e.target.value)} placeholder="key" style={{ ...t.input, width: "200px", fontFamily: t.font }} />
-          <input type="text" value={newValue} onChange={(e) => setNewValue(e.target.value)} placeholder="value" style={{ ...t.input, width: "200px", fontFamily: t.font }} />
+          <input type="text" value={newValue} onChange={(e) => setNewValue(e.target.value)} placeholder="value (true/false or text)" style={{ ...t.input, width: "220px", fontFamily: t.font }} />
           <button type="submit" style={{ ...t.btnPrimary, fontFamily: t.font }}>set</button>
         </form>
       </div>

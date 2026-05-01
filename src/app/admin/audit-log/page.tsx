@@ -1,8 +1,9 @@
-// src/app/admin/audit-log/page.tsx
 "use client";
+// src/app/admin/audit-log/page.tsx
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/axios";
+import { adminTheme as t } from "../theme";
 
 interface AuditEntry {
   id: string;
@@ -25,21 +26,31 @@ export default function AuditLogPage() {
   const [logs, setLogs] = useState<AuditEntry[]>([]);
   const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 50, total: 0, pages: 0 });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [actionFilter, setActionFilter] = useState("");
+  const [nameFilter, setNameFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
-  const fetchLogs = async (page = 1, action = actionFilter) => {
+  const fetchLogs = async (page = 1) => {
     setLoading(true);
+    setError(false);
     try {
       const token = localStorage.getItem("token");
       const params: any = { page, limit: 50 };
-      if (action) params.action = action;
+      if (actionFilter) params.action = actionFilter;
+      if (nameFilter) params.name = nameFilter;
+      if (dateFrom) params.from = dateFrom;
+      if (dateTo) params.to = dateTo;
       const res = await api.get("/api/v1/admin/audit-log", {
         headers: { Authorization: `Bearer ${token}` },
         params,
       });
       setLogs(res.data.logs);
       setPagination(res.data.pagination);
-    } catch {}
+    } catch {
+      setError(true);
+    }
     setLoading(false);
   };
 
@@ -47,110 +58,108 @@ export default function AuditLogPage() {
 
   const handleFilter = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchLogs(1, actionFilter);
+    fetchLogs(1);
   };
+
+  const handleClear = () => {
+    setActionFilter("");
+    setNameFilter("");
+    setDateFrom("");
+    setDateTo("");
+    setTimeout(() => fetchLogs(1), 0);
+  };
+
+  const hasActiveFilters = actionFilter || nameFilter || dateFrom || dateTo;
 
   return (
     <div>
-      <h1 style={{ fontSize: "20px", fontWeight: 600, marginBottom: "4px" }}>audit log</h1>
-      <p style={{ fontSize: "13px", color: "#666", marginBottom: "32px" }}>every privileged action on the platform</p>
+      <h1 style={{ fontSize: "22px", fontWeight: 600, color: t.textPrimary, marginBottom: "4px" }}>Audit Log</h1>
+      <p style={{ fontSize: "13px", color: t.textMuted, marginBottom: "24px" }}>every privileged action on the platform</p>
 
-      <form onSubmit={handleFilter} style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
-        <input
-          type="text"
-          value={actionFilter}
-          onChange={(e) => setActionFilter(e.target.value)}
-          placeholder="filter by action (e.g. role:assigned, moderation)..."
-          style={{
-            padding: "6px 12px",
-            background: "#111",
-            border: "1px solid #222",
-            color: "#e5e5e5",
-            fontFamily: "inherit",
-            fontSize: "13px",
-            width: "360px",
-            outline: "none",
-          }}
-        />
-        <button type="submit" style={{
-          padding: "6px 16px",
-          background: "#1a1a1a",
-          border: "1px solid #333",
-          color: "#999",
-          fontFamily: "inherit",
-          fontSize: "13px",
-          cursor: "pointer",
-        }}>
-          filter
-        </button>
-        {actionFilter && (
-          <button type="button" onClick={() => { setActionFilter(""); fetchLogs(1, ""); }} style={{
-            padding: "6px 12px",
-            background: "transparent",
-            border: "1px solid #222",
-            color: "#555",
-            fontFamily: "inherit",
-            fontSize: "13px",
-            cursor: "pointer",
-          }}>
-            clear
-          </button>
-        )}
+      <form onSubmit={handleFilter} style={{ marginBottom: "24px" }}>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+          <input
+            type="text"
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
+            placeholder="filter by name..."
+            style={{ ...t.input, width: "180px", fontFamily: t.font }}
+          />
+          <input
+            type="text"
+            value={actionFilter}
+            onChange={(e) => setActionFilter(e.target.value)}
+            placeholder="filter by action..."
+            style={{ ...t.input, width: "200px", fontFamily: t.font }}
+          />
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            style={{ ...t.input, fontFamily: t.font, fontSize: "12px" }}
+          />
+          <span style={{ fontSize: "12px", color: t.textMuted }}>to</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            style={{ ...t.input, fontFamily: t.font, fontSize: "12px" }}
+          />
+          <button type="submit" style={{ ...t.btnPrimary, fontFamily: t.font }}>filter</button>
+          {hasActiveFilters && (
+            <button type="button" onClick={handleClear} style={{ ...t.btnSecondary, fontFamily: t.font }}>clear</button>
+          )}
+        </div>
       </form>
 
       {loading ? (
-        <div style={{ color: "#444", fontSize: "13px" }}>loading...</div>
+        <div style={{ color: t.textLight, fontSize: "13px" }}>loading...</div>
+      ) : error ? (
+        <div style={{ color: t.error, fontSize: "13px" }}>failed to load audit log</div>
       ) : logs.length === 0 ? (
-        <div style={{ color: "#444", fontSize: "13px", textAlign: "center", padding: "40px 0" }}>
+        <div style={{ color: t.textLight, fontSize: "13px", textAlign: "center", padding: "40px 0" }}>
           no audit entries found
         </div>
       ) : (
         <>
-          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-            {logs.map((log) => (
+          <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "8px", overflow: "hidden" }}>
+            {logs.map((log, i) => (
               <div key={log.id} style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "16px",
-                padding: "10px 16px",
-                borderBottom: "1px solid #111",
-                fontSize: "13px",
+                display: "flex", alignItems: "center", gap: "16px",
+                padding: "10px 16px", fontSize: "13px",
+                borderBottom: i < logs.length - 1 ? `1px solid ${t.border}` : "none",
               }}>
-                <span style={{ color: "#444", fontSize: "11px", minWidth: "150px", whiteSpace: "nowrap" }}>
+                <span style={{ color: t.textLight, fontSize: "11px", minWidth: "150px", whiteSpace: "nowrap" }}>
                   {new Date(log.createdAt).toLocaleString()}
                 </span>
-                <span style={{ color: "#999", minWidth: "140px" }}>
+                <span style={{ color: t.textSecondary, minWidth: "140px", fontSize: "12px" }}>
                   {log.actor.firstName} {log.actor.lastName}
                 </span>
-                <span style={{
-                  fontSize: "11px",
-                  padding: "2px 8px",
-                  border: "1px solid #331111",
-                  color: "#cc0000",
-                }}>
+                <span style={t.badge(t.accent, t.accentBg, t.accentBorder)}>
                   {log.action}
                 </span>
                 {log.target && (
-                  <span style={{ color: "#555", fontSize: "12px" }}>{log.target}</span>
+                  <span style={{ color: t.textMuted, fontSize: "12px" }}>{log.target}</span>
+                )}
+                {log.ipAddress && (
+                  <span style={{ color: t.textLight, fontSize: "11px", marginLeft: "auto" }}>{log.ipAddress}</span>
                 )}
               </div>
             ))}
           </div>
 
           {pagination.pages > 1 && (
-            <div style={{ display: "flex", gap: "8px", marginTop: "24px", justifyContent: "center" }}>
+            <div style={{ display: "flex", gap: "6px", marginTop: "20px", justifyContent: "center" }}>
               {Array.from({ length: Math.min(pagination.pages, 10) }, (_, i) => (
                 <button
                   key={i}
                   onClick={() => fetchLogs(i + 1)}
                   style={{
-                    padding: "4px 10px",
-                    background: pagination.page === i + 1 ? "#1a1a1a" : "transparent",
-                    border: "1px solid #222",
-                    color: pagination.page === i + 1 ? "#e5e5e5" : "#555",
-                    fontFamily: "inherit",
-                    fontSize: "12px",
-                    cursor: "pointer",
+                    padding: "4px 10px", borderRadius: "4px", fontSize: "12px",
+                    cursor: "pointer", fontFamily: t.font,
+                    background: pagination.page === i + 1 ? t.accent : t.bgCard,
+                    border: `1px solid ${pagination.page === i + 1 ? t.accent : t.borderDark}`,
+                    color: pagination.page === i + 1 ? "#fff" : t.textMuted,
                   }}
                 >
                   {i + 1}

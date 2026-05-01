@@ -2,67 +2,76 @@
 
 export const adminTheme = {
   // Backgrounds
-  bg: "#fafafa",
-  bgCard: "#fff",
-  bgAccent: "#fef2f3",
-  bgHover: "#f8f8f8",
-  bgInput: "#fafafa",
-  bgCode: "#f5f5f5",
+  bg:       "#f7f7f7",
+  bgCard:   "#ffffff",
+  bgAccent: "#fff5f5",   // very faint red tint — used sparingly
+  bgHover:  "#f4f4f4",
+  bgInput:  "#f7f7f7",
 
   // Borders
-  border: "#f0f0f0",
-  borderDark: "#e0e0e0",
+  border:     "#ebebeb",
+  borderDark: "#d8d8d8",
 
   // Text
-  textPrimary: "#1a1a1a",
-  textSecondary: "#666",
-  textMuted: "#999",
-  textLight: "#bbb",
-  textWhite: "#fff",
+  textPrimary:   "#111111",
+  textSecondary: "#555555",
+  textMuted:     "#888888",
+  textLight:     "#aaaaaa",
+  textWhite:     "#ffffff",
 
-  // Accent (rose/red spectrum)
-  accent: "#c94150",
-  accentLight: "#e8848c",
-  accentBg: "#fef2f3",
+  // Accent — CSUN red only
+  accent:       "#CC0033",
+  accentLight:  "#e05070",
+  accentBg:     "#fff5f5",
   accentBorder: "#f5c6cb",
 
-  // Status
-  success: "#2d8a4e",
-  successBg: "#f0faf4",
-  successBorder: "#c3e6cb",
-  warning: "#b08800",
-  warningBg: "#fef9ec",
-  warningBorder: "#f0dca0",
-  error: "#c94150",
-  errorBg: "#fef2f3",
-  errorBorder: "#f5c6cb",
-  info: "#3b7dd8",
-  infoBg: "#f0f5ff",
-  infoBorder: "#b3d1ff",
-  neutral: "#888",
+  // Status — 3 colors max
+  // active/open   → dark charcoal
+  // neutral/closed → grey
+  // critical       → CSUN red
+  statusActive:   { color: "#111111", bg: "#f0f0f0", border: "#d8d8d8" },
+  statusNeutral:  { color: "#888888", bg: "#f7f7f7", border: "#e0e0e0" },
+  statusCritical: { color: "#CC0033", bg: "#fff5f5", border: "#f5c6cb" },
+
+  // Semantic — kept minimal, only used where absolutely necessary
+  success:       "#2d6a3f",
+  successBg:     "#f4faf6",
+  successBorder: "#c3deca",
+
+  warning:       "#7a5c00",
+  warningBg:     "#fdf8ec",
+  warningBorder: "#e8d89a",
+
+  error:         "#CC0033",
+  errorBg:       "#fff5f5",
+  errorBorder:   "#f5c6cb",
+
+  info:          "#555555",
+  infoBg:        "#f4f4f4",
+  infoBorder:    "#d8d8d8",
 
   // Font
   font: "'DM Sans', 'Helvetica Neue', sans-serif",
 
-  // Table styles
+  // Table
   thStyle: {
     textAlign: "left" as const,
     padding: "10px 12px",
-    color: "#999",
+    color: "#aaaaaa",
     fontWeight: 500 as const,
     fontSize: "11px",
     letterSpacing: "0.3px",
-    borderBottom: "1px solid #f0f0f0",
+    borderBottom: "1px solid #ebebeb",
   },
   tdStyle: {
     padding: "10px 12px",
-    borderBottom: "1px solid #f8f8f8",
+    borderBottom: "1px solid #f4f4f4",
   },
 
-  // Button base styles
+  // Buttons
   btnPrimary: {
     padding: "6px 16px",
-    background: "#c94150",
+    background: "#CC0033",
     border: "none",
     borderRadius: "5px",
     color: "#fff",
@@ -71,61 +80,62 @@ export const adminTheme = {
   },
   btnSecondary: {
     padding: "6px 16px",
-    background: "#fff",
-    border: "1px solid #e0e0e0",
+    background: "#ffffff",
+    border: "1px solid #d8d8d8",
     borderRadius: "5px",
-    color: "#666",
+    color: "#555555",
     fontSize: "12px",
     cursor: "pointer" as const,
   },
   btnDanger: {
     padding: "5px 12px",
-    background: "#fff",
+    background: "#ffffff",
     border: "1px solid #f5c6cb",
     borderRadius: "4px",
-    color: "#c94150",
+    color: "#CC0033",
     fontSize: "11px",
     cursor: "pointer" as const,
   },
   btnWarning: {
     padding: "5px 12px",
-    background: "#fff",
-    border: "1px solid #f0dca0",
+    background: "#ffffff",
+    border: "1px solid #d8d8d8",
     borderRadius: "4px",
-    color: "#b08800",
+    color: "#7a5c00",
     fontSize: "11px",
     cursor: "pointer" as const,
   },
   btnSuccess: {
     padding: "5px 12px",
-    background: "#fff",
-    border: "1px solid #c3e6cb",
+    background: "#ffffff",
+    border: "1px solid #c3deca",
     borderRadius: "4px",
-    color: "#2d8a4e",
+    color: "#2d6a3f",
     fontSize: "11px",
     cursor: "pointer" as const,
   },
 
-  // Input styles
+  // Inputs
   input: {
     padding: "7px 12px",
-    background: "#fafafa",
-    border: "1px solid #e0e0e0",
+    background: "#f7f7f7",
+    border: "1px solid #d8d8d8",
     borderRadius: "5px",
-    color: "#1a1a1a",
+    color: "#111111",
     fontSize: "13px",
     outline: "none" as const,
   },
   select: {
     padding: "6px 10px",
-    background: "#fafafa",
-    border: "1px solid #e0e0e0",
+    background: "#f7f7f7",
+    border: "1px solid #d8d8d8",
     borderRadius: "5px",
-    color: "#666",
+    color: "#555555",
     fontSize: "12px",
   },
 
-  // Badge
+  // Badge — use statusActive, statusNeutral, statusCritical instead of this
+  // for status indicators. Reserve badge() for category tags only.
   badge: (color: string, bgColor: string, borderColor: string) => ({
     fontSize: "11px",
     padding: "2px 8px",
@@ -133,5 +143,36 @@ export const adminTheme = {
     border: `1px solid ${borderColor}`,
     color,
     background: bgColor,
+    fontWeight: 400 as const,
   }),
+};
+
+// ─── Status helpers ───────────────────────────────────────────────────────────
+// Use these instead of hand-coding colors per page.
+
+const t = adminTheme;
+
+// Security / moderation case stages
+export const stageStyle = (stage: "Open" | "Investigating" | "Resolving" | "Closed") => {
+  switch (stage) {
+    case "Open":         return t.statusActive;
+    case "Investigating":return t.statusActive;
+    case "Resolving":    return t.statusNeutral;
+    case "Closed":       return t.statusNeutral;
+  }
+};
+
+// Urgency — only CRITICAL gets red
+export const urgencyStyle = (urgency: string) => {
+  if (urgency === "CRITICAL" || urgency === "TIME_SENSITIVE") return t.statusCritical;
+  return t.statusNeutral;
+};
+
+// Generic status → 3-bucket mapping
+export const statusStyle = (status: string) => {
+  const critical = ["ESCALATED", "REOPENED", "CRITICAL", "URGENT"];
+  const neutral  = ["CLOSED", "RESOLVED", "DISMISSED", "INACTIVE", "SOLD", "DELETED"];
+  if (critical.includes(status)) return t.statusCritical;
+  if (neutral.includes(status))  return t.statusNeutral;
+  return t.statusActive;
 };
