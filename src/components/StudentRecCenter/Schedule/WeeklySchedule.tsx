@@ -30,7 +30,9 @@ export type WeeklyClass = {
   dayOfWeek: number;
   startTime: string;
   endTime: string;
-  category: "cardio" | "strength" | "mind-body" | "aquatics" | "dance" | "hiit";
+  category: "cardio" | "strength" | "mind-body" | "aquatics" | "dance" | "hiit" | "sports" | "special" | "event";
+  kind?: "class" | "event";
+  shortDescription?: string;
   spots?: number;
   spotsLeft?: number;
   imageUrl?: string | null;
@@ -49,12 +51,15 @@ type PositionedWeeklyClass = WeeklyClass & {
 const RED = "#A80532";
 
 const CATEGORY_COLORS: Record<WeeklyClass["category"], { bg: string; text: string; border: string }> = {
-  cardio: { bg: "rgba(95, 202, 113, 0.85)", text: "#ffffff", border: "rgb(205, 245, 205)" },
-  strength: { bg: "rgba(219, 177, 38, 0.9)", text: "#ffffff", border: "rgb(245, 218, 139)" },
-  "mind-body": { bg: "rgba(162, 98, 218, 0.85)", text: "#ffffff", border: "rgb(203, 161, 241)" },
-  aquatics: { bg: "rgba(21, 142, 212, 0.85)", text: "#ffffff", border: "rgb(170, 225, 235)" },
-  dance: { bg: "rgba(231, 88, 172, 0.85)", text: "#ffffff", border: "rgb(238, 160, 199)" },
-  hiit: { bg: "rgba(253, 110, 44, 0.85)", text: "#ffffff", border: "rgb(235, 197, 169)" },
+  cardio: { bg: "rgba(54, 179, 126, 0.95)", text: "#ffffff", border: "rgba(170, 244, 212, 0.95)" },
+  strength: { bg: "rgba(214, 140, 27, 0.95)", text: "#ffffff", border: "rgba(255, 219, 146, 0.95)" },
+  "mind-body": { bg: "rgba(139, 92, 246, 0.95)", text: "#ffffff", border: "rgba(216, 180, 254, 0.95)" },
+  aquatics: { bg: "rgba(37, 99, 235, 0.95)", text: "#ffffff", border: "rgba(147, 197, 253, 0.98)" },
+  dance: { bg: "rgba(219, 39, 119, 0.95)", text: "#ffffff", border: "rgba(251, 182, 206, 0.98)" },
+  hiit: { bg: "rgba(234, 88, 12, 0.95)", text: "#ffffff", border: "rgba(253, 186, 116, 0.98)" },
+  sports: { bg: "rgba(202, 138, 4, 0.95)", text: "#ffffff", border: "rgba(253, 224, 71, 0.98)" },
+  special: { bg: "rgba(147, 51, 234, 0.95)", text: "#ffffff", border: "rgba(216, 180, 254, 0.98)" },
+  event: { bg: "rgba(190, 24, 93, 0.95)", text: "#ffffff", border: "rgba(251, 182, 206, 0.98)" },
 };
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -62,7 +67,7 @@ const FULL_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
 
 const START_HOUR = 6;
 const END_HOUR = 22;
-const CELL_PX = 64;
+const CELL_PX = 56;
 
 const fetcher = async (url: string): Promise<WeeklyClass[]> => {
   const res = await fetch(url, { cache: "no-store" });
@@ -86,6 +91,20 @@ function fmt12(t: string) {
 function getThisSunday(): Dayjs {
   const today = dayjs();
   return today.subtract(today.day(), "day").startOf("day");
+}
+
+function normalizeUiCategory(cls: WeeklyClass): WeeklyClass["category"] {
+  const haystack = `${cls.name} ${cls.location} ${cls.description ?? ""} ${cls.shortDescription ?? ""}`.toLowerCase();
+  if (/(red cross|cpr|first aid|first-aid|aed|membership|locker|renewal|certification)/.test(haystack)) return "special";
+  if (/(children'?s swim|adult swim|intermediate lessons|beginner lessons|swim lessons|aquatic|pool)/.test(haystack)) return "aquatics";
+  if (/(intramural|basketball|volleyball|soccer|softball|ultimate frisbee|night hits)/.test(haystack)) return "sports";
+  if (/(yoga|pilates|zumba|dance|cardio|cycle|spin|group exercise|fitness)/.test(haystack)) return "cardio";
+  return cls.category;
+}
+
+function withNormalizedCategory(cls: WeeklyClass): WeeklyClass {
+  const category = normalizeUiCategory(cls);
+  return category === cls.category ? cls : { ...cls, category };
 }
 
 function getPositionedClasses(classes: WeeklyClass[]): PositionedWeeklyClass[] {
@@ -180,13 +199,15 @@ export default function WeeklySchedule() {
 
   const weekDays = Array.from({ length: 7 }, (_, i) => weekStart.add(i, "day"));
 
-  const timedClasses = React.useMemo(() => (classes ?? []).filter((c) => !c.isAllDay), [classes]);
+  const normalizedClasses = React.useMemo(() => (classes ?? []).map(withNormalizedCategory), [classes]);
+
+  const timedClasses = React.useMemo(() => normalizedClasses.filter((c) => !c.isAllDay), [normalizedClasses]);
 
   const allDayByDay = React.useMemo(() => {
     const map: Record<number, WeeklyClass[]> = {};
     for (let i = 0; i < 7; i += 1) map[i] = [];
 
-    (classes ?? []).filter((c) => c.isAllDay).forEach((c) => {
+    normalizedClasses.filter((c) => c.isAllDay).forEach((c) => {
       const start = c.startDate ? dayjs(c.startDate) : weekStart.add(c.dayOfWeek, "day");
       const end = c.endDate ? dayjs(c.endDate) : start;
 
@@ -198,7 +219,7 @@ export default function WeeklySchedule() {
     });
 
     return map;
-  }, [classes, weekDays, weekStart]);
+  }, [normalizedClasses, weekDays, weekStart]);
 
   const byDay = React.useMemo(() => {
     const map: Record<number, PositionedWeeklyClass[]> = {};
@@ -271,7 +292,7 @@ export default function WeeklySchedule() {
           >
             <ChevronLeftIcon fontSize="small" />
           </IconButton>
-          <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "0.9rem", minWidth: 180, textAlign: "center" }}>
+          <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "1.15rem", minWidth: 240, textAlign: "center", letterSpacing: 0.2 }}>
             {weekStart.format("MMM D")} – {weekStart.add(6, "day").format("MMM D, YYYY")}
           </Typography>
           <IconButton
@@ -314,11 +335,11 @@ export default function WeeklySchedule() {
 
       {!error && (
         <Box sx={{ overflowX: "auto" }}>
-          <Box sx={{ display: "flex", minWidth: 700 }}>
-            <Box sx={{ width: 44, flexShrink: 0, position: "relative", height: gridHeight, mt: "36px" }}>
+          <Box sx={{ display: "flex", minWidth: 980 }}>
+            <Box sx={{ width: 52, flexShrink: 0, position: "relative", height: gridHeight, mt: "42px" }}>
               {Array.from({ length: END_HOUR - START_HOUR }, (_, i) => (
                 <Box key={i} sx={{ position: "absolute", top: i * CELL_PX - 8, right: 6 }}>
-                  <Typography sx={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>
+                  <Typography sx={{ fontSize: 11, color: "rgba(255,255,255,0.34)", fontWeight: 700 }}>
                     {fmt12(`${START_HOUR + i}:00`)}
                   </Typography>
                 </Box>
@@ -330,22 +351,22 @@ export default function WeeklySchedule() {
               const dayClasses = byDay[colIdx] ?? [];
 
               return (
-                <Box key={colIdx} sx={{ flex: 1, minWidth: 80 }}>
-                  <Box sx={{ height: 36, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                    <Typography sx={{ fontSize: 9, fontWeight: 700, color: isToday ? RED : "rgba(255,255,255,0.35)", letterSpacing: 1, textTransform: "uppercase" }}>
+                <Box key={colIdx} sx={{ flex: 1, minWidth: 132 }}>
+                  <Box sx={{ height: 42, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                    <Typography sx={{ fontSize: 11, fontWeight: 800, color: isToday ? RED : "rgba(255,255,255,0.35)", letterSpacing: 1, textTransform: "uppercase" }}>
                       {DAYS[colIdx]}
                     </Typography>
                     <Typography
                       sx={{
-                        fontSize: 13,
+                        fontSize: 16,
                         fontWeight: 800,
                         color: isToday ? "#fff" : "rgba(255,255,255,0.45)",
                         lineHeight: 1,
                         ...(isToday && {
                           bgcolor: RED,
                           borderRadius: "50%",
-                          width: 22,
-                          height: 22,
+                          width: 26,
+                          height: 26,
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -358,7 +379,7 @@ export default function WeeklySchedule() {
 
                   <Box
                     sx={{
-                      minHeight: 58,
+                      minHeight: 64,
                       px: 0.5,
                       py: 0.5,
                       borderLeft: "1px solid rgba(255,255,255,0.06)",
@@ -377,7 +398,7 @@ export default function WeeklySchedule() {
                           sx={{
                             maxWidth: "100%",
                             mb: 0.5,
-                            height: 22,
+                            height: 24,
                             justifyContent: "flex-start",
                             bgcolor: cc.bg,
                             color: cc.text,
@@ -389,13 +410,13 @@ export default function WeeklySchedule() {
                               display: "block",
                               px: 0.75,
                               fontWeight: 700,
-                              fontSize: 10,
+                              fontSize: 11,
                             },
                           }}
                         />
                       );
                     }) : (
-                      <Typography sx={{ fontSize: 10, color: "rgba(255,255,255,0.28)", px: 0.5, pt: 0.25 }}>
+                      <Typography sx={{ fontSize: 11, color: "rgba(255,255,255,0.28)", px: 0.5, pt: 0.25 }}>
                         All day
                       </Typography>
                     )}
@@ -433,7 +454,7 @@ export default function WeeklySchedule() {
                           left: 2,
                           right: 2,
                           height: CELL_PX - 4,
-                          borderRadius: 1.5,
+                          borderRadius: 2,
                           bgcolor: "rgba(255,255,255,0.06)",
                         }}
                       />
@@ -473,28 +494,34 @@ export default function WeeklySchedule() {
                               left: `calc(${cls.column * widthPct}% + 2px)`,
                               width: `calc(${widthPct}% - 4px)`,
                               height,
-                              borderRadius: 1.5,
+                              borderRadius: 2,
                               bgcolor: isAdded ? "rgba(34,197,94,0.2)" : cc.bg,
-                              border: `1px solid ${isAdded ? "rgba(34,197,94,0.5)" : cc.border}`,
-                              opacity: isFull ? 0.72 : 1,
-                              px: 0.75,
-                              pt: 0.4,
+                              border: `1.5px solid ${isAdded ? "rgba(34,197,94,0.5)" : cc.border}`,
+                              boxShadow: isAdded ? "0 0 0 1px rgba(34,197,94,0.18) inset" : `0 8px 18px ${cc.bg.replace(/0\.95|0\.98|0\.88|0\.9|0\.85/g, "0.18")}`,
+                              opacity: isFull ? 0.8 : 1,
+                              px: 0.9,
+                              pt: 0.55,
                               cursor: "pointer",
                               overflow: "hidden",
                               transition: "all 0.2s ease",
                               "&:hover": { transform: "scale(1.02)", zIndex: 5, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" },
                             }}
                           >
-                            <Typography sx={{ fontSize: 9, fontWeight: 800, color: isAdded ? "#86efac" : cc.text, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            <Typography sx={{ fontSize: 11, fontWeight: 900, color: isAdded ? "#86efac" : cc.text, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                               {cls.name}
                             </Typography>
-                            {height > 36 && (
-                              <Typography sx={{ fontSize: 8, color: isAdded ? "rgba(134,239,172,0.75)" : "rgba(255,255,255,0.8)", lineHeight: 1.1 }}>
-                                {fmt12(cls.startTime)}
+                            {height > 34 && (
+                              <Typography sx={{ fontSize: 9, color: isAdded ? "rgba(134,239,172,0.75)" : "rgba(255,255,255,0.88)", lineHeight: 1.1, fontWeight: 700 }}>
+                                {fmt12(cls.startTime)} - {fmt12(cls.endTime)}
+                              </Typography>
+                            )}
+                            {height > 52 && cls.shortDescription && (
+                              <Typography sx={{ fontSize: 8, color: isAdded ? "rgba(220,252,231,0.8)" : "rgba(255,255,255,0.92)", lineHeight: 1.15, mt: 0.35, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                                {cls.shortDescription}
                               </Typography>
                             )}
                             {isFull && height > 32 && (
-                              <Typography sx={{ fontSize: 7, fontWeight: 800, color: "#fca5a5", letterSpacing: 0.5 }}>FULL</Typography>
+                              <Typography sx={{ fontSize: 8, fontWeight: 800, color: "#fca5a5", letterSpacing: 0.5 }}>FULL</Typography>
                             )}
                           </Box>
                         </Tooltip>
@@ -510,7 +537,7 @@ export default function WeeklySchedule() {
             <Box sx={{ textAlign: "center", py: 4, color: "rgba(255,255,255,0.35)" }}>
               <EventBusyIcon sx={{ fontSize: 32, mb: 1, opacity: 0.5 }} />
               <Typography sx={{ fontSize: "0.82rem" }}>
-                No classes scheduled for this week.
+                No classes or events scheduled for this week.
               </Typography>
               <Typography sx={{ fontSize: "0.75rem", mt: 0.5, opacity: 0.7 }}>
                 Try another week or check back later.
@@ -569,7 +596,7 @@ export default function WeeklySchedule() {
                       label={selected.category.replace("-", " ")}
                       size="small"
                       sx={{
-                        fontSize: 10,
+                        fontSize: 11,
                         height: 20,
                         fontWeight: 700,
                         textTransform: "capitalize",
@@ -584,7 +611,7 @@ export default function WeeklySchedule() {
               </DialogTitle>
               <DialogContent sx={{ pt: 2 }}>
                 {[
-                  { icon: <AccessTimeIcon sx={{ fontSize: 16 }} />, label: selected.isAllDay ? `All day · ${selected.startDate}${selected.endDate && selected.endDate !== selected.startDate ? ` to ${selected.endDate}` : ""}` : `${FULL_DAYS[selected.dayOfWeek]} · ${fmt12(selected.startTime)} – ${fmt12(selected.endTime)}` },
+                  { icon: <AccessTimeIcon sx={{ fontSize: 16 }} />, label: selected.isAllDay ? `All day · ${selected.startDate}${selected.endDate && selected.endDate !== selected.startDate ? ` to ${selected.endDate}` : ""}` : `${selected.kind === "event" ? "Event" : "Class"} · ${FULL_DAYS[selected.dayOfWeek]} · ${fmt12(selected.startTime)} - ${fmt12(selected.endTime)}` },
                   { icon: <PersonIcon sx={{ fontSize: 16 }} />, label: selected.instructor || "—" },
                   { icon: <LocationOnIcon sx={{ fontSize: 16 }} />, label: selected.location || "—" },
                 ].map((row, i) => (

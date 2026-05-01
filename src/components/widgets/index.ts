@@ -11,5 +11,4 @@ export { MarketplaceSuggestWidget } from "./MarketplaceSuggestWidget";
 export { PhotoPinWidget } from "./PhotoPinWidget";
 export * from "./WeatherWidget";
 export { SundialNewsWidget } from "./SundialNewsWidget";
-export { TorodachiWidget } from "./TorodachiWidget";
 export { WorkoutDeckWidget } from "./WorkoutDeckWidget";

@@ -342,8 +342,7 @@ export default function EventsBanner() {
                 )}
 
                 {event.description && (
-                  <Tooltip title={event.description} placement="top" arrow>
-                    <Typography
+                  <Typography
                       sx={{
                         color: "rgba(255,255,255,0.58)",
                         fontSize: "0.74rem",
@@ -356,7 +355,6 @@ export default function EventsBanner() {
                     >
                       {event.description}
                     </Typography>
-                  </Tooltip>
                 )}
 
                 <Box sx={{ display: "flex", gap: 1, mt: "auto", pt: 0.5 }}>

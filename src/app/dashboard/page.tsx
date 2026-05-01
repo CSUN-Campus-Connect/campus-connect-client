@@ -13,6 +13,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import { GridStack } from "gridstack";
+// @ts-ignore
 import "gridstack/dist/gridstack.min.css";
 
 import NewAccountSetup from "../../components/dashboard/accSetup";
@@ -21,8 +22,8 @@ import MatadorCompass from "../../components/compass/MatadorCompass";
 import {
   KPI, ClassHelperWidget, CampusEventTrackerWidget, DMNotificationsWidget,
   StickyNoteWidget, AssignmentTrackerWidget, CitationGeneratorWidget,
-  MarketplaceSuggestWidget, PhotoPinWidget, WeatherWidget, SundialNewsWidget,
-  TorodachiWidget, WorkoutDeckWidget,
+  MarketplaceSuggestWidget, PhotoPinWidget, WeatherWidget, SundialNewsWidget, 
+  WorkoutDeckWidget,
 } from "../../components/widgets";
 import DashboardSidebar from "../../components/dashboard/sidebar";
 
@@ -136,15 +137,11 @@ export default function DashboardPage() {
   };
   const addMatadorCompass = () => {
     const id = `compass-${Math.random().toString(36).slice(2, 7)}`;
-    addWidget(id, 0, 0, 5, 5, <MatadorCompass compact={true} />);
+    addWidget(id, 0, 0, 5, 5, <MatadorCompass compact={true} onDelete={() => removeWidgetById(id)} />);
   };
   const addSundialNews = () => {
     const id = `sundial-${Math.random().toString(36).slice(2, 7)}`;
     addWidget(id, 0, 0, 4, 4, <SundialNewsWidget onDelete={() => removeWidgetById(id)} />);
-  };
-  const addTorodachi = () => {
-    const id = `toro-${Math.random().toString(36).slice(2, 7)}`;
-    addWidget(id, 0, 0, 3, 4, <TorodachiWidget onDelete={() => removeWidgetById(id)} />);
   };
   const addWorkoutDeck = () => {
     const id = `workout-${Math.random().toString(36).slice(2, 7)}`;
@@ -172,7 +169,7 @@ export default function DashboardPage() {
     );
     addWidget("compass", 4, 1, 8, 4,
       <Card sx={{ height: "100%", display: "flex", flexDirection: "column", borderRadius: 3, overflow: "hidden" }}>
-        <Box sx={{ height: "100%", overflow: "auto" }}><MatadorCompass compact={true} /></Box>
+        <Box sx={{ height: "100%", overflow: "auto" }}><MatadorCompass compact={true} onDelete={() => removeWidgetById("compass")} /></Box>
       </Card>
     );
     addWidget("today", 9, 1, 3, 4, <ClassHelperWidget onDelete={() => removeWidgetById("today")} />);
@@ -259,12 +256,7 @@ export default function DashboardPage() {
             <Button variant="contained" onClick={addMarketplaceSuggest}>Marketplace Suggestions</Button>
             <Button variant="contained" onClick={addPhotoPin}>Photo Pin (upload and pin)</Button>
             <Button variant="contained" onClick={addSundialNews}>The Sundial — Campus News</Button>
-            <Button variant="contained" onClick={addTorodachi}>
-              Torodachi 
-            </Button>
-            <Button variant="contained" onClick={addWorkoutDeck}>
-              Fit Deck - mini
-            </Button>
+            <Button variant="contained" onClick={addWorkoutDeck}>Fit Deck - mini</Button>
           </Stack>
         </DialogContent>
         <DialogActions>
