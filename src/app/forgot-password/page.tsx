@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "../../lib/axios";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,6 +22,13 @@ const smooth: [number, number, number, number] = [0.16, 1, 0.3, 1];
 const GRAY = "#767676";
 
 export default function ForgotPasswordPage() {
+  const router = useRouter();
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
+  
   const [email, setEmail] = useState("");
   const [errors, setErrors] = useState<{ email?: string; general?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);

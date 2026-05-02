@@ -17,7 +17,12 @@ const GRAY = "#767676";
 
 export default function RegisterPage() {
   const router = useRouter();
-
+    useEffect(() => {
+    if (localStorage.getItem("token")) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
+  
   const [registerData, setRegisterData] = useState<RegisterInput & { phoneNumber?: string }>({
     email: '',
     password: '',
