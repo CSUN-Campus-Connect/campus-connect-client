@@ -74,6 +74,7 @@ export function useMessagesData() {
   const [hasMoreByThread, setHasMoreByThread] = useState<Record<string, boolean>>({});
   const [loadingMoreByThread, setLoadingMoreByThread] = useState<Record<string, boolean>>({});
   const [groupPictureByThreadId, setGroupPictureByThreadId] = useState<Record<string, string>>({});
+  const [loadingThreadId, setLoadingThreadId] = useState<string | null>(null);
 
   const socketRef = useRef<Socket | null>(null);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -157,12 +158,13 @@ export function useMessagesData() {
   }, []);
 
   const fetchMessages = useCallback(async (threadId: string) => {
-  const token = getToken();
-  if (!token) return;
+    const token = getToken();
+    if (!token) return;
 
-  // Skip if already loaded
-  const existing = messagesByThread[threadId];
+    const existing = messagesByThread[threadId];
     if (existing && existing.length > 0) return;
+
+    setLoadingThreadId(threadId);
 
     try {
       const res = await api.get(`/api/v1/messages/conversations/${threadId}/messages`, {
@@ -191,6 +193,8 @@ export function useMessagesData() {
       setReactionsByMessage((prev) => ({ ...prev, ...reactions }));
     } catch (err) {
       console.error("Failed to fetch messages:", err);
+    } finally {
+      setLoadingThreadId(null);
     }
   }, [messagesByThread]);
 
@@ -622,5 +626,6 @@ export function useMessagesData() {
     fetchOlderMessages,
     uploadAttachment,
     onLeaveGroup,
+    loadingThreadId,
   };
 }

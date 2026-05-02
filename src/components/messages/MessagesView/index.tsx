@@ -118,6 +118,7 @@ export type MessagesViewProps = {
   onFetchOlder: (threadId: string) => void;
   uploadAttachment: (threadId: string, file: File) => Promise<{ fileUrl: string; fileName: string; fileSize: number; type: string } | null>;
   onLeaveGroup: (threadId: string) => Promise<void>;
+  loadingThreadId: string | null;
 };
 
 export default function MessagesView(props: MessagesViewProps) {
@@ -152,6 +153,7 @@ export default function MessagesView(props: MessagesViewProps) {
     onFetchOlder,
     uploadAttachment,
     onLeaveGroup,
+    loadingThreadId,
   } = props;
 
   const [activeTab, setActiveTab] = React.useState<"messages" | "requests">("messages");
@@ -173,7 +175,7 @@ export default function MessagesView(props: MessagesViewProps) {
   const [customBackgroundByThreadId, setCustomBackgroundByThreadId] = React.useState<Record<ID, string>>({});
   const [leftGroupThreadIds, setLeftGroupThreadIds] = React.useState<Set<ID>>(new Set());
   const [pendingAttachmentsByThreadId, setPendingAttachmentsByThreadId] = React.useState<Record<ID, { type: string; fileName: string; fileUrl: string; fileSize: number }[]>>({});
-
+  
   const prefsHydratedRef = React.useRef(false);
   const prefsSerializedRef = React.useRef("");
 
@@ -277,45 +279,9 @@ export default function MessagesView(props: MessagesViewProps) {
   }, []);
 
   React.useEffect(() => {
-    prevOldestMsgIdRef.current = null;
-    prevScrollHeightRef.current = 0;
-    isRestoringScrollRef.current = false;
-    if (selectedThreadId) {
-      initialScrollDoneRef.current.delete(selectedThreadId);
-    }
+    if (!selectedThreadId || !scrollerRef.current) return;
+    scrollerRef.current.scrollTop = 0;
   }, [selectedThreadId]);
-
-  React.useEffect(() => {
-    const scroller = scrollerRef.current;
-    if (!scroller || !threadMessages.length || !selectedThreadId) return;
-    if (threadMessages[0]?.threadId !== selectedThreadId) return;
-
-    const currentOldestId = threadMessages[0]?.id ?? null;
-    const prevOldestId = prevOldestMsgIdRef.current;
-
-    if (isRestoringScrollRef.current && prevOldestId !== null && currentOldestId !== prevOldestId) {
-      const diff = scroller.scrollHeight - prevScrollHeightRef.current;
-      scroller.scrollTop = Math.max(0, diff);
-      isRestoringScrollRef.current = false;
-    } else if (!isRestoringScrollRef.current) {
-      const distanceFromBottom = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight;
-      const isFullLoad = threadMessages.length >= 10;
-      if ((!initialScrollDoneRef.current.has(selectedThreadId) && isFullLoad) || distanceFromBottom < 150) {
-        const targetThreadId = selectedThreadId;
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (scrollerRef.current && targetThreadId === selectedThreadId) {
-              scrollerRef.current.scrollTop = scrollerRef.current.scrollHeight;
-              initialScrollDoneRef.current.add(targetThreadId);
-            }
-          });
-        });
-      }
-    }
-
-    prevOldestMsgIdRef.current = currentOldestId;
-    prevScrollHeightRef.current = scroller.scrollHeight;
-  }, [threadMessages, selectedThreadId]);
 
   const handleScroll = React.useCallback(() => {
     const scroller = scrollerRef.current;
@@ -659,6 +625,22 @@ export default function MessagesView(props: MessagesViewProps) {
             </Box>
 
             {/* Messages scroller with background */}
+            {loadingThreadId === selectedThreadId && (
+              <Box sx={{ width: "100%", height: 2, bgcolor: "rgba(0,0,0,0.06)" }}>
+                <Box
+                  sx={{
+                    height: "100%",
+                    bgcolor: RED,
+                    animation: "loading-bar 1.2s ease-in-out infinite",
+                    "@keyframes loading-bar": {
+                      "0%": { width: "0%", marginLeft: "0%" },
+                      "50%": { width: "60%", marginLeft: "20%" },
+                      "100%": { width: "0%", marginLeft: "100%" },
+                    },
+                  }}
+                />
+              </Box>
+            )}
             <Box sx={{ flex: 1, minHeight: 0, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column" }}>
               {/* Background layer */}
               <Box
@@ -707,11 +689,27 @@ export default function MessagesView(props: MessagesViewProps) {
               <Box
                 ref={scrollerRef}
                 onScroll={handleScroll}
-                sx={{ position: "relative", zIndex: 1, flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", px: 2.5, py: 2, ...scrollBarSx }}
+                sx={{ 
+                  position: "relative", 
+                  zIndex: 1, 
+                  flex: 1, 
+                  minHeight: 0, 
+                  overflowY: "auto", 
+                  overflowX: "hidden", 
+                  px: 2.5, 
+                  py: 2,
+                  display: "flex",
+                  flexDirection: "column-reverse",
+                  ...scrollBarSx,
+                }}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => { e.preventDefault(); toast.show("File attachments coming soon!", "info"); }}
               >
-                {!selectedThread || (!otherUser && !isGroupThread(selectedThread)) ? (
+                {loadingThreadId === selectedThreadId && selectedThreadId ? (
+                  <Box sx={{ height: "100%", display: "grid", placeItems: "center" }}>
+                    <CircularProgress size={32} sx={{ color: RED }} />
+                  </Box>
+                ) : !selectedThread || (!otherUser && !isGroupThread(selectedThread)) ? (
                   <Box sx={{ height: "100%", display: "grid", placeItems: "center", textAlign: "center" }}>
                     <Box>
                       <Box sx={{ width: 84, height: 84, borderRadius: "50%", border: "2px solid rgba(0,0,0,0.18)", display: "grid", placeItems: "center", mx: "auto", mb: 2 }}><SendIcon sx={{ fontSize: 38, color: "rgba(0,0,0,0.55)" }} /></Box>
@@ -749,6 +747,7 @@ export default function MessagesView(props: MessagesViewProps) {
                       )}
 
                       {threadMessages.map((m) => {
+
                         const mine = m.fromUserId === meId;
                         const isEditing = editingMsgId === m.id;
                         const isDeleted = !m.text && !m.attachments?.length;
