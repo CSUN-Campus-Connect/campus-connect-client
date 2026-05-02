@@ -75,6 +75,7 @@ export function useMessagesData() {
   const [loadingMoreByThread, setLoadingMoreByThread] = useState<Record<string, boolean>>({});
   const [groupPictureByThreadId, setGroupPictureByThreadId] = useState<Record<string, string>>({});
   const [loadingThreadId, setLoadingThreadId] = useState<string | null>(null);
+  const [blockedUserIds, setBlockedUserIds] = useState<Set<ID>>(new Set());
 
   const socketRef = useRef<Socket | null>(null);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -239,9 +240,54 @@ export function useMessagesData() {
     }
   }, [messagesByThread]);
 
+    // Block settings
+  const fetchBlockedUsers = useCallback(async () => {
+  const token = getToken();
+  if (!token) return;
+  try {
+    const res = await api.get("/api/v1/settings/blocked", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setBlockedUserIds(new Set(res.data.data.map((u: any) => u.blockedId)));
+  } catch (err) {
+    console.error("Failed to fetch blocked users:", err);
+  }
+}, []);
+
+const blockUser = useCallback(async (userId: ID) => {
+  const token = getToken();
+  if (!token) return;
+  try {
+    await api.post(`/api/v1/settings/blocked/${userId}`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setBlockedUserIds((prev) => new Set([...prev, userId]));
+  } catch (err) {
+    console.error("Failed to block user:", err);
+  }
+}, []);
+
+const unblockUser = useCallback(async (userId: ID) => {
+  const token = getToken();
+  if (!token) return;
+  try {
+    await api.delete(`/api/v1/settings/blocked/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setBlockedUserIds((prev) => {
+      const next = new Set(prev);
+      next.delete(userId);
+      return next;
+    });
+  } catch (err) {
+    console.error("Failed to unblock user:", err);
+  }
+}, []);
+
   useEffect(() => {
     fetchConversations();
-  }, [fetchConversations]);
+    fetchBlockedUsers();
+  }, [fetchConversations, fetchBlockedUsers]);
 
   useEffect(() => {
     if (selectedThreadId) {
@@ -331,6 +377,15 @@ export function useMessagesData() {
       setReadReceiptsByThread((prev) => ({
         ...prev,
         [data.conversationId]: { userId: data.userId, messageId: data.messageId },
+      }));
+    });
+
+    socket.on("message:blocked", (data: { conversationId: string }) => {
+      setMessagesByThread((prev) => ({
+        ...prev,
+        [data.conversationId]: (prev[data.conversationId] ?? []).map((m) =>
+          m.status === "pending" ? { ...m, status: "failed" as const } : m
+        ),
       }));
     });
 
@@ -627,5 +682,8 @@ export function useMessagesData() {
     uploadAttachment,
     onLeaveGroup,
     loadingThreadId,
+    blockedUserIds,
+    blockUser,
+    unblockUser,
   };
 }

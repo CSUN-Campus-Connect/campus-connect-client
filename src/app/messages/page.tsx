@@ -57,6 +57,9 @@ export default function MessagesPage() {
       onFetchOlder={data.fetchOlderMessages}
       uploadAttachment={data.uploadAttachment}
       onLeaveGroup={data.onLeaveGroup}
+      blockedUserIds={data.blockedUserIds}
+      blockUser={data.blockUser}
+      unblockUser={data.unblockUser}
     />
   );
 }

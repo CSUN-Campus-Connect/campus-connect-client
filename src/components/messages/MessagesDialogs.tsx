@@ -34,9 +34,6 @@ export type MessagesDialogsProps = {
   noteOpen: boolean;
   gifOpen: boolean;
   imgView: { open: boolean; url: string; name: string };
-  reportOpen: boolean;
-  reportReason: string;
-  reportDetails: string;
   myNoteText: string;
   users: User[];
   meId: ID;
@@ -46,14 +43,10 @@ export type MessagesDialogsProps = {
   onCloseNote: () => void;
   onCloseGif: () => void;
   onCloseImgView: () => void;
-  onCloseReport: () => void;
   onPickUser: (id: ID) => void;
   onSaveNote: (text: string) => void;
   onAddGif: (url: string) => void;
   onToggleGifFav: (url: string) => void;
-  onReportReason: (r: string) => void;
-  onReportDetails: (v: string) => void;
-  onSubmitReport: () => void;
   onSearchUsers: (q: string) => Promise<User[]>;
   createGroupOpen?: boolean;
   onCloseCreateGroup?: () => void;
@@ -62,35 +55,28 @@ export type MessagesDialogsProps = {
 
 export default function MessagesDialogs(props: MessagesDialogsProps) {
   const {
-    newMsgOpen,
-    noteOpen,
-    gifOpen,
-    imgView,
-    reportOpen,
-    reportReason,
-    reportDetails,
-    myNoteText,
-    users,
-    meId,
-    blockedUserIds,
-    gifFavorites,
-    onCloseNewMsg,
-    onCloseNote,
-    onCloseGif,
-    onCloseImgView,
-    onCloseReport,
-    onPickUser,
-    onSaveNote,
-    onAddGif,
-    onToggleGifFav,
-    onReportReason,
-    onReportDetails,
-    onSubmitReport,
-    onSearchUsers,
-    createGroupOpen = false,
-    onCloseCreateGroup,
-    onCreateGroup,
-  } = props;
+  newMsgOpen,
+  noteOpen,
+  gifOpen,
+  imgView,
+  myNoteText,
+  users,
+  meId,
+  blockedUserIds,
+  gifFavorites,
+  onCloseNewMsg,
+  onCloseNote,
+  onCloseGif,
+  onCloseImgView,
+  onPickUser,
+  onSaveNote,
+  onAddGif,
+  onToggleGifFav,
+  onSearchUsers,
+  createGroupOpen = false,
+  onCloseCreateGroup,
+  onCreateGroup,
+} = props;
 
   const [newMsgQuery, setNewMsgQuery] = React.useState("");
   const [searchResults, setSearchResults] = React.useState<User[]>([]);
@@ -153,7 +139,7 @@ export default function MessagesDialogs(props: MessagesDialogsProps) {
   }, [newMsgQuery, onSearchUsers, meId, blockedUserIds]);
 
   const displayedUsers = newMsgQuery.trim().length < 2
-    ? users.filter((u) => u.id !== meId && !blockedUserIds.has(u.id)).slice(0, 30)
+    ? []
     : searchResults;
 
   const createGroupFilteredUsers = React.useMemo(() => {
@@ -353,26 +339,6 @@ export default function MessagesDialogs(props: MessagesDialogsProps) {
           </DialogActions>
         </Dialog>
       )}
-
-      <Dialog open={reportOpen} onClose={onCloseReport} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 1000 }}>
-          Report
-          <IconButton onClick={onCloseReport} sx={{ position: "absolute", right: 10, top: 10 }}><CloseIcon /></IconButton>
-        </DialogTitle>
-        <DialogContent sx={{ pt: 1 }}>
-          <Typography sx={{ fontSize: 13, fontWeight: 1000, mb: 1 }}>Why are you reporting this conversation?</Typography>
-          {["Spam", "Harassment", "Hate", "Scam", "Other"].map((r) => (
-            <ListItemButton key={r} onClick={() => onReportReason(r)} sx={{ borderRadius: 2, mb: 0.5, bgcolor: reportReason === r ? "rgba(168,5,50,0.08)" : "transparent" }}>
-              <ListItemText primary={<Typography sx={{ fontWeight: 900 }}>{r}</Typography>} />
-            </ListItemButton>
-          ))}
-          <TextField value={reportDetails} onChange={(e) => onReportDetails(e.target.value)} placeholder="Optional details" fullWidth size="small" multiline minRows={3} sx={{ mt: 1 }} />
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={onCloseReport} sx={{ fontWeight: 900, textTransform: "none" }}>Cancel</Button>
-          <Button disabled={!reportReason} variant="contained" onClick={onSubmitReport} sx={{ fontWeight: 900, textTransform: "none", borderRadius: 999, bgcolor: RED }}>Submit report</Button>
-        </DialogActions>
-      </Dialog>
     </>
   );
 }

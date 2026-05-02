@@ -80,6 +80,8 @@ import Lightning from "../backgroundanimations/Lightning";
 import Particles from "../backgroundanimations/Particles";
 import { BACKGROUNDS, hexToHue, type AnimatedBg } from "./backgrounds";
 import { VoiceMessageBubble } from "./VoiceMessageBubble";
+import { api } from "@/lib/axios";
+
 
 const DashboardSidebar = dynamic(() => import("@/components/dashboard/sidebar"), {
   ssr: false,
@@ -119,6 +121,9 @@ export type MessagesViewProps = {
   uploadAttachment: (threadId: string, file: File) => Promise<{ fileUrl: string; fileName: string; fileSize: number; type: string } | null>;
   onLeaveGroup: (threadId: string) => Promise<void>;
   loadingThreadId: string | null;
+  blockedUserIds: Set<ID>;
+  blockUser: (userId: ID) => Promise<void>;
+  unblockUser: (userId: ID) => Promise<void>;
 };
 
 export default function MessagesView(props: MessagesViewProps) {
@@ -154,11 +159,13 @@ export default function MessagesView(props: MessagesViewProps) {
     uploadAttachment,
     onLeaveGroup,
     loadingThreadId,
+    blockedUserIds = new Set(),
+    blockUser,
+    unblockUser,
   } = props;
 
   const [activeTab, setActiveTab] = React.useState<"messages" | "requests">("messages");
   const [threadSearch, setThreadSearch] = React.useState("");
-  const [blockedUserIds, setBlockedUserIds] = React.useState<Set<ID>>(new Set());
   const [reportedThreadIds, setReportedThreadIds] = React.useState<Set<ID>>(new Set());
   const [newMsgOpen, setNewMsgOpen] = React.useState(false);
   const [createGroupOpen, setCreateGroupOpen] = React.useState(false);
@@ -175,14 +182,14 @@ export default function MessagesView(props: MessagesViewProps) {
   const [customBackgroundByThreadId, setCustomBackgroundByThreadId] = React.useState<Record<ID, string>>({});
   const [leftGroupThreadIds, setLeftGroupThreadIds] = React.useState<Set<ID>>(new Set());
   const [pendingAttachmentsByThreadId, setPendingAttachmentsByThreadId] = React.useState<Record<ID, { type: string; fileName: string; fileUrl: string; fileSize: number }[]>>({});
-  
+  const [reportInvolvedParties, setReportInvolvedParties] = React.useState<Set<ID>>(new Set());
+
   const prefsHydratedRef = React.useRef(false);
   const prefsSerializedRef = React.useRef("");
 
   React.useLayoutEffect(() => {
     const p = loadMessageChatPreferences();
     prefsSerializedRef.current = serializeMessageChatPreferences(p);
-    setBlockedUserIds(new Set(p.blockedUserIds));
     setBackgroundByThreadId(p.backgroundByThreadId as Record<ID, number | null>);
     setAnimatedBackgroundByThreadId(p.animatedBackgroundByThreadId as Record<ID, AnimatedBg>);
     setCustomBackgroundByThreadId({ ...p.customBackgroundByThreadId });
@@ -210,7 +217,6 @@ export default function MessagesView(props: MessagesViewProps) {
       const next = serializeMessageChatPreferences(p);
       if (next === prefsSerializedRef.current) return;
       prefsSerializedRef.current = next;
-      setBlockedUserIds(new Set(p.blockedUserIds));
       setBackgroundByThreadId({ ...p.backgroundByThreadId } as Record<ID, number | null>);
       setAnimatedBackgroundByThreadId({ ...p.animatedBackgroundByThreadId } as Record<ID, AnimatedBg>);
       setCustomBackgroundByThreadId({ ...p.customBackgroundByThreadId });
@@ -226,8 +232,10 @@ export default function MessagesView(props: MessagesViewProps) {
   const [gifOpen, setGifOpen] = React.useState(false);
   const [imgView, setImgView] = React.useState({ open: false, url: "", name: "" });
   const [reportOpen, setReportOpen] = React.useState(false);
-  const [reportReason, setReportReason] = React.useState("");
-  const [reportDetails, setReportDetails] = React.useState("");
+  const [reportDescription, setReportDescription] = React.useState("");
+  const [reportRelationship, setReportRelationship] = React.useState("VICTIM");
+  const [reportSubmitting, setReportSubmitting] = React.useState(false);
+  const [reportSuccess, setReportSuccess] = React.useState<{ caseNumber: string } | null>(null);
   const [gifFavorites, setGifFavorites] = React.useState<string[]>([]);
   const toast = useToast();
 
@@ -343,15 +351,13 @@ export default function MessagesView(props: MessagesViewProps) {
       .filter((t) => !leftGroupThreadIds.has(t.id))
       .filter((t) => {
         if (isGroupThread(t)) {
-          const hasBlocked = t.participantIds.some((id) => id !== meId && blockedUserIds.has(id));
-          if (hasBlocked) return false;
           if (!q) return true;
           const names = t.participantIds.map((id) => userById.get(id)?.displayName ?? userById.get(id)?.username ?? "").join(" ");
           const recent = allMessages.filter((m) => m.threadId === t.id).sort((a, b) => b.createdAt - a.createdAt).slice(0, 25).map((m) => m.text).join(" ");
           return `${t.name ?? "Group"} ${names} ${recent}`.toLowerCase().includes(q);
         }
         const otherId = t.participantIds.find((id) => id !== meId);
-        if (!otherId || blockedUserIds.has(otherId)) return false;
+        if (!otherId) return false;
         if (!q) return true;
         const other = userById.get(otherId);
         const who = other ? `${other.displayName} @${other.username}` : "";
@@ -431,11 +437,55 @@ export default function MessagesView(props: MessagesViewProps) {
     setEditingText("");
   }, [editingMsgId, editingText, onEditMessage]);
 
-  const openReport = () => { setReportReason(""); setReportDetails(""); setReportOpen(true); };
-  const submitReport = () => {
-    if (selectedThread) { setReportedThreadIds((prev) => new Set([...prev, selectedThread.id])); onSelectedThreadIdChange(null); setReportOpen(false); onRefresh(); }
+  const openReport = () => {
+    setReportDescription("");
+    setReportRelationship("VICTIM");
+    setReportSuccess(null);
+    setReportInvolvedParties(otherUser ? new Set([otherUser.id]) : new Set());
+    setReportOpen(true);
   };
-  const handleBlock = () => { if (otherUser) { setBlockedUserIds((prev) => new Set([...prev, otherUser.id])); onSelectedThreadIdChange(null); onRefresh(); } };
+  const submitReport = async () => {
+    if (!selectedThread) return;
+    setReportSubmitting(true);
+    try {
+      const token = localStorage.getItem("token");
+      const lastMsg = threadMessages[threadMessages.length - 1];
+      const incidentDate = lastMsg ? new Date(lastMsg.createdAt).toISOString() : new Date().toISOString();
+
+      const involvedParties = Array.from(reportInvolvedParties).map((id) => {
+        const u = userById.get(id);
+        return {
+          name: u?.displayName ?? "Unknown",
+          description: `Reported user: @${u?.username ?? "unknown"}`,
+          affiliation: "CSUN student",
+          relationToReporter: "SUBJECT",
+        };
+      });
+
+      const res = await api.post("/api/v1/security/reports", {
+        reportType: "MISCONDUCT",
+        title: "Private message misconduct",
+        description: reportDescription,
+        location: isGroupThread(selectedThread) ? `Group chat: ${selectedThread.name ?? "Group"}` : "Private message",
+        incidentDate,
+        reporterRelationship: reportRelationship,
+        involvedParties,
+      }, { headers: { Authorization: `Bearer ${token}` } });
+
+      setReportSuccess({ caseNumber: res.data.caseNumber });
+      setReportedThreadIds((prev) => new Set([...prev, selectedThread.id]));
+    } catch (err) {
+      toast.show("Failed to submit report", "error");
+    } finally {
+      setReportSubmitting(false);
+    }
+  };
+  const handleBlock = () => { 
+    if (otherUser) { 
+      blockUser(otherUser.id);
+      onRefresh(); 
+    } 
+  };
   const leaveGroup = async () => {
     if (!selectedThread || !isGroupThread(selectedThread)) return;
     await onLeaveGroup(selectedThread.id);
@@ -465,6 +515,8 @@ export default function MessagesView(props: MessagesViewProps) {
     }
     return grouped;
   }, [reactionsByMessage, meId]);
+
+  const isBlocked = !!(otherUser && blockedUserIds.has(otherUser.id));
 
   return (
     <Box sx={{ display: "flex", bgcolor: "#fafafb", height: "100vh", overflow: "hidden" }}>
@@ -734,6 +786,14 @@ export default function MessagesView(props: MessagesViewProps) {
                       </Box>
                     )}
 
+                    {selectedThread && isGroupThread(selectedThread) && selectedThread.participantIds.some((id) => id !== meId && blockedUserIds.has(id)) && (
+                      <Box sx={{ mb: 1.5, p: 1.2, borderRadius: 2, bgcolor: "rgba(168,5,50,0.05)", border: "1px solid rgba(168,5,50,0.12)" }}>
+                        <Typography sx={{ fontSize: 13, color: "#b91c1c", fontWeight: 800 }}>
+                          Someone you've blocked is in this group. Their messages are visible to others.
+                        </Typography>
+                      </Box>
+                    )}
+
                     <Stack spacing={1.25}>
                       {selectedThreadId && loadingMoreByThread[selectedThreadId] && (
                         <Box sx={{ display: "flex", justifyContent: "center", py: 1 }}>
@@ -900,7 +960,17 @@ export default function MessagesView(props: MessagesViewProps) {
 
             {/* Compose bar */}
             <Box sx={{ borderTop: "1px solid rgba(0,0,0,0.08)", px: 2, py: 1.25, bgcolor: "white", flexShrink: 0 }}>
-              {(selectedDraft.files.length > 0 || selectedDraft.gifs.length > 0) && (
+            {otherUser && isBlocked && (
+              <Box sx={{ mb: 1, p: 1.2, borderRadius: 2, bgcolor: "rgba(168,5,50,0.06)", border: "1px solid rgba(168,5,50,0.15)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <Typography sx={{ fontSize: 13, color: "#b91c1c", fontWeight: 800 }}>
+                  You have blocked this person. Unblock to send a message.
+                </Typography>
+                <Button size="small" onClick={() => unblockUser(otherUser.id)} sx={{ borderRadius: 999, fontWeight: 900, textTransform: "none", color: "#b91c1c", ml: 1 }}>
+                  Unblock
+                </Button>
+              </Box>
+            )}
+            {(selectedDraft.files.length > 0 || selectedDraft.gifs.length > 0) && (
                 <Stack direction="row" spacing={1} sx={{ mb: 1, flexWrap: "wrap" }}>
                   {selectedDraft.files.map((f, idx) => <Chip key={`${f.name}-${idx}`} label={f.type.startsWith("audio/") ? "Voice message" : f.name} onDelete={() => setDraft((p) => ({ ...p, files: p.files.filter((_, i) => i !== idx) }))} sx={{ fontWeight: 800 }} />)}
                   {selectedDraft.gifs.map((g, idx) => <Chip key={`${g.id}-${idx}`} label="GIF" onDelete={() => setDraft((p) => ({ ...p, gifs: p.gifs.filter((_, i) => i !== idx) }))} sx={{ fontWeight: 900 }} />)}
@@ -908,21 +978,21 @@ export default function MessagesView(props: MessagesViewProps) {
               )}
               <Stack direction="row" spacing={1} alignItems="center">
                 <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleAttachFile} />
-                <IconButton disabled={!selectedThread} aria-label="Attach file" onClick={() => fileInputRef.current?.click()}>
+                <IconButton disabled={!selectedThread || isBlocked} aria-label="Attach file" onClick={() => fileInputRef.current?.click()}>
                   <AttachFileIcon />
                 </IconButton>
-                <IconButton disabled={!selectedThread} aria-label="Record voice message" onClick={() => toast.show("Voice messages coming soon!", "info")}><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></IconButton>
-                <IconButton disabled={!selectedThread} aria-label="Open GIF picker" onClick={() => setGifOpen(true)}><GifBoxIcon /></IconButton>
+                <IconButton disabled={!selectedThread || isBlocked} aria-label="Record voice message" onClick={() => toast.show("Voice messages coming soon!", "info")}><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></IconButton>
+                <IconButton disabled={!selectedThread || isBlocked} aria-label="Open GIF picker" onClick={() => setGifOpen(true)}><GifBoxIcon /></IconButton>
                 <TextField
                   value={selectedDraft.text}
                   onChange={(e) => { setDraft((p) => ({ ...p, text: e.target.value })); if (selectedThreadId) onTypingStart(selectedThreadId); }}
                   onBlur={() => { if (selectedThreadId) onTypingStop(selectedThreadId); }}
                   placeholder={selectedThread ? "Message..." : "Select a conversation to message"}
-                  fullWidth size="small" disabled={!selectedThread}
+                  fullWidth size="small" disabled={!selectedThread || isBlocked}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                   InputProps={{ sx: { borderRadius: 999, bgcolor: "rgba(0,0,0,0.03)", "& fieldset": { borderColor: "rgba(0,0,0,0.10)" } } }}
                 />
-                <IconButton onClick={handleSend} disabled={!selectedThread} aria-label="Send message"><SendIcon sx={{ color: selectedThread ? RED : "rgba(0,0,0,0.25)" }} /></IconButton>
+                <IconButton onClick={handleSend} disabled={!selectedThread || isBlocked} aria-label="Send message"><SendIcon sx={{ color: selectedThread && !isBlocked ? RED : "rgba(0,0,0,0.25)" }} /></IconButton>
               </Stack>
               <Typography sx={{ mt: 0.7, fontSize: 11, color: "rgba(0,0,0,0.45)" }}>File attachments and voice messages coming soon.</Typography>
             </Box>
@@ -935,9 +1005,6 @@ export default function MessagesView(props: MessagesViewProps) {
         noteOpen={noteOpen}
         gifOpen={gifOpen}
         imgView={imgView}
-        reportOpen={reportOpen}
-        reportReason={reportReason}
-        reportDetails={reportDetails}
         myNoteText={myNoteText}
         users={users}
         meId={meId}
@@ -947,14 +1014,10 @@ export default function MessagesView(props: MessagesViewProps) {
         onCloseNote={() => setNoteOpen(false)}
         onCloseGif={() => setGifOpen(false)}
         onCloseImgView={() => setImgView({ open: false, url: "", name: "" })}
-        onCloseReport={() => setReportOpen(false)}
         onPickUser={(id) => { onPickUser(id); setNewMsgOpen(false); }}
         onSaveNote={(text) => { onUpdateNote(text.slice(0, 60)); setNoteOpen(false); }}
         onAddGif={addGif}
         onToggleGifFav={(url) => setGifFavorites((prev) => (prev.includes(url) ? prev.filter((x) => x !== url) : Array.from(new Set([...prev, url]))))}
-        onReportReason={setReportReason}
-        onReportDetails={setReportDetails}
-        onSubmitReport={submitReport}
         onSearchUsers={onSearchUsers}
         createGroupOpen={createGroupOpen}
         onCloseCreateGroup={() => setCreateGroupOpen(false)}
@@ -993,7 +1056,7 @@ export default function MessagesView(props: MessagesViewProps) {
                       <ListItemButton key={id} sx={{ borderRadius: 2 }}>
                         <Avatar src={u.avatarUrl} sx={{ mr: 1.5, bgcolor: "white" }} />
                         <ListItemText primary={<Typography sx={{ fontWeight: 900 }}>{u.displayName}</Typography>} secondary={`@${u.username}`} />
-                        <Button variant="outlined" onClick={(e) => { e.stopPropagation(); setBlockedUserIds((prev) => { const next = new Set(prev); next.delete(id); return next; }); }} sx={{ borderRadius: 999, fontWeight: 900, textTransform: "none" }}>Unblock</Button>
+                        <Button variant="outlined" onClick={(e) => { e.stopPropagation(); unblockUser(id); }} sx={{ borderRadius: 999, fontWeight: 900, textTransform: "none" }}>Unblock</Button>
                       </ListItemButton>
                     );
                   })}
@@ -1197,7 +1260,70 @@ export default function MessagesView(props: MessagesViewProps) {
           <Button onClick={() => setSettingsOpen(false)} sx={{ fontWeight: 900, textTransform: "none" }}>Close</Button>
         </DialogActions>
       </Dialog>
-
+          <Dialog open={reportOpen} onClose={() => { setReportOpen(false); setReportSuccess(null); }} maxWidth="xs" fullWidth>
+  <DialogTitle sx={{ fontWeight: 1000 }}>Report user</DialogTitle>
+  <DialogContent>
+    {reportSuccess ? (
+      <Box sx={{ py: 1 }}>
+        <Typography sx={{ fontWeight: 900, mb: 1, color: "#15803d" }}>Report submitted ✓</Typography>
+        <Typography sx={{ fontSize: 13, mb: 0.5 }}>
+          Your case number is <strong>{reportSuccess.caseNumber}</strong>.
+        </Typography>
+        <Typography sx={{ fontSize: 13, color: "rgba(0,0,0,0.6)", mb: 2 }}>
+          You can track your report in the <strong>Safety</strong> page under <strong>My Reports</strong>.
+        </Typography>
+        {Array.from(reportInvolvedParties).map((id) => {
+          const u = userById.get(id);
+          if (!u || blockedUserIds.has(u.id)) return null;
+          return (
+            <Button key={id} fullWidth variant="outlined" onClick={() => { blockUser(u.id); }} sx={{ borderRadius: 999, fontWeight: 900, textTransform: "none", color: "#b91c1c", borderColor: "#b91c1c", mb: 0.5 }}>
+              Block {u.displayName}
+            </Button>
+          );
+        })}
+      </Box>
+    ) : (
+      <Box sx={{ pt: 0.5 }}>
+        <Typography sx={{ fontSize: 13, color: "rgba(0,0,0,0.6)", mb: 2 }}>
+          This will be filed as <strong>Student Misconduct</strong> and reviewed by the appropriate department.
+        </Typography>
+        <Typography sx={{ fontSize: 12, fontWeight: 900, color: "rgba(0,0,0,0.65)", mb: 0.75 }}>
+          Who is this about?
+        </Typography>
+        <Box sx={{ mb: 2, border: "1px solid rgba(0,0,0,0.10)", borderRadius: 2, overflow: "hidden" }}>
+          {(selectedThread && isGroupThread(selectedThread) ? groupParticipants : otherUser ? [otherUser] : []).map((u) => (
+            <ListItemButton key={u.id} onClick={() => setReportInvolvedParties((prev) => { const next = new Set(prev); if (next.has(u.id)) next.delete(u.id); else next.add(u.id); return next; })} sx={{ py: 0.75 }}>
+              <ListItemIcon sx={{ minWidth: 36 }}>
+                <Checkbox size="small" checked={reportInvolvedParties.has(u.id)} disableRipple />
+              </ListItemIcon>
+              <Avatar src={u.avatarUrl} sx={{ width: 28, height: 28, mr: 1, bgcolor: "white" }} />
+              <ListItemText primary={<Typography sx={{ fontSize: 13, fontWeight: 900 }}>{u.displayName}</Typography>} secondary={`@${u.username}`} />
+            </ListItemButton>
+          ))}
+        </Box>
+        <TextField label="What happened?" multiline minRows={3} fullWidth value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} placeholder="Describe the misconduct in detail..." sx={{ mb: 2 }} />
+        <TextField select label="Your relationship to this incident" fullWidth value={reportRelationship} onChange={(e) => setReportRelationship(e.target.value)} SelectProps={{ native: true }}>
+          <option value="VICTIM">I am the person affected</option>
+          <option value="WITNESS">I witnessed this incident</option>
+          <option value="BYSTANDER">I heard about this from someone</option>
+          <option value="ON_BEHALF_OF">I'm reporting on behalf of someone</option>
+        </TextField>
+      </Box>
+    )}
+  </DialogContent>
+    <DialogActions sx={{ px: 3, pb: 2 }}>
+      {reportSuccess ? (
+        <Button onClick={() => { setReportOpen(false); setReportSuccess(null); }} sx={{ fontWeight: 900, textTransform: "none" }}>Close</Button>
+      ) : (
+        <>
+          <Button onClick={() => setReportOpen(false)} sx={{ fontWeight: 900, textTransform: "none" }}>Cancel</Button>
+          <Button variant="contained" onClick={submitReport} disabled={!reportDescription.trim() || reportSubmitting || (!!selectedThread && isGroupThread(selectedThread) && reportInvolvedParties.size === 0)} sx={{ bgcolor: RED, fontWeight: 900, textTransform: "none", borderRadius: 999 }}>
+            {reportSubmitting ? "Submitting..." : "Submit report"}
+          </Button>
+        </>
+      )}
+    </DialogActions>
+  </Dialog>
       <Toast open={toast.open} message={toast.message} severity={toast.severity} onClose={toast.close} />
     </Box>
   );
