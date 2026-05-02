@@ -117,6 +117,7 @@ export type MessagesViewProps = {
   loadingMoreByThread: Record<string, boolean>;
   onFetchOlder: (threadId: string) => void;
   uploadAttachment: (threadId: string, file: File) => Promise<{ fileUrl: string; fileName: string; fileSize: number; type: string } | null>;
+  onLeaveGroup: (threadId: string) => Promise<void>;
 };
 
 export default function MessagesView(props: MessagesViewProps) {
@@ -150,6 +151,7 @@ export default function MessagesView(props: MessagesViewProps) {
     loadingMoreByThread,
     onFetchOlder,
     uploadAttachment,
+    onLeaveGroup,
   } = props;
 
   const [activeTab, setActiveTab] = React.useState<"messages" | "requests">("messages");
@@ -468,13 +470,13 @@ export default function MessagesView(props: MessagesViewProps) {
     if (selectedThread) { setReportedThreadIds((prev) => new Set([...prev, selectedThread.id])); onSelectedThreadIdChange(null); setReportOpen(false); onRefresh(); }
   };
   const handleBlock = () => { if (otherUser) { setBlockedUserIds((prev) => new Set([...prev, otherUser.id])); onSelectedThreadIdChange(null); onRefresh(); } };
-  const leaveGroup = () => {
+  const leaveGroup = async () => {
     if (!selectedThread || !isGroupThread(selectedThread)) return;
-    setLeftGroupThreadIds((prev) => new Set([...prev, selectedThread.id]));
+    await onLeaveGroup(selectedThread.id);
     setMenuAnchor(null);
-    onSelectedThreadIdChange(null);
     onRefresh();
   };
+
   const acceptRequest = (threadId: ID) => { onSelectedThreadIdChange(threadId); setActiveTab("messages"); onRefresh(); };
   const deleteThread = (threadId: ID) => {
     setDraftByThreadId((prev) => { const c = { ...prev }; delete c[threadId]; return c; });
@@ -850,6 +852,22 @@ export default function MessagesView(props: MessagesViewProps) {
                               </Box>
                             )}
 
+                            {isLastMine && m.status === "pending" && (
+                              <Box sx={{ display: "flex", justifyContent: "flex-end", pr: 0.5, mt: 0.25 }}>
+                                <Typography sx={{ fontSize: 11, color: "rgba(0,0,0,0.35)" }}>Sending...</Typography>
+                              </Box>
+                            )}
+                            {isLastMine && m.status === "failed" && (
+                              <Box sx={{ display: "flex", justifyContent: "flex-end", pr: 0.5, mt: 0.25, gap: 0.5, alignItems: "center" }}>
+                                <Typography sx={{ fontSize: 11, color: "#b91c1c" }}>Failed to send</Typography>
+                                <Typography onClick={() => onSend(m.threadId, m.text)} sx={{ fontSize: 11, color: "#b91c1c", fontWeight: 900, cursor: "pointer", textDecoration: "underline" }}>Retry</Typography>
+                              </Box>
+                            )}
+                            {isLastMine && m.status === "delivered" && !seenByOther && (
+                              <Box sx={{ display: "flex", justifyContent: "flex-end", pr: 0.5, mt: 0.25 }}>
+                                <Typography sx={{ fontSize: 11, color: "rgba(0,0,0,0.4)" }}>Delivered</Typography>
+                              </Box>
+                            )}
                             {isLastMine && seenByOther && (
                               <Box sx={{ display: "flex", justifyContent: "flex-end", pr: 0.5, mt: 0.25 }}>
                                 <Typography sx={{ fontSize: 11, color: "rgba(0,0,0,0.4)" }}>Seen</Typography>

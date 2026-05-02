@@ -56,6 +56,7 @@ export default function MessagesPage() {
       loadingMoreByThread={data.loadingMoreByThread}
       onFetchOlder={data.fetchOlderMessages}
       uploadAttachment={data.uploadAttachment}
+      onLeaveGroup={data.onLeaveGroup}
     />
   );
 }

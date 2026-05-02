@@ -42,4 +42,5 @@ export interface Message {
   createdAt: number;
   attachments?: Attachment[];
   seenByUserIds?: ID[];
+  status?: "pending" | "delivered" | "failed";
 }

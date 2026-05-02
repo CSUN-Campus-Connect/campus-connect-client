@@ -272,7 +272,7 @@ export function useMessagesData() {
     });
 
     socket.on("message:new", (msg: any) => {
-      const mapped = toMessage(msg);
+      const mapped = { ...toMessage(msg), status: "delivered" as const };
       setMessagesByThread((prev) => {
         const existing = prev[mapped.threadId] ?? [];
         if (existing.some((m) => m.id === mapped.id)) return prev;
@@ -348,20 +348,51 @@ export function useMessagesData() {
     const hasContent = text.trim() || (attachments && attachments.length > 0);
     if (!hasContent) return;
 
+    // Optimistic message
+    const tempId = `temp_${Date.now()}`;
+    const optimistic: Message = {
+      id: tempId,
+      threadId,
+      fromUserId: meIdRef.current,
+      text: text.trim(),
+      createdAt: Date.now(),
+      status: "pending",
+      seenByUserIds: [],
+    };
+
+    setMessagesByThread((prev) => ({
+      ...prev,
+      [threadId]: [...(prev[threadId] ?? []), optimistic],
+    }));
+    setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, updatedAt: Date.now() } : t)));
+
     if (!socketRef.current?.connected) {
       const token = getToken();
-      if (!token) return;
+      if (!token) {
+        // Mark failed
+        setMessagesByThread((prev) => ({
+          ...prev,
+          [threadId]: (prev[threadId] ?? []).map((m) => m.id === tempId ? { ...m, status: "failed" as const } : m),
+        }));
+        return;
+      }
       try {
         const res = await api.post(
           `/api/v1/messages/conversations/${threadId}/messages`,
           { content: text.trim(), attachments },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        const mapped = toMessage(res.data);
-        setMessagesByThread((prev) => ({ ...prev, [threadId]: [...(prev[threadId] ?? []), mapped] }));
-        setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, updatedAt: Date.now() } : t)));
+        const mapped = { ...toMessage(res.data), status: "delivered" as const };
+        setMessagesByThread((prev) => ({
+          ...prev,
+          [threadId]: (prev[threadId] ?? []).map((m) => m.id === tempId ? mapped : m),
+        }));
       } catch (err) {
         console.error("Failed to send message via REST fallback:", err);
+        setMessagesByThread((prev) => ({
+          ...prev,
+          [threadId]: (prev[threadId] ?? []).map((m) => m.id === tempId ? { ...m, status: "failed" as const } : m),
+        }));
       }
       return;
     }
@@ -370,6 +401,16 @@ export function useMessagesData() {
       conversationId: threadId,
       content: text.trim(),
       attachments,
+    });
+
+    // When socket confirms, replace temp message
+    socketRef.current.once("message:new", (msg: any) => {
+      const mapped = toMessage(msg);
+      if (mapped.threadId !== threadId) return;
+      setMessagesByThread((prev) => ({
+        ...prev,
+        [threadId]: (prev[threadId] ?? []).filter((m) => m.id !== tempId),
+      }));
     });
   }, []);
 
@@ -533,6 +574,21 @@ export function useMessagesData() {
     }
   }, []);
 
+  // Participants leaving group
+  const onLeaveGroup = useCallback(async (threadId: string) => {
+    const token = getToken();
+    if (!token) return;
+    try {
+      await api.delete(`/api/v1/messages/conversations/${threadId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setThreads((prev) => prev.filter((t) => t.id !== threadId));
+      setSelectedThreadId(null);
+    } catch (err) {
+      console.error("Failed to leave group:", err);
+    }
+  }, []);
+
   return {
     threads,
     usersWithMe,
@@ -563,5 +619,6 @@ export function useMessagesData() {
     loadingMoreByThread,
     fetchOlderMessages,
     uploadAttachment,
+    onLeaveGroup,
   };
 }
