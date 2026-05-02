@@ -19,7 +19,7 @@ function toUser(participant: any): User {
   const u = participant.User || participant;
   return {
     id: u.id,
-    username: u.firstName?.toLowerCase() + (u.lastName ? u.lastName.toLowerCase() : ""),
+    username: u.username || `${u.firstName || ""}${u.lastName || ""}`.toLowerCase(),
     displayName: `${u.firstName || ""} ${u.lastName || ""}`.trim(),
     avatarUrl: u.profilePicture || "",
     lastActiveAt: u.lastActiveAt ? new Date(u.lastActiveAt).getTime() : Date.now(),
@@ -86,11 +86,11 @@ export function useMessagesData() {
 
   const me: User = useMemo(() => ({
     id: meId,
-    username: storedUser?.firstName?.toLowerCase() || "me",
+    username: storedUser?.username || storedUser?.firstName?.toLowerCase() || "me",
     displayName: `${storedUser?.firstName || ""} ${storedUser?.lastName || ""}`.trim() || "You",
     avatarUrl: storedUser?.profilePicture || "",
     lastActiveAt: Date.now(),
-  }), [meId, storedUser?.firstName, storedUser?.lastName, storedUser?.profilePicture]);
+  }), [meId, storedUser?.username, storedUser?.firstName, storedUser?.lastName, storedUser?.profilePicture]);
 
   const usersWithMe = useMemo(() => {
     if (users.some((u) => u.id === meId)) return users;

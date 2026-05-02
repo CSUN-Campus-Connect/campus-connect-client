@@ -497,7 +497,7 @@ export default function MessagesView(props: MessagesViewProps) {
               <Stack direction="row" alignItems="center" spacing={1.2} sx={{ minWidth: 0 }}>
                 <Avatar src={me.avatarUrl} sx={{ width: 34, height: 34, bgcolor: "white", border: "1px solid rgba(0,0,0,0.12)" }} />
                 <Stack direction="row" spacing={0.25} alignItems="center" sx={{ minWidth: 0 }}>
-                  <Typography sx={{ fontWeight: 1000, fontSize: 16 }} noWrap>{me.username}</Typography>
+                  <Typography sx={{ fontWeight: 1000, fontSize: 16 }} noWrap>{me.displayName}</Typography>
                   <Tooltip title="Message settings">
                     <IconButton size="small" aria-label="Message settings" onClick={() => { setSettingsTab("backgrounds"); setSettingsOpen(true); }} sx={{ borderRadius: 2 }}>
                       <SettingsIcon fontSize="small" />
