@@ -55,6 +55,12 @@ export default function MessagesPage() {
       hasMoreByThread={data.hasMoreByThread}
       loadingMoreByThread={data.loadingMoreByThread}
       onFetchOlder={data.fetchOlderMessages}
+      uploadAttachment={data.uploadAttachment}
+      onLeaveGroup={data.onLeaveGroup}
+      blockedUserIds={data.blockedUserIds}
+      blockUser={data.blockUser}
+      unblockUser={data.unblockUser}
+      loadingThreadId={data.loadingThreadId}
     />
   );
 }
