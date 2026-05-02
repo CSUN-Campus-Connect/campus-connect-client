@@ -60,6 +60,7 @@ export default function MessagesPage() {
       blockedUserIds={data.blockedUserIds}
       blockUser={data.blockUser}
       unblockUser={data.unblockUser}
+      loadingThreadId={data.loadingThreadId}
     />
   );
 }
