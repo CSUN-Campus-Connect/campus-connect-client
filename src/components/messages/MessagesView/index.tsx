@@ -494,10 +494,11 @@ export default function MessagesView(props: MessagesViewProps) {
   };
 
   const acceptRequest = (threadId: ID) => { onSelectedThreadIdChange(threadId); setActiveTab("messages"); onRefresh(); };
-  const deleteThread = (threadId: ID) => {
+  const deleteThread = async (threadId: ID) => {
     setDraftByThreadId((prev) => { const c = { ...prev }; delete c[threadId]; return c; });
     if (selectedThreadId === threadId) onSelectedThreadIdChange(null);
-    onRefresh();
+    setLeftGroupThreadIds((prev) => new Set([...prev, threadId]));
+    await onLeaveGroup(threadId);
   };
 
   const lastMyMessageId = React.useMemo(() => {
@@ -671,13 +672,19 @@ export default function MessagesView(props: MessagesViewProps) {
                     ) : (
                       <MenuItem onClick={leaveGroup} sx={{ color: "#b91c1c", fontWeight: 900 }}>Leave group</MenuItem>
                     )}
+                    <MenuItem onClick={() => {
+                      setMenuAnchor(null);
+                      if (selectedThreadId) deleteThread(selectedThreadId);
+                    }} sx={{ color: "#b91c1c", fontWeight: 900 }}>
+                      Delete chat
+                    </MenuItem>
                   </Menu>
                 </>
               )}
             </Box>
 
             {/* Messages scroller with background */}
-            {loadingThreadId === selectedThreadId && (
+            {loadingThreadId !== null && loadingThreadId === selectedThreadId && (
               <Box sx={{ width: "100%", height: 2, bgcolor: "rgba(0,0,0,0.06)" }}>
                 <Box
                   sx={{
@@ -765,8 +772,12 @@ export default function MessagesView(props: MessagesViewProps) {
                   <Box sx={{ height: "100%", display: "grid", placeItems: "center", textAlign: "center" }}>
                     <Box>
                       <Box sx={{ width: 84, height: 84, borderRadius: "50%", border: "2px solid rgba(0,0,0,0.18)", display: "grid", placeItems: "center", mx: "auto", mb: 2 }}><SendIcon sx={{ fontSize: 38, color: "rgba(0,0,0,0.55)" }} /></Box>
-                      <Typography sx={{ fontWeight: 1000, fontSize: 20 }}>Your messages</Typography>
-                      <Typography sx={{ color: "rgba(0,0,0,0.60)", mt: 0.7 }}>Send a message to start a chat.</Typography>
+                      <Typography sx={{ fontWeight: 1000, fontSize: 20 }}>
+                        {otherUser ? `Start a chat with ${otherUser.displayName}!` : "Your messages"}
+                      </Typography>
+                      <Typography sx={{ color: "rgba(0,0,0,0.60)", mt: 0.7 }}>
+                        {otherUser ? "Say something to get the conversation going." : "Send a message to start a chat."}
+                      </Typography>
                     </Box>
                   </Box>
                 ) : (

@@ -212,6 +212,11 @@ export default function MessagesDialogs(props: MessagesDialogsProps) {
                 </Button>
               </ListItemButton>
             ))}
+            {searchLoading && (
+              <Box sx={{ py: 5, display: "flex", justifyContent: "center" }}>
+                <CircularProgress size={24} sx={{ color: RED }} />
+              </Box>
+            )}
             {!searchLoading && displayedUsers.length === 0 && (
               <Box sx={{ py: 5, textAlign: "center" }}>
                 <Typography sx={{ fontWeight: 900 }}>

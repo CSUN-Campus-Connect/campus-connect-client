@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { api } from "@/lib/axios";
 import type { ID, Message, Note, Thread, User, Attachment } from "@/types/messages";
+const PENDING_THREAD_ID = "pending";
 
 function toThread(conv: any): Thread {
   return {
@@ -76,7 +77,7 @@ export function useMessagesData() {
   const [groupPictureByThreadId, setGroupPictureByThreadId] = useState<Record<string, string>>({});
   const [loadingThreadId, setLoadingThreadId] = useState<string | null>(null);
   const [blockedUserIds, setBlockedUserIds] = useState<Set<ID>>(new Set());
-
+  const [pendingThreadUserId, setPendingThreadUserId] = useState<ID | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const meIdRef = useRef<string>("");
@@ -104,6 +105,17 @@ export function useMessagesData() {
     () => (selectedThreadId ? messagesByThread[selectedThreadId] ?? [] : []),
     [selectedThreadId, messagesByThread]
   );
+
+  const threadsWithPending = useMemo(() => {
+    if (!pendingThreadUserId) return threads;
+    const pendingThread: Thread = {
+      id: PENDING_THREAD_ID,
+      participantIds: [meId, pendingThreadUserId],
+      updatedAt: Date.now(),
+      isRequest: false,
+    };
+    return [pendingThread, ...threads];
+  }, [threads, pendingThreadUserId, meId]);
 
   const fetchConversations = useCallback(async () => {
     const token = getToken();
@@ -164,6 +176,11 @@ export function useMessagesData() {
 
     const existing = messagesByThread[threadId];
     if (existing && existing.length > 0) return;
+    if (existing && existing.length === 0) {
+      // Empty thread — no need to load, just clear loading state
+      setLoadingThreadId(null);
+      return;
+    }
 
     setLoadingThreadId(threadId);
 
@@ -290,7 +307,7 @@ const unblockUser = useCallback(async (userId: ID) => {
   }, [fetchConversations, fetchBlockedUsers]);
 
   useEffect(() => {
-    if (selectedThreadId) {
+    if (selectedThreadId && selectedThreadId !== PENDING_THREAD_ID) {
       fetchMessages(selectedThreadId);
       if (socketRef.current?.connected) {
         socketRef.current.emit("conversation:join", { conversationId: selectedThreadId });
@@ -409,11 +426,47 @@ const unblockUser = useCallback(async (userId: ID) => {
     const hasContent = text.trim() || (attachments && attachments.length > 0);
     if (!hasContent) return;
 
+    // If pending thread, create conversation first
+    let realThreadId = threadId;
+    if (threadId === PENDING_THREAD_ID && pendingThreadUserId) {
+      const token = getToken();
+      if (!token) return;
+      try {
+        const res = await api.post(
+          "/api/v1/messages/conversations",
+          { isGroup: false, participantIds: [pendingThreadUserId] },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const newThread = toThread(res.data);
+        setThreads((prev) => prev.filter((t) => t.id !== PENDING_THREAD_ID));
+        setThreads((prev) => [newThread, ...prev]);
+        setSelectedThreadId(newThread.id);
+        setPendingThreadUserId(null);
+        realThreadId = newThread.id;
+
+        for (const p of res.data.Participants) {
+          if (p.userId !== meIdRef.current) {
+            setUsers((prev) => {
+              if (prev.some((u) => u.id === p.userId)) return prev;
+              return [...prev, toUser(p)];
+            });
+          }
+        }
+
+        if (socketRef.current?.connected) {
+          socketRef.current.emit("conversation:join", { conversationId: newThread.id });
+        }
+      } catch (err) {
+        console.error("Failed to create conversation:", err);
+        return;
+      }
+    }
+
     // Optimistic message
     const tempId = `temp_${Date.now()}`;
     const optimistic: Message = {
       id: tempId,
-      threadId,
+      threadId: realThreadId,
       fromUserId: meIdRef.current,
       text: text.trim(),
       createdAt: Date.now(),
@@ -423,57 +476,55 @@ const unblockUser = useCallback(async (userId: ID) => {
 
     setMessagesByThread((prev) => ({
       ...prev,
-      [threadId]: [...(prev[threadId] ?? []), optimistic],
+      [realThreadId]: [...(prev[realThreadId] ?? []), optimistic],
     }));
-    setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, updatedAt: Date.now() } : t)));
+    setThreads((prev) => prev.map((t) => (t.id === realThreadId ? { ...t, updatedAt: Date.now() } : t)));
 
     if (!socketRef.current?.connected) {
       const token = getToken();
       if (!token) {
-        // Mark failed
         setMessagesByThread((prev) => ({
           ...prev,
-          [threadId]: (prev[threadId] ?? []).map((m) => m.id === tempId ? { ...m, status: "failed" as const } : m),
+          [realThreadId]: (prev[realThreadId] ?? []).map((m) => m.id === tempId ? { ...m, status: "failed" as const } : m),
         }));
         return;
       }
       try {
         const res = await api.post(
-          `/api/v1/messages/conversations/${threadId}/messages`,
+          `/api/v1/messages/conversations/${realThreadId}/messages`,
           { content: text.trim(), attachments },
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const mapped = { ...toMessage(res.data), status: "delivered" as const };
         setMessagesByThread((prev) => ({
           ...prev,
-          [threadId]: (prev[threadId] ?? []).map((m) => m.id === tempId ? mapped : m),
+          [realThreadId]: (prev[realThreadId] ?? []).map((m) => m.id === tempId ? mapped : m),
         }));
       } catch (err) {
         console.error("Failed to send message via REST fallback:", err);
         setMessagesByThread((prev) => ({
           ...prev,
-          [threadId]: (prev[threadId] ?? []).map((m) => m.id === tempId ? { ...m, status: "failed" as const } : m),
+          [realThreadId]: (prev[realThreadId] ?? []).map((m) => m.id === tempId ? { ...m, status: "failed" as const } : m),
         }));
       }
       return;
     }
 
     socketRef.current.emit("message:send", {
-      conversationId: threadId,
+      conversationId: realThreadId,
       content: text.trim(),
       attachments,
     });
 
-    // When socket confirms, replace temp message
     socketRef.current.once("message:new", (msg: any) => {
       const mapped = toMessage(msg);
-      if (mapped.threadId !== threadId) return;
+      if (mapped.threadId !== realThreadId) return;
       setMessagesByThread((prev) => ({
         ...prev,
-        [threadId]: (prev[threadId] ?? []).filter((m) => m.id !== tempId),
+        [realThreadId]: (prev[realThreadId] ?? []).filter((m) => m.id !== tempId),
       }));
     });
-  }, []);
+  }, [pendingThreadUserId]);
 
   const onEditMessage = useCallback(async (messageId: string, newText: string) => {
     if (!newText.trim() || !socketRef.current) return;
@@ -513,43 +564,20 @@ const unblockUser = useCallback(async (userId: ID) => {
 
   const onPickUser = useCallback(async (userId: ID) => {
     if (userId === meIdRef.current) return;
-    const token = getToken();
-    if (!token) return;
 
+    // Check if existing real thread
     const existing = threads.find(
       (t) => !t.isRequest && t.participantIds.includes(meIdRef.current) && t.participantIds.includes(userId)
     );
     if (existing) {
+      setPendingThreadUserId(null);
       setSelectedThreadId(existing.id);
       return;
     }
 
-    try {
-      const res = await api.post(
-        "/api/v1/messages/conversations",
-        { isGroup: false, participantIds: [userId] },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      const newThread = toThread(res.data);
-      setThreads((prev) => [newThread, ...prev]);
-      setSelectedThreadId(newThread.id);
-
-      for (const p of res.data.Participants) {
-        if (p.userId !== meIdRef.current) {
-          setUsers((prev) => {
-            if (prev.some((u) => u.id === p.userId)) return prev;
-            return [...prev, toUser(p)];
-          });
-        }
-      }
-
-      if (socketRef.current?.connected) {
-        socketRef.current.emit("conversation:join", { conversationId: newThread.id });
-      }
-    } catch (err) {
-      console.error("Failed to create conversation:", err);
-    }
+    // Set as pending — don't create conversation yet
+    setPendingThreadUserId(userId);
+    setSelectedThreadId(PENDING_THREAD_ID);
   }, [threads]);
 
   const onCreateGroup = useCallback(async (participantIds: ID[], name: string, groupPictureUrl?: string) => {
@@ -628,7 +656,14 @@ const unblockUser = useCallback(async (userId: ID) => {
       const res = await api.get(`/api/v1/users/search?q=${encodeURIComponent(q.trim())}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      return res.data.map((u: any) => toUser(u));
+      const found: User[] = res.data.map((u: any) => toUser(u));
+      // Cache search results in users state so pending thread can resolve them
+      setUsers((prev) => {
+        const existing = new Set(prev.map((u) => u.id));
+        const newUsers = found.filter((u) => !existing.has(u.id));
+        return newUsers.length ? [...prev, ...newUsers] : prev;
+      });
+      return found;
     } catch (err) {
       console.error("User search failed:", err);
       return [];
@@ -651,7 +686,7 @@ const unblockUser = useCallback(async (userId: ID) => {
   }, []);
 
   return {
-    threads,
+    threads: threadsWithPending,
     usersWithMe,
     notes,
     allMessages,
@@ -685,5 +720,6 @@ const unblockUser = useCallback(async (userId: ID) => {
     blockedUserIds,
     blockUser,
     unblockUser,
+    pendingThreadUserId,
   };
 }
