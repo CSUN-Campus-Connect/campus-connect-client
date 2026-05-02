@@ -157,10 +157,12 @@ export function useMessagesData() {
   }, []);
 
   const fetchMessages = useCallback(async (threadId: string) => {
-    const token = getToken();
-    if (!token) return;
+  const token = getToken();
+  if (!token) return;
 
-    setMessagesByThread((prev) => ({ ...prev, [threadId]: [] }));
+  // Skip if already loaded
+  const existing = messagesByThread[threadId];
+    if (existing && existing.length > 0) return;
 
     try {
       const res = await api.get(`/api/v1/messages/conversations/${threadId}/messages`, {
@@ -190,7 +192,7 @@ export function useMessagesData() {
     } catch (err) {
       console.error("Failed to fetch messages:", err);
     }
-  }, []);
+  }, [messagesByThread]);
 
   const fetchOlderMessages = useCallback(async (threadId: string) => {
     const token = getToken();
