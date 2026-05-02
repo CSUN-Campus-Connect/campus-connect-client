@@ -55,6 +55,7 @@ export default function MessagesPage() {
       hasMoreByThread={data.hasMoreByThread}
       loadingMoreByThread={data.loadingMoreByThread}
       onFetchOlder={data.fetchOlderMessages}
+      uploadAttachment={data.uploadAttachment}
     />
   );
 }

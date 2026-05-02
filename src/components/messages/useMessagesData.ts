@@ -344,31 +344,33 @@ export function useMessagesData() {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const onSend = useCallback(async (threadId: string, text: string, attachmentUrls?: string[]) => {
-    if (!text.trim() || !socketRef.current?.connected) {
+  const onSend = useCallback(async (threadId: string, text: string, attachments?: { type: string; fileName: string; fileUrl: string; fileSize: number }[]) => {
+    const hasContent = text.trim() || (attachments && attachments.length > 0);
+    if (!hasContent) return;
+
+    if (!socketRef.current?.connected) {
       const token = getToken();
       if (!token) return;
       try {
         const res = await api.post(
           `/api/v1/messages/conversations/${threadId}/messages`,
-          { content: text.trim() },
+          { content: text.trim(), attachments },
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const mapped = toMessage(res.data);
-        setMessagesByThread((prev) => ({
-          ...prev,
-          [threadId]: [...(prev[threadId] ?? []), mapped],
-        }));
-        setThreads((prev) =>
-          prev.map((t) => (t.id === threadId ? { ...t, updatedAt: Date.now() } : t))
-        );
+        setMessagesByThread((prev) => ({ ...prev, [threadId]: [...(prev[threadId] ?? []), mapped] }));
+        setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, updatedAt: Date.now() } : t)));
       } catch (err) {
         console.error("Failed to send message via REST fallback:", err);
       }
       return;
     }
 
-    socketRef.current.emit("message:send", { conversationId: threadId, content: text.trim() });
+    socketRef.current.emit("message:send", {
+      conversationId: threadId,
+      content: text.trim(),
+      attachments,
+    });
   }, []);
 
   const onEditMessage = useCallback(async (messageId: string, newText: string) => {
@@ -492,6 +494,26 @@ export function useMessagesData() {
     }
   }, []);
 
+  const uploadAttachment = useCallback(async (threadId: string, file: File): Promise<{ fileUrl: string; fileName: string; fileSize: number; type: string } | null> => {
+  const token = getToken();
+  if (!token) return null;
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const res = await api.post(
+      `/api/v1/messages/conversations/${threadId}/attachments`,
+      formData,
+      { headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" } }
+    );
+    return res.data;
+  } catch (err) {
+    console.error("Attachment upload failed:", err);
+    return null;
+  }
+}, []);
+
   const refresh = useCallback(() => {
     setLoading(true);
     fetchConversations();
@@ -540,5 +562,6 @@ export function useMessagesData() {
     hasMoreByThread,
     loadingMoreByThread,
     fetchOlderMessages,
+    uploadAttachment,
   };
 }

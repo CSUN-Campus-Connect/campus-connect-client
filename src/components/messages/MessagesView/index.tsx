@@ -98,7 +98,7 @@ export type MessagesViewProps = {
   threadMessages: Message[];
   selectedThreadId: ID | null;
   onSelectedThreadIdChange: (id: ID | null) => void;
-  onSend: (threadId: string, text: string, attachmentUrls?: string[]) => void | Promise<void>;
+  onSend: (threadId: string, text: string, attachments?: { type: string; fileName: string; fileUrl: string; fileSize: number }[]) => void | Promise<void>;
   onUpdateNote: (text: string) => void | Promise<void>;
   onPickUser: (userId: ID) => void | Promise<void>;
   onCreateGroup?: (participantIds: ID[], name: string, groupPictureUrl?: string) => void | Promise<void>;
@@ -116,6 +116,7 @@ export type MessagesViewProps = {
   hasMoreByThread: Record<string, boolean>;
   loadingMoreByThread: Record<string, boolean>;
   onFetchOlder: (threadId: string) => void;
+  uploadAttachment: (threadId: string, file: File) => Promise<{ fileUrl: string; fileName: string; fileSize: number; type: string } | null>;
 };
 
 export default function MessagesView(props: MessagesViewProps) {
@@ -148,6 +149,7 @@ export default function MessagesView(props: MessagesViewProps) {
     hasMoreByThread,
     loadingMoreByThread,
     onFetchOlder,
+    uploadAttachment,
   } = props;
 
   const [activeTab, setActiveTab] = React.useState<"messages" | "requests">("messages");
@@ -168,6 +170,7 @@ export default function MessagesView(props: MessagesViewProps) {
   const [animatedBackgroundByThreadId, setAnimatedBackgroundByThreadId] = React.useState<Record<ID, AnimatedBg>>({});
   const [customBackgroundByThreadId, setCustomBackgroundByThreadId] = React.useState<Record<ID, string>>({});
   const [leftGroupThreadIds, setLeftGroupThreadIds] = React.useState<Set<ID>>(new Set());
+  const [pendingAttachmentsByThreadId, setPendingAttachmentsByThreadId] = React.useState<Record<ID, { type: string; fileName: string; fileUrl: string; fileSize: number }[]>>({});
 
   const prefsHydratedRef = React.useRef(false);
   const prefsSerializedRef = React.useRef("");
@@ -254,6 +257,7 @@ export default function MessagesView(props: MessagesViewProps) {
   const [nowMs, setNowMs] = React.useState<number | null>(null);
   const [menuAnchor, setMenuAnchor] = React.useState<null | HTMLElement>(null);
   const scrollerRef = React.useRef<HTMLDivElement | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const prevScrollHeightRef = React.useRef<number>(0);
   const prevOldestMsgIdRef = React.useRef<string | null>(null);
   const isRestoringScrollRef = React.useRef<boolean>(false);
@@ -425,23 +429,32 @@ export default function MessagesView(props: MessagesViewProps) {
   const handleSend = React.useCallback(async () => {
     if (!selectedThread || !selectedThreadId) return;
     const text = selectedDraft.text.trim();
-    const gifUrls = selectedDraft.gifs.map((g) => g.url);
-    const fileUrls = selectedDraft.files.map((f) => URL.createObjectURL(f));
-    const urls = [...gifUrls, ...fileUrls];
-    selectedDraft.files.forEach((f, i) => {
-      if (f.type.startsWith("audio/")) {
-        const blobUrl = fileUrls[i];
-        urlToDurationRef.current[blobUrl] = voiceDurationsByFileName.current[f.name] ?? 0;
-        sentVoiceFileByUrlRef.current[blobUrl] = f;
-      }
-    });
-    if (!text && selectedDraft.files.length === 0 && urls.length === 0) return;
-    const sentAt = Date.now();
-    lastSentBlobUrlsRef.current[selectedThread.id] = { urls, sentAt };
-    await onSend(selectedThread.id, text || "", urls.length ? urls : undefined);
+    const pendingAttachments = pendingAttachmentsByThreadId[selectedThreadId] ?? [];
+    if (!text && selectedDraft.files.length === 0 && pendingAttachments.length === 0) return;
+
+    await onSend(selectedThread.id, text || "", pendingAttachments.length ? pendingAttachments as any : undefined);
     setDraftByThreadId((prev) => ({ ...prev, [selectedThreadId]: emptyDraft() }));
+    setPendingAttachmentsByThreadId((prev) => ({ ...prev, [selectedThreadId]: [] }));
     onTypingStop(selectedThreadId);
-  }, [selectedThread, selectedThreadId, selectedDraft, onSend, onTypingStop]);
+  }, [selectedThread, selectedThreadId, selectedDraft, pendingAttachmentsByThreadId, onSend, onTypingStop]);
+
+    const handleAttachFile = React.useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file || !selectedThreadId) return;
+      e.target.value = "";
+
+      const result = await uploadAttachment(selectedThreadId, file);
+      if (!result) { toast.show("Upload failed", "error"); return; }
+
+      setPendingAttachmentsByThreadId((prev) => ({
+        ...prev,
+        [selectedThreadId]: [...(prev[selectedThreadId] ?? []), result],
+      }));
+      setDraft((prev) => ({
+        ...prev,
+        files: [...prev.files, new File([file], result.fileName, { type: file.type })],
+      }));
+    }, [selectedThreadId, uploadAttachment, setDraft, toast]);
 
   const handleEditSubmit = React.useCallback(async () => {
     if (!editingMsgId || !editingText.trim()) return;
@@ -877,7 +890,10 @@ export default function MessagesView(props: MessagesViewProps) {
                 </Stack>
               )}
               <Stack direction="row" spacing={1} alignItems="center">
-                <IconButton disabled={!selectedThread} aria-label="Attach file" onClick={() => toast.show("File attachments coming soon!", "info")}><AttachFileIcon /></IconButton>
+                <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleAttachFile} />
+                <IconButton disabled={!selectedThread} aria-label="Attach file" onClick={() => fileInputRef.current?.click()}>
+                  <AttachFileIcon />
+                </IconButton>
                 <IconButton disabled={!selectedThread} aria-label="Record voice message" onClick={() => toast.show("Voice messages coming soon!", "info")}><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></IconButton>
                 <IconButton disabled={!selectedThread} aria-label="Open GIF picker" onClick={() => setGifOpen(true)}><GifBoxIcon /></IconButton>
                 <TextField
