@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -20,6 +21,9 @@ const secondaryText = "#6B7280";
 const hoverBackground = "#F6F7F9";
 const expandedBackground = "#FAFBFC";
 const red = "#B11226";
+
+// Polls /users/me every 30s to detect if this session was revoked from another device
+const session_poll_interval = 30_000;
 
 type LoginHistoryItem = {
   id: string;
@@ -243,6 +247,40 @@ export default function SecurityPage() {
 
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
+  const router = useRouter();
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const forceLogout = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("sessionId");
+  if (pollRef.current) clearInterval(pollRef.current);
+  router.replace("/login");
+};
+
+useEffect(() => {
+  const checkSession = async () => {
+    try {
+      await api.get("/api/v1/users/me", getAuthHeaders());
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const message = err?.response?.data?.message ?? "";
+      if (
+        status === 401 &&
+        (message === "Session has been invalidated" ||
+          message === "Token expired" ||
+          message === "No token provided")
+      ) {
+        forceLogout();
+      }
+    }
+  };
+
+  pollRef.current = setInterval(checkSession, session_poll_interval);
+  return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  
+}, []);
+
   // Fetches login history only when the section is first opened
   useEffect(() => {
     if (!loginHistoryOpen) return;
@@ -259,14 +297,22 @@ export default function SecurityPage() {
           getAuthHeaders()
         );
 
-        const mappedData: LoginHistoryItem[] = response.data.history.map((item) => ({
-          id: item.id,
-          deviceLabel: item.deviceLabel,
-          locationLabel: item.location || item.ipAddress || "Unknown location",
-          timestampLabel: new Date(item.createdAt).toLocaleDateString("en-US", {
-            month: "short", day: "numeric", year: "numeric",
-          }),
-        }));
+        // Keep only the most recent login per device (history is already sorted newest-first)
+        const seen = new Set<string>();
+        const mappedData: LoginHistoryItem[] = response.data.history
+          .filter((item) => {
+            if (seen.has(item.deviceLabel)) return false;
+            seen.add(item.deviceLabel);
+            return true;
+          })
+          .map((item) => ({
+            id: item.id,
+            deviceLabel: item.deviceLabel,
+            locationLabel: item.location || "Unknown location",
+            timestampLabel: new Date(item.createdAt).toLocaleDateString("en-US", {
+              month: "short", day: "numeric", year: "numeric",
+            }),
+          }));
 
         if (!isMounted) return;
         setLoginHistory(mappedData);
@@ -335,22 +381,19 @@ export default function SecurityPage() {
   }, [activeSessionsOpen]);
 
   const handleRevokeSession = async (sessionId: string) => {
-    try {
-      setRevokingSessionId(sessionId);
-      const token = localStorage.getItem("token");
-      await api.post(
-        "/api/v1/users/logout",
-        { sessionId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      // Removes the revoked session from the list without refetching
-      setActiveSessions((prev) => prev.filter((session) => session.id !== sessionId));
-    } catch (error) {
-      console.error("Failed to revoke session", error);
-    } finally {
-      setRevokingSessionId(null);
-    }
-  };
+  try {
+    setRevokingSessionId(sessionId);
+    await api.delete(
+      `/api/v1/users/sessions/${sessionId}`,
+      getAuthHeaders()
+    );
+    setActiveSessions((prev) => prev.filter((s) => s.id !== sessionId));
+  } catch (error) {
+    console.error("Failed to revoke session", error);
+  } finally {
+    setRevokingSessionId(null);
+  }
+};
 
   const handleRevokeAllOtherSessions = async () => {
     try {

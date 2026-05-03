@@ -9,6 +9,9 @@ import SiteLanguageHtmlLang from "@/components/SiteLanguageHtmlLang";
 import SiteLanguageRouteSync from "@/components/SiteLanguageRouteSync";
 import { AnnouncementProvider } from "@/contexts/AnnouncementContext";
 import AnnouncementBanner from "@/components/announcement/AnnouncementBanner";
+import { SessionExpiredProvider } from "@/contexts/SessionExpiredContext";
+import { SessionExpiredDialog } from "@/components/SessionExpiredDialog";
+import { AxiosSessionInterceptor } from "@/components/AxiosSessionInterceptor";
 
 export const metadata: Metadata = {
   title: "Toro Campus Connect",
@@ -31,15 +34,19 @@ export default function RootLayout({
       <body className="relative overflow-visible">
         <SiteAppearanceProvider>
           <ThemeRegistry options={{ key: "mui" }}>
-            <AnnouncementProvider>
-              <SiteLanguageCookieScript />
-              <SiteLanguageBootstrap />
-              <SiteLanguageHtmlLang />
-              <SiteLanguageRouteSync />
-              <AnnouncementBanner />
-              {children}
-              <CsunChatbotWidget />
-            </AnnouncementProvider>
+            <SessionExpiredProvider>
+              <AxiosSessionInterceptor />
+              <SessionExpiredDialog />
+              <AnnouncementProvider>
+                <SiteLanguageCookieScript />
+                <SiteLanguageBootstrap />
+                <SiteLanguageHtmlLang />
+                <SiteLanguageRouteSync />
+                <AnnouncementBanner />
+                {children}
+                <CsunChatbotWidget />
+              </AnnouncementProvider>
+            </SessionExpiredProvider>
           </ThemeRegistry>
         </SiteAppearanceProvider>
       </body>
