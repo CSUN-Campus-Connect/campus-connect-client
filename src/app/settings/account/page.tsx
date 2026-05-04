@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 
@@ -15,63 +14,55 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
 import Fade from "@mui/material/Fade";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import Divider from "@mui/material/Divider";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 
-const red = "#B11226";
 const darkRed = "#7A0A0A";
 
-const outlineNeutralSx = {
-  borderColor: "#D1D5DB",
-  color: "#111827",
-  textTransform: "none",
-  fontWeight: 600,
-  borderRadius: 2,
-  "&:hover": {
-    borderColor: "#9CA3AF",
-    background: "#F9FAFB",
-  },
-};
-
 const textFieldSx = {
-  "& .MuiFormHelperText-root": {
-    marginLeft: 0,
-    marginRight: 0,
-  },
+  "& .MuiFormHelperText-root": { marginLeft: 0, marginRight: 0 },
+  "& .MuiOutlinedInput-root.Mui-focused fieldset": { borderColor: darkRed },
 };
 
-function SectionCard({
-  icon,
-  title,
-  children,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  children: React.ReactNode;
-}) {
+const fieldLabel = (text: string) => (
+  <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151", mb: 0.5 }}>
+    {text}
+  </Typography>
+);
+
+//  Password requirements checklist 
+const passwordRequirements = [
+  { label: "At least 8 characters",  test: (p: string) => p.length >= 8 },
+  { label: "Uppercase letter",        test: (p: string) => /[A-Z]/.test(p) },
+  { label: "Lowercase letter",        test: (p: string) => /[a-z]/.test(p) },
+  { label: "Number",                  test: (p: string) => /[0-9]/.test(p) },
+  { label: "Special character",       test: (p: string) => /[^a-zA-Z0-9]/.test(p) },
+];
+
+function PasswordChecklist({ password }: { password: string }) {
+  if (!password) return null;
   return (
-    <Box
-      sx={{
-        background: "#ffffff",
-        border: "1px solid #EEF1F5",
-        borderRadius: 2,
-        p: 3,
-      }}
-    >
-      <Stack direction="row" spacing={1} alignItems="center" mb={2}>
-        <Box sx={{ color: red, display: "flex", alignItems: "center" }}>
-          {icon}
-        </Box>
-        <Typography sx={{ fontSize: 16, fontWeight: 800, color: "#111827" }}>
-          {title}
-        </Typography>
-      </Stack>
-      {children}
+    <Box sx={{ mt: 0.5, mb: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 12px" }}>
+      {passwordRequirements.map(({ label, test }) => {
+        const met = test(password);
+        return (
+          <Stack key={label} direction="row" alignItems="center" spacing={0.5}>
+            {met
+              ? <CheckCircleOutlineIcon sx={{ fontSize: 14, color: "#16A34A" }} />
+              : <RadioButtonUncheckedIcon sx={{ fontSize: 14, color: "#D1D5DB" }} />
+            }
+            <Typography sx={{ fontSize: 12, color: met ? "#16A34A" : "#9CA3AF", transition: "color 0.2s" }}>
+              {label}
+            </Typography>
+          </Stack>
+        );
+      })}
     </Box>
   );
 }
 
+// Delete account 
 function DeleteAccountSection() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -95,186 +86,147 @@ function DeleteAccountSection() {
 
   const handleDeleteAccount = async () => {
     if (!isConfirmValid) return;
-
     setIsDeleting(true);
     setError(null);
-
     try {
       const token = localStorage.getItem("token");
       await api.delete("/api/v1/users/me", {
         headers: { Authorization: `Bearer ${token}` },
         data: { password },
       });
-
       // Clears all auth data and redirects to home after successful account deletion
       localStorage.clear();
       router.push("/");
     } catch (err: any) {
-      setError(
-        err?.response?.data?.message || "Failed to delete account. Please try again."
-      );
+      setError(err?.response?.data?.message || "Failed to delete account. Please try again.");
       setIsDeleting(false);
     }
   };
 
   return (
-    <Box sx={{ borderTop: "1px solid #E5E7EB", pt: 0.5 }}>
-      <Box
-        sx={{
-          mt: 1.5,
-          background: "#fff",
-          borderRadius: 3,
-          overflow: "hidden",
-        }}
-      >
-        <Box sx={{ p: 3 }}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            spacing={2}
-          >
-            <Box>
-              <Stack direction="row" spacing={1} alignItems="center" mb={0.5}>
-                <DeleteOutlineIcon sx={{ color: "#DC2626" }} />
-                <Typography sx={{ fontWeight: 900, color: "#DC2626", fontSize: 16 }}>
-                  Delete account
-                </Typography>
-              </Stack>
-              <Typography sx={{ color: "#6B7280", fontSize: 14, mt: 1 }}>
-                Permanently remove your account and all associated data.
-              </Typography>
-            </Box>
-
-            {!open && (
-              <Button
-                variant="outlined"
-                onClick={() => setOpen(true)}
-                sx={{
-                  borderColor: "rgba(220,38,38,0.45)",
-                  color: "#DC2626",
-                  textTransform: "none",
-                  borderRadius: 2,
-                  fontWeight: 800,
-                  px: 2.5,
-                  whiteSpace: "nowrap",
-                  "&:hover": {
-                    borderColor: "#DC2626",
-                    background: "rgba(220,38,38,0.06)",
-                  },
-                }}
-              >
-                Delete my account
-              </Button>
-            )}
-          </Stack>
-
-          {open && (
-            <Box
+    <Box
+      sx={{
+        border: "1px solid rgba(220,38,38,0.25)",
+        borderRadius: 2,
+        overflow: "hidden",
+      }}
+    >
+      {/* Header row */}
+      <Box sx={{ px: 3, py: 3 }}>
+        <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "center" }} spacing={2}>
+          <Box>
+            <Typography sx={{ fontWeight: 700, color: "#DC2626", fontSize: 15, mb: 0.25 }}>
+              Delete account
+            </Typography>
+            <Typography sx={{ color: "#6B7280", fontSize: 13 }}>
+              Permanently remove your account and all associated data. This action cannot be undone.
+            </Typography>
+          </Box>
+          {!open && (
+            <Button
+              variant="outlined"
+              onClick={() => setOpen(true)}
               sx={{
-                mt: 2,
-                background: "rgba(220,38,38,0.04)",
-                border: "1px solid rgba(220,38,38,0.20)",
-                borderRadius: 3,
-                overflow: "hidden",
+                borderColor: "rgba(220,38,38,0.4)",
+                color: "#DC2626",
+                textTransform: "none",
+                borderRadius: "20px",
+                fontWeight: 700,
+                fontSize: 13,
+                px: 2.5,
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+                "&:hover": { borderColor: "#DC2626", background: "rgba(220,38,38,0.05)" },
               }}
             >
-              <Box sx={{ p: 3, borderBottom: "1px solid rgba(220,38,38,0.18)" }}>
-                <Typography sx={{ fontWeight: 900, color: "#DC2626", fontSize: 15, mb: 0.75 }}>
-                  Confirm deletion
-                </Typography>
-                <Typography sx={{ color: "#6B7280", fontSize: 14 }}>
-                  To confirm, type{" "}
-                  <Box component="span" sx={{ fontFamily: "monospace" }}>
-                    {CONFIRM_TEXT}
-                  </Box>{" "}
-                  in exactly all caps and enter your password. This cannot be undone.
-                </Typography>
-              </Box>
-
-              <Box sx={{ p: 3 }}>
-                <Stack spacing={2} sx={{ maxWidth: 520 }}>
-                  <TextField
-                    value={confirmText}
-                    onChange={(e) => setConfirmText(e.target.value)}
-                    placeholder="Type DELETE"
-                    size="small"
-                    fullWidth
-                    autoComplete="off"
-                    inputProps={{ "aria-label": "Type DELETE to confirm account deletion" }}
-                    sx={{
-                      ...textFieldSx,
-                      "& input": { fontFamily: "monospace" },
-                      "& .MuiOutlinedInput-root.Mui-focused fieldset": {
-                        borderColor: "#DC2626",
-                      },
-                    }}
-                  />
-
-                  <TextField
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      setError(null);
-                    }}
-                    type="password"
-                    placeholder="Enter your password to confirm"
-                    size="small"
-                    fullWidth
-                    autoComplete="current-password"
-                    inputProps={{ "aria-label": "Password to confirm account deletion" }}
-                    sx={{
-                      ...textFieldSx,
-                      "& .MuiOutlinedInput-root.Mui-focused fieldset": {
-                        borderColor: "#DC2626",
-                      },
-                    }}
-                  />
-
-                  {error && (
-                    <Typography sx={{ fontSize: 13, color: "#DC2626" }}>
-                      {error}
-                    </Typography>
-                  )}
-
-                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                    <Button
-                      variant="outlined"
-                      fullWidth
-                      sx={outlineNeutralSx}
-                      onClick={closeAndReset}
-                      disabled={isDeleting}
-                    >
-                      Cancel
-                    </Button>
-
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      disableElevation
-                      disabled={!isConfirmValid || isDeleting}
-                      onClick={handleDeleteAccount}
-                      sx={{
-                        background: "#DC2626",
-                        textTransform: "none",
-                        borderRadius: 2,
-                        fontWeight: 900,
-                        "&:hover": { background: "#B91C1C" },
-                        "&.Mui-disabled": {
-                          background: "rgba(220,38,38,0.35)",
-                          color: "rgba(255,255,255,0.85)",
-                        },
-                      }}
-                    >
-                      {isDeleting ? "Deleting..." : "Delete Account"}
-                    </Button>
-                  </Stack>
-                </Stack>
-              </Box>
-            </Box>
+              Delete my account
+            </Button>
           )}
-        </Box>
+        </Stack>
       </Box>
+
+      {/* Confirmation form */}
+      {open && (
+        <>
+          <Divider sx={{ borderColor: "rgba(220,38,38,0.15)" }} />
+          <Box sx={{ px: 3, py: 2.5, background: "rgba(220,38,38,0.02)" }}>
+            <Typography sx={{ fontSize: 13, color: "#6B7280", mb: 2 }}>
+              Type{" "}
+              <Box component="span" sx={{ fontFamily: "monospace", fontWeight: 700, color: "#DC2626" }}>
+                {CONFIRM_TEXT}
+              </Box>{" "}
+              and enter your password to confirm.
+            </Typography>
+
+            <Stack spacing={1.5} sx={{ maxWidth: 440 }}>
+              <TextField
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+                placeholder="Type DELETE"
+                size="small"
+                fullWidth
+                autoComplete="off"
+                inputProps={{ "aria-label": "Type DELETE to confirm account deletion" }}
+                sx={{
+                  "& input": { fontFamily: "monospace" },
+                  "& .MuiOutlinedInput-root.Mui-focused fieldset": { borderColor: "#DC2626" },
+                }}
+              />
+              <TextField
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setError(null); }}
+                type="password"
+                placeholder="Your password"
+                size="small"
+                fullWidth
+                autoComplete="current-password"
+                inputProps={{ "aria-label": "Password to confirm account deletion" }}
+                sx={{ "& .MuiOutlinedInput-root.Mui-focused fieldset": { borderColor: "#DC2626" } }}
+              />
+
+              {error && (
+                <Typography sx={{ fontSize: 13, color: "#DC2626" }}>{error}</Typography>
+              )}
+
+              <Stack direction="row" spacing={1.5} pt={0.5}>
+                <Button
+                  variant="outlined"
+                  onClick={closeAndReset}
+                  disabled={isDeleting}
+                  sx={{
+                    borderColor: "#D1D5DB",
+                    color: "#374151",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    borderRadius: "20px",
+                    fontSize: 13,
+                    "&:hover": { borderColor: "#9CA3AF", background: "#F9FAFB" },
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="contained"
+                  disableElevation
+                  disabled={!isConfirmValid || isDeleting}
+                  onClick={handleDeleteAccount}
+                  sx={{
+                    background: "#DC2626",
+                    textTransform: "none",
+                    borderRadius: "20px",
+                    fontWeight: 700,
+                    fontSize: 13,
+                    "&:hover": { background: "#B91C1C" },
+                    "&.Mui-disabled": { background: "rgba(220,38,38,0.3)", color: "rgba(255,255,255,0.7)" },
+                  }}
+                >
+                  {isDeleting ? "Deleting..." : "Delete account"}
+                </Button>
+              </Stack>
+            </Stack>
+          </Box>
+        </>
+      )}
     </Box>
   );
 }
@@ -303,15 +255,12 @@ export default function AccountPage() {
   // Auto-hides the success alert after 3 seconds
   useEffect(() => {
     if (!showSuccess) return;
-    const timer = setTimeout(() => {
-      setShowSuccess(false);
-    }, 3000);
+    const timer = setTimeout(() => setShowSuccess(false), 3000);
     return () => clearTimeout(timer);
   }, [showSuccess]);
 
   // Updates the typed field in the form, clears its error, and hides any success message
   const updateField = <K extends keyof ChangePasswordForm>(key: K, value: string) => {
-    // keep all existing field values, only update the one that changed
     setForm((p) => ({ ...p, [key]: value }));
     setErrors((prev) => {
       const next = { ...prev };
@@ -354,15 +303,9 @@ export default function AccountPage() {
     try {
       await api.patch(
         "/api/v1/users/me/password",
-        {
-          currentPassword: form.currentPassword,
-          newPassword: form.newPassword,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { currentPassword: form.currentPassword, newPassword: form.newPassword },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
       setSuccess("Your password has been updated successfully.");
       setShowSuccess(true);
       setForm({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
@@ -378,51 +321,50 @@ export default function AccountPage() {
   };
 
   return (
-    <Box>
-      <Box sx={{ mb: 3 }}>
-        <Typography sx={{ fontSize: 26, fontWeight: 900, color: "#111827" }}>
-          Account Management
+    <Box sx={{ maxWidth: 640 }}>
+      {/* Page header */}
+      <Box sx={{ mb: 4 }}>
+        <Typography sx={{ fontSize: { xs: 28, sm: 30 }, fontWeight: 900, color: "#111827", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
+          Account
         </Typography>
-        <Typography sx={{ color: "#6B7280", mt: 0.5, fontSize: 16 }}>
-          Manage your password and account options
+        <Typography sx={{ color: "#6B7280", mt: 1, fontSize: 16, lineHeight: 1.6 }}>
+          Manage your password and account settings.
         </Typography>
       </Box>
 
-      <Stack spacing={3} sx={{ maxWidth: 820 }}>
-        <SectionCard icon={<PersonOutlineIcon />} title="Profile">
-          <Typography sx={{ color: "#6B7280", fontSize: 14, mb: 1.5 }}>
-            View or edit your public profile page.
-          </Typography>
-          <Button
-            component={Link}
-            href="http://localhost:3000/profile"
-            variant="outlined"
-            sx={{
-              ...outlineNeutralSx,
-              alignSelf: "flex-start",
-            }}
-          >
-            Open profile
-          </Button>
-        </SectionCard>
+      <Stack spacing={2.5}>
+        {/* ── Change password ── */}
+        <Box
+          sx={{
+            border: "1px solid #E5E7EB",
+            borderRadius: 2,
+            background: "#FFFFFF",
+            overflow: "hidden",
+          }}
+        >
+          {/* Section header */}
+          <Box sx={{ px: 3, py: 2.5 }}>
+            <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>
+              Change password
+            </Typography>
+            <Typography sx={{ fontSize: 14, color: "#6B7280", mt: 0.5, lineHeight: 1.5 }}>
+              Choose a strong password you don't use anywhere else.
+            </Typography>
+          </Box>
 
-        <SectionCard icon={<LockOutlinedIcon />} title="Password">
+          <Divider sx={{ borderColor: "#F3F4F6" }} />
+
+          {/* Form content */}
           <Box
             component="form"
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleChangePassword();
-            }}
+            onSubmit={(e) => { e.preventDefault(); handleChangePassword(); }}
+            sx={{ px: 3, pt: 2, pb: 3, background: "#FAFBFC" }}
           >
-            <Stack spacing={2}>
+            <Stack spacing={1.5}>
               {errors.general && (
                 <Alert
                   severity="error"
-                  sx={{
-                    background: "#FEF2F2",
-                    border: "1px solid #FCA5A5",
-                    color: "#7F1D1D",
-                  }}
+                  sx={{ background: "#FEF2F2", border: "1px solid #FCA5A5", color: "#7F1D1D", fontSize: 13 }}
                 >
                   {errors.general}
                 </Alert>
@@ -433,11 +375,7 @@ export default function AccountPage() {
                   {success && (
                     <Alert
                       severity="success"
-                      sx={{
-                        background: "#ECFDF5",
-                        border: "1px solid #6EE7B7",
-                        color: "#065F46",
-                      }}
+                      sx={{ background: "#ECFDF5", border: "1px solid #6EE7B7", color: "#065F46", fontSize: 13 }}
                     >
                       {success}
                     </Alert>
@@ -446,9 +384,7 @@ export default function AccountPage() {
               </Fade>
 
               <Box>
-                <Typography sx={{ fontSize: 13, color: "#6B7280", mb: 0.5 }}>
-                  Current Password
-                </Typography>
+                {fieldLabel("Current password")}
                 <TextField
                   value={form.currentPassword}
                   onChange={(e) => updateField("currentPassword", e.target.value)}
@@ -464,9 +400,9 @@ export default function AccountPage() {
               </Box>
 
               <Box>
-                <Typography sx={{ fontSize: 13, color: "#6B7280", mb: 0.5 }}>
-                  New Password
-                </Typography>
+                {fieldLabel("New password")}
+                {/* Password requirements, only shown while the user is typing */}
+                <PasswordChecklist password={form.newPassword} />
                 <TextField
                   value={form.newPassword}
                   onChange={(e) => updateField("newPassword", e.target.value)}
@@ -481,10 +417,8 @@ export default function AccountPage() {
                 />
               </Box>
 
-              <Box sx={{ mb: 2 }}>
-                <Typography sx={{ fontSize: 13, color: "#6B7280", mb: 0.5 }}>
-                  Confirm New Password
-                </Typography>
+              <Box>
+                {fieldLabel("Confirm new password")}
                 <TextField
                   value={form.confirmNewPassword}
                   onChange={(e) => updateField("confirmNewPassword", e.target.value)}
@@ -499,7 +433,7 @@ export default function AccountPage() {
                 />
               </Box>
 
-              <Box sx={{ display: "flex", justifyContent: "left", pt: 1.3 }}>
+              <Box pt={0.5}>
                 <Button
                   type="submit"
                   disableElevation
@@ -508,11 +442,11 @@ export default function AccountPage() {
                     backgroundColor: darkRed,
                     color: "#fff",
                     textTransform: "none",
-                    borderRadius: "60px",
+                    borderRadius: "20px",
                     py: 1,
-                    px: 2.25,
+                    px: 3,
                     fontWeight: 600,
-                    transition: "all 0.2s",
+                    fontSize: 14,
                     "&:hover": { backgroundColor: "#5E0808" },
                     "&:focus-visible": {
                       outline: "none",
@@ -520,14 +454,38 @@ export default function AccountPage() {
                     },
                   }}
                 >
-                  {saving ? "Saving..." : "Change Password"}
+                  {saving ? "Saving..." : "Update password"}
                 </Button>
               </Box>
             </Stack>
           </Box>
-        </SectionCard>
+        </Box>
 
-        <DeleteAccountSection />
+        {/* ── Danger zone ── */}
+        <Box
+          sx={{
+            border: "1px solid #E5E7EB",
+            borderRadius: 2,
+            background: "#FFFFFF",
+            overflow: "hidden",
+          }}
+        >
+          {/* Section header */}
+          <Box sx={{ px: 3, py: 2.5 }}>
+            <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>
+              Danger zone
+            </Typography>
+            <Typography sx={{ fontSize: 14, color: "#6B7280", mt: 0.5, lineHeight: 1.5 }}>
+              Irreversible actions for your account.
+            </Typography>
+          </Box>
+
+          <Divider sx={{ borderColor: "#F3F4F6" }} />
+
+          <Box sx={{ px: 3, py: 3, background: "#FAFBFC" }}>
+            <DeleteAccountSection />
+          </Box>
+        </Box>
       </Stack>
     </Box>
   );

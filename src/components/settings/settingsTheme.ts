@@ -1,7 +1,7 @@
 export const brandRed = "#B11226";
 
 /** Main settings content pane (cards sit on this). */
-export const settingsPageBg = "#EEF1F6";
+export const settingsPageBg = "#FFFFFF";
 
 /** Pastel icon tiles — matches grouped iOS-style settings lists */
 export const settingsIconTints = {
