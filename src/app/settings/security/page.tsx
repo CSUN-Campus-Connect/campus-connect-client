@@ -116,6 +116,7 @@ function ActionRow({
   onExternalClick,
   children,
   isLast = false,
+  ariaLabel,
 }: {
   title: string;
   description: string;
@@ -124,6 +125,7 @@ function ActionRow({
   onExternalClick?: () => void;
   children?: React.ReactNode;
   isLast?: boolean;
+  ariaLabel?: string;
 }) {
   const handleClick = () => {
     if (onExternalClick) {
@@ -142,6 +144,7 @@ function ActionRow({
         role="button"
         tabIndex={0}
         aria-expanded={onExternalClick ? undefined : isOpen}
+        aria-label={ariaLabel}
         onClick={handleClick}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -625,6 +628,7 @@ useEffect(() => {
           <ActionRow
             title="Privacy Policy"
             description="Read our privacy policy"
+            ariaLabel="Open Privacy Policy in new tab"
             onExternalClick={() => {
               window.open("/privacy-policy", "_blank");
             }}
