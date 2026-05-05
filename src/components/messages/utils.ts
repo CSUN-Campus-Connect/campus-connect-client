@@ -127,6 +127,25 @@ const RAW_GIF_LIST: { url: string; title: string }[] = [
   { url: "https://media.giphy.com/media/xUPGctGk7U2z8y9S6Y/giphy.gif", title: "legend" },
 ];
 
+const AVATAR_COLORS = [
+  "#CC0033", "#7C3AED", "#2563EB", "#059669", "#D97706",
+  "#DC2626", "#0891B2", "#65A30D", "#9333EA", "#E11D48",
+];
+
+export function avatarColor(name: string): string {
+  if (!name) return AVATAR_COLORS[0];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
+export function avatarInitials(name: string): string {
+  if (!name) return "?";
+  const parts = name.trim().split(" ").filter(Boolean);
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 export const GIF_LIST: { url: string; title: string }[] = (() => {
   const seen = new Set<string>();
   const out: { url: string; title: string }[] = [];
