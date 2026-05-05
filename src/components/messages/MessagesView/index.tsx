@@ -62,6 +62,8 @@ import {
   isGroupThread,
   emptyDraft,
   type DraftState,
+  avatarColor,
+  avatarInitials,
 } from "../utils";
 import {
   loadMessageChatPreferences,
@@ -404,9 +406,15 @@ export default function MessagesView(props: MessagesViewProps) {
     if (!selectedThread || !selectedThreadId) return;
     const text = selectedDraft.text.trim();
     const pendingAttachments = pendingAttachmentsByThreadId[selectedThreadId] ?? [];
-    if (!text && selectedDraft.files.length === 0 && pendingAttachments.length === 0) return;
-
-    await onSend(selectedThread.id, text || "", pendingAttachments.length ? pendingAttachments as any : undefined);
+    const gifAttachments = selectedDraft.gifs.map((g) => ({
+      type: "image",
+      fileName: "GIF",
+      fileUrl: g.url,
+      fileSize: 0,
+    }));
+    const allAttachments = [...pendingAttachments, ...gifAttachments];
+    if (!text && allAttachments.length === 0) return;
+    await onSend(selectedThread.id, text || "", allAttachments.length ? allAttachments as any : undefined);
     setDraftByThreadId((prev) => ({ ...prev, [selectedThreadId]: emptyDraft() }));
     setPendingAttachmentsByThreadId((prev) => ({ ...prev, [selectedThreadId]: [] }));
     onTypingStop(selectedThreadId);
@@ -529,7 +537,9 @@ export default function MessagesView(props: MessagesViewProps) {
           <Box sx={{ borderRight: "1px solid rgba(0,0,0,0.08)", display: "flex", flexDirection: "column", minHeight: 0, minWidth: 0, overflow: "hidden", bgcolor: "white" }}>
             <Box sx={{ px: 2, py: 1.25, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <Stack direction="row" alignItems="center" spacing={1.2} sx={{ minWidth: 0 }}>
-                <Avatar src={me.avatarUrl} sx={{ width: 34, height: 34, bgcolor: "white", border: "1px solid rgba(0,0,0,0.12)" }} />
+                <Avatar src={me.avatarUrl} sx={{ width: 34, height: 34, bgcolor: me.avatarUrl ? "white" : avatarColor(me.displayName), border: "1px solid rgba(0,0,0,0.12)" }}>
+                  {!me.avatarUrl && avatarInitials(me.displayName)}
+                </Avatar>
                 <Stack direction="row" spacing={0.25} alignItems="center" sx={{ minWidth: 0 }}>
                   <Typography sx={{ fontWeight: 1000, fontSize: 16 }} noWrap>{me.displayName}</Typography>
                   <Tooltip title="Message settings">
@@ -558,7 +568,9 @@ export default function MessagesView(props: MessagesViewProps) {
                 const isMe = n.userId === meId;
                 return (
                   <Box key={n.id} onClick={() => (n.userId === meId ? setNoteOpen(true) : onPickUser(n.userId))} sx={{ minWidth: 84, cursor: "pointer", userSelect: "none", textAlign: "center" }}>
-                    <Avatar src={u.avatarUrl} sx={{ width: 56, height: 56, mx: "auto", border: isMe ? `2px solid ${RED}` : "2px solid rgba(0,0,0,0.12)", bgcolor: "white" }} />
+                    <Avatar src={u.avatarUrl} sx={{ width: 56, height: 56, mx: "auto", border: isMe ? `2px solid ${RED}` : "2px solid rgba(0,0,0,0.12)", bgcolor: u.avatarUrl ? "white" : avatarColor(u.displayName) }}>
+                      {!u.avatarUrl && avatarInitials(u.displayName)}
+                    </Avatar>
                     <Typography sx={{ mt: 0.75, fontSize: 12, fontWeight: 700 }}>{isMe ? "Your note" : u.displayName.split(" ")[0]}</Typography>
                     <Typography sx={{ fontSize: 11, color: "rgba(0,0,0,0.55)" }} noWrap>{n.text}</Typography>
                   </Box>
@@ -588,16 +600,20 @@ export default function MessagesView(props: MessagesViewProps) {
                       {groupPictureByThreadId[t.id] ? (
                         <Avatar src={groupPictureByThreadId[t.id]} sx={{ width: 44, height: 44, bgcolor: "white" }} />
                       ) : (
-                        <GroupsIcon sx={{ fontSize: 40, color: "rgba(0,0,0,0.35)" }} />
+                        <Avatar sx={{ width: 44, height: 44, bgcolor: avatarColor(t.name ?? "Group") }}>
+                          <GroupsIcon sx={{ fontSize: 22, color: "white" }} />
+                        </Avatar>
                       )}
                     </Box>
                   ) : (
-                    <Avatar src={other!.avatarUrl} sx={{ width: 44, height: 44, bgcolor: "white" }} />
+                    <Avatar src={other!.avatarUrl} sx={{ width: 44, height: 44, bgcolor: other!.avatarUrl ? "white" : avatarColor(other!.displayName) }}>
+                      {!other!.avatarUrl && avatarInitials(other!.displayName)}
+                    </Avatar>
                   );
                   return (
                     <Box key={t.id} sx={{ mb: 0.4 }}>
-                      <ListItemButton selected={selectedThreadId === t.id} onClick={() => onSelectedThreadIdChange(t.id)} sx={{ borderRadius: 2.5, py: 1.0, "&.Mui-selected": { bgcolor: "rgba(0,0,0,0.06)" }, "&:hover": { bgcolor: "rgba(0,0,0,0.04)" } }}>
-                        <Badge variant="dot" invisible={!unread} overlap="circular" sx={{ mr: 1.5, "& .MuiBadge-badge": { bgcolor: "#1d4ed8", width: 10, height: 10, borderRadius: 999, border: "2px solid white" } }}>
+                      <ListItemButton selected={selectedThreadId === t.id} onClick={() => onSelectedThreadIdChange(t.id)} sx={{ borderRadius: 2.5, py: 1.0, "&.Mui-selected": { bgcolor: "rgba(168,5,50,0.08)", "&:hover": { bgcolor: "rgba(168,5,50,0.12)" } }, "&:hover": { bgcolor: "rgba(0,0,0,0.04)" } }}>
+                        <Badge variant="dot" invisible={!unread} overlap="circular" sx={{ mr: 1.5, "& .MuiBadge-badge": { bgcolor: RED, width: 10, height: 10, borderRadius: 999, border: "2px solid white" } }}>
                           {avatarSlot}
                         </Badge>
                         <Box sx={{ minWidth: 0, flex: 1 }}>
@@ -640,7 +656,9 @@ export default function MessagesView(props: MessagesViewProps) {
                     {selectedThreadId && groupPictureByThreadId[selectedThreadId] ? (
                       <Avatar src={groupPictureByThreadId[selectedThreadId]} sx={{ width: 40, height: 40, bgcolor: "white" }} />
                     ) : (
-                      <GroupsIcon sx={{ fontSize: 32, color: "rgba(0,0,0,0.4)" }} />
+                      <Avatar sx={{ width: 40, height: 40, bgcolor: avatarColor(selectedThread.name ?? "Group") }}>
+                        <GroupsIcon sx={{ fontSize: 20, color: "white" }} />
+                      </Avatar>
                     )}
                     <Box sx={{ minWidth: 0 }}>
                       <Typography sx={{ fontWeight: 1000, fontSize: 16 }} noWrap>{selectedThread.name ?? "Group chat"}</Typography>
@@ -649,7 +667,9 @@ export default function MessagesView(props: MessagesViewProps) {
                   </>
                 ) : otherUser ? (
                   <>
-                    <Avatar src={otherUser.avatarUrl} sx={{ bgcolor: "white" }} />
+                    <Avatar src={otherUser.avatarUrl} sx={{ width: 40, height: 40, bgcolor: otherUser.avatarUrl ? "white" : avatarColor(otherUser.displayName) }}>
+                      {!otherUser.avatarUrl && avatarInitials(otherUser.displayName)}
+                    </Avatar>
                     <Box>
                       <Typography sx={{ fontWeight: 1000, fontSize: 16 }}>{otherUser.displayName}</Typography>
                       <Typography sx={{ fontSize: 12, color: "rgba(0,0,0,0.55)" }}>{nowMs ? activityText(nowMs, otherUser.lastActiveAt) : ""}</Typography>
@@ -992,7 +1012,27 @@ export default function MessagesView(props: MessagesViewProps) {
                 <IconButton disabled={!selectedThread || isBlocked} aria-label="Attach file" onClick={() => fileInputRef.current?.click()}>
                   <AttachFileIcon />
                 </IconButton>
-                <IconButton disabled={!selectedThread || isBlocked} aria-label="Record voice message" onClick={() => toast.show("Voice messages coming soon!", "info")}><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></IconButton>
+                <VoiceMessageButton
+                  disabled={!selectedThread || isBlocked}
+                  onVoiceRecorded={async (file, durationSec) => {
+                    if (!selectedThreadId) return;
+                    const blobUrl = URL.createObjectURL(file);
+                    urlToDurationRef.current[blobUrl] = durationSec;
+                    sentVoiceFileByUrlRef.current[blobUrl] = file;
+                    const result = await uploadAttachment(selectedThreadId, file);
+                    if (!result) { toast.show("Voice upload failed", "error"); return; }
+                    urlToDurationRef.current[result.fileUrl] = durationSec;
+                    lastSentBlobUrlsRef.current[selectedThreadId] = { urls: [blobUrl], sentAt: Date.now() };
+                    setPendingAttachmentsByThreadId((prev) => ({
+                      ...prev,
+                      [selectedThreadId]: [...(prev[selectedThreadId] ?? []), result],
+                    }));
+                    setDraft((prev) => ({
+                      ...prev,
+                      files: [...prev.files, file],
+                    }));
+                  }}
+                />
                 <IconButton disabled={!selectedThread || isBlocked} aria-label="Open GIF picker" onClick={() => setGifOpen(true)}><GifBoxIcon /></IconButton>
                 <TextField
                   value={selectedDraft.text}
@@ -1005,7 +1045,6 @@ export default function MessagesView(props: MessagesViewProps) {
                 />
                 <IconButton onClick={handleSend} disabled={!selectedThread || isBlocked} aria-label="Send message"><SendIcon sx={{ color: selectedThread && !isBlocked ? RED : "rgba(0,0,0,0.25)" }} /></IconButton>
               </Stack>
-              <Typography sx={{ mt: 0.7, fontSize: 11, color: "rgba(0,0,0,0.45)" }}>File attachments and voice messages coming soon.</Typography>
             </Box>
           </Box>
         </Paper>
@@ -1065,7 +1104,7 @@ export default function MessagesView(props: MessagesViewProps) {
                     if (!u) return null;
                     return (
                       <ListItemButton key={id} sx={{ borderRadius: 2 }}>
-                        <Avatar src={u.avatarUrl} sx={{ mr: 1.5, bgcolor: "white" }} />
+                        <Avatar src={u.avatarUrl} sx={{ mr: 1.5, bgcolor: u.avatarUrl ? "white" : avatarColor(u.displayName) }}>{!u.avatarUrl && avatarInitials(u.displayName)}</Avatar>
                         <ListItemText primary={<Typography sx={{ fontWeight: 900 }}>{u.displayName}</Typography>} secondary={`@${u.username}`} />
                         <Button variant="outlined" onClick={(e) => { e.stopPropagation(); unblockUser(id); }} sx={{ borderRadius: 999, fontWeight: 900, textTransform: "none" }}>Unblock</Button>
                       </ListItemButton>
@@ -1089,7 +1128,7 @@ export default function MessagesView(props: MessagesViewProps) {
                   const disabled = !pinnedThreadIds.has(t.id) && pinnedThreadIds.size >= 3;
                   return (
                     <ListItemButton key={t.id} onClick={() => { if (!disabled || pinnedThreadIds.has(t.id)) togglePinThread(t.id); }} sx={{ borderRadius: 2 }} disabled={disabled}>
-                      {isGroup ? (groupPictureByThreadId[t.id] ? <Avatar src={groupPictureByThreadId[t.id]} sx={{ mr: 1.5, width: 34, height: 34, bgcolor: "white" }} /> : <GroupsIcon sx={{ mr: 1.5, color: "rgba(0,0,0,0.45)" }} />) : <Avatar src={userById.get(t.participantIds.find((id) => id !== meId) ?? "")?.avatarUrl} sx={{ mr: 1.5, bgcolor: "white", width: 34, height: 34 }} />}
+                     {isGroup ? (groupPictureByThreadId[t.id] ? <Avatar src={groupPictureByThreadId[t.id]} sx={{ mr: 1.5, width: 34, height: 34, bgcolor: "white" }} /> : <Avatar sx={{ mr: 1.5, width: 34, height: 34, bgcolor: avatarColor(title) }}><GroupsIcon sx={{ fontSize: 18, color: "white" }} /></Avatar>) : (() => { const u = userById.get(t.participantIds.find((id) => id !== meId) ?? ""); return <Avatar src={u?.avatarUrl} sx={{ mr: 1.5, width: 34, height: 34, bgcolor: u?.avatarUrl ? "white" : avatarColor(title) }}>{!u?.avatarUrl && avatarInitials(title)}</Avatar>; })()}
                       <ListItemText primary={<Typography sx={{ fontWeight: 900 }}>{title}</Typography>} />
                       {pinnedThreadIds.has(t.id) ? <PushPinIcon fontSize="small" /> : <PushPinOutlinedIcon fontSize="small" />}
                     </ListItemButton>
@@ -1106,7 +1145,7 @@ export default function MessagesView(props: MessagesViewProps) {
               <List sx={{ p: 0, maxHeight: 360, overflow: "auto" }}>
                 {users.filter((u) => u.id !== meId && !blockedUserIds.has(u.id)).filter((u) => { const q = settingsFollowerQuery.trim().toLowerCase(); return !q || u.displayName.toLowerCase().includes(q) || u.username.toLowerCase().includes(q); }).map((u) => (
                   <ListItemButton key={u.id} onClick={() => { onPickUser(u.id); setSettingsOpen(false); }} sx={{ borderRadius: 2 }}>
-                    <Avatar src={u.avatarUrl} sx={{ mr: 1.5, bgcolor: "white" }} />
+                    <Avatar src={u.avatarUrl} sx={{ mr: 1.5, bgcolor: u.avatarUrl ? "white" : avatarColor(u.displayName) }}>{!u.avatarUrl && avatarInitials(u.displayName)}</Avatar>
                     <ListItemText primary={<Typography sx={{ fontWeight: 900 }}>{u.displayName}</Typography>} secondary={`@${u.username}`} />
                     <Button variant="contained" size="small" startIcon={<ChatIcon />} sx={{ borderRadius: 999, fontWeight: 900, textTransform: "none", bgcolor: RED }}>DM</Button>
                   </ListItemButton>
@@ -1138,7 +1177,7 @@ export default function MessagesView(props: MessagesViewProps) {
                   return (
                     <ListItemButton key={t.id} onClick={() => setBackgroundApplyToThreadIds((prev) => { const n = new Set(prev); if (n.has(t.id)) n.delete(t.id); else n.add(t.id); return n; })} sx={{ py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}><Checkbox edge="start" checked={backgroundApplyToThreadIds.has(t.id)} disableRipple size="small" /></ListItemIcon>
-                      {isGroup ? <GroupsIcon sx={{ mr: 1, color: "rgba(0,0,0,0.45)", fontSize: 20 }} /> : <Avatar src={userById.get(t.participantIds.find((id) => id !== meId) ?? "")?.avatarUrl} sx={{ mr: 1, width: 28, height: 28, bgcolor: "white" }} />}
+                      {isGroup ? <Avatar sx={{ mr: 1, width: 28, height: 28, bgcolor: avatarColor(title) }}><GroupsIcon sx={{ fontSize: 14, color: "white" }} /></Avatar> : (() => { const u = userById.get(t.participantIds.find((id) => id !== meId) ?? ""); return <Avatar src={u?.avatarUrl} sx={{ mr: 1, width: 28, height: 28, bgcolor: u?.avatarUrl ? "white" : avatarColor(title) }}>{!u?.avatarUrl && avatarInitials(title)}</Avatar>; })()}
                       <ListItemText primary={<Typography sx={{ fontSize: 13, fontWeight: 800 }}>{title}</Typography>} />
                     </ListItemButton>
                   );
@@ -1307,7 +1346,7 @@ export default function MessagesView(props: MessagesViewProps) {
               <ListItemIcon sx={{ minWidth: 36 }}>
                 <Checkbox size="small" checked={reportInvolvedParties.has(u.id)} disableRipple />
               </ListItemIcon>
-              <Avatar src={u.avatarUrl} sx={{ width: 28, height: 28, mr: 1, bgcolor: "white" }} />
+              <Avatar src={u.avatarUrl} sx={{ width: 28, height: 28, mr: 1, bgcolor: u.avatarUrl ? "white" : avatarColor(u.displayName) }}>{!u.avatarUrl && avatarInitials(u.displayName)}</Avatar>
               <ListItemText primary={<Typography sx={{ fontSize: 13, fontWeight: 900 }}>{u.displayName}</Typography>} secondary={`@${u.username}`} />
             </ListItemButton>
           ))}

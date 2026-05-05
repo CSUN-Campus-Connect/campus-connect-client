@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { api } from "@/lib/axios";
-import type { ID, Message, Note, Thread, User, Attachment } from "@/types/messages";
+import type { ID, Message, Note, Thread, User, Attachment, AttachmentType } from "@/types/messages";
 const PENDING_THREAD_ID = "pending";
 
 function toThread(conv: any): Thread {
@@ -464,6 +464,13 @@ const unblockUser = useCallback(async (userId: ID) => {
 
     // Optimistic message
     const tempId = `temp_${Date.now()}`;
+    const optimisticAttachments = attachments?.map((a, i) => ({
+      id: `opt-att-${Date.now()}-${i}`,
+      type: (a.type === "audio" ? "audio" : a.type === "image" ? "image" : "file") as AttachmentType,
+      name: a.fileName,
+      url: a.fileUrl,
+      size: a.fileSize,
+    }));
     const optimistic: Message = {
       id: tempId,
       threadId: realThreadId,
@@ -472,6 +479,7 @@ const unblockUser = useCallback(async (userId: ID) => {
       createdAt: Date.now(),
       status: "pending",
       seenByUserIds: [],
+      ...(optimisticAttachments?.length ? { attachments: optimisticAttachments } : {}),
     };
 
     setMessagesByThread((prev) => ({
