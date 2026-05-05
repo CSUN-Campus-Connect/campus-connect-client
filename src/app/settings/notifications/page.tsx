@@ -12,12 +12,14 @@ import { api } from "../../../lib/axios";
 
 const red = "#B11226";
 
+// Fields synced with the backend API
 type NotificationSettings = {
   clubsNotifications: boolean;
   campusEventsNotifications: boolean;
   marketplaceNotifications: boolean;
   academicNotifications: boolean;
   followRequestNotifications: boolean;
+  // messagesNotifications is intentionally omitted until the backend schema migration is added
 };
 
 type SaveStatus = "idle" | "loading" | "saving" | "saved";
@@ -118,6 +120,8 @@ export default function NotificationsPage() {
   const [followRequestNotifications, setFollowRequestNotifications] = useState(
     defaultNotificationSettings.followRequestNotifications
   );
+  // Local-only until backend schema adds messagesNotifications column
+  const [messagesNotifications, setMessagesNotifications] = useState(true);
 
   const [initialSettings, setInitialSettings] =
     useState<NotificationSettings | null>(null);
@@ -373,6 +377,21 @@ export default function NotificationsPage() {
                 onChange={setFollowRequestNotifications}
                 disabled={!hasLoaded}
                 inputProps={{ "aria-label": "Follow requests and mentions notifications" }}
+              />
+            }
+          />
+
+          <Divider />
+
+          <SettingsRow
+            label="Messages"
+            description="New messages and group chat activity"
+            right={
+              <SettingsToggle
+                checked={messagesNotifications}
+                onChange={setMessagesNotifications}
+                disabled={!hasLoaded}
+                inputProps={{ "aria-label": "Messages notifications" }}
               />
             }
           />
