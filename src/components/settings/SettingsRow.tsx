@@ -2,11 +2,11 @@
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { settingsIconTints, settingsDividerInsetPx, type SettingsIconTint } from "./settingsTheme";
+import { settingsDividerInsetPx, type SettingsIconTint } from "./settingsTheme";
 
 type Props = {
   icon?: React.ReactNode;
-  title: string;
+  title: React.ReactNode;
   description?: string;
   action: React.ReactNode;
   /** Pastel icon tile palette */
@@ -16,7 +16,6 @@ type Props = {
 };
 
 export function SettingsRow({ icon, title, description, action, tint = "brand", divider }: Props) {
-  const { bg, fg } = settingsIconTints[tint];
   const inset = icon ? settingsDividerInsetPx.withIcon : settingsDividerInsetPx.noIcon;
 
   return (
@@ -24,7 +23,7 @@ export function SettingsRow({ icon, title, description, action, tint = "brand", 
       <Box
         sx={{
           display: "flex",
-          alignItems: "flex-start",
+          alignItems: "center",
           gap: 1.5,
           px: 2,
           py: 1.5,
@@ -35,14 +34,11 @@ export function SettingsRow({ icon, title, description, action, tint = "brand", 
             sx={{
               width: 40,
               height: 40,
-              borderRadius: "10px",
-              bgcolor: bg,
-              color: fg,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
-              mt: 0.1,
+              color: "text.secondary",
             }}
           >
             {icon}
@@ -56,7 +52,6 @@ export function SettingsRow({ icon, title, description, action, tint = "brand", 
             alignItems: "center",
             justifyContent: "space-between",
             gap: 2,
-            pt: 0.15,
           }}
         >
           <Box sx={{ minWidth: 0 }}>
