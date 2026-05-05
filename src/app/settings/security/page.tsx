@@ -14,12 +14,6 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
 import { api } from "../../../lib/axios";
 
-const border = "#E5E7EB";
-const subtleBorder = "#F3F4F6";
-const primaryText = "#111827";
-const secondaryText = "#6B7280";
-const hoverBackground = "#F6F7F9";
-const expandedBackground = "#FAFBFC";
 const red = "#B11226";
 
 // Polls /users/me every 30s to detect if this session was revoked from another device
@@ -47,9 +41,9 @@ function ContentCard({ children }: { children: React.ReactNode }) {
   return (
     <Box
       sx={{
-        border: `1px solid ${border}`,
+        border: (t) => `1px solid ${t.palette.divider}`,
         borderRadius: 2,
-        background: "#FFFFFF",
+        bgcolor: "background.paper",
         p: 1.75,
       }}
     >
@@ -78,11 +72,11 @@ function SectionStatus({
           display: "flex",
           alignItems: "center",
           gap: 1,
-          color: secondaryText,
+          color: "text.secondary",
         }}
       >
         <CircularProgress size={16} />
-        <Typography sx={{ fontSize: 14, color: secondaryText }}>
+        <Typography sx={{ fontSize: 14, color: "text.secondary" }}>
           Loading...
         </Typography>
       </Box>
@@ -99,7 +93,7 @@ function SectionStatus({
 
   if (!hasItems) {
     return (
-      <Typography sx={{ fontSize: 14, color: secondaryText, lineHeight: 1.5 }}>
+      <Typography sx={{ fontSize: 14, color: "text.secondary", lineHeight: 1.5 }}>
         {emptyMessage}
       </Typography>
     );
@@ -162,10 +156,10 @@ function ActionRow({
           cursor: "pointer",
           transition: "background-color 0.15s ease",
           "&:hover": {
-            backgroundColor: hoverBackground,
+            bgcolor: "action.hover",
           },
           "&:focus-visible": {
-            outline: `2px solid ${border}`,
+            outline: (t) => `2px solid ${t.palette.divider}`,
             outlineOffset: "-2px",
           },
         }}
@@ -174,7 +168,7 @@ function ActionRow({
           <Typography
             sx={{
               fontWeight: 700,
-              color: primaryText,
+              color: "text.primary",
               fontSize: 15,
               lineHeight: 1.35,
             }}
@@ -185,7 +179,7 @@ function ActionRow({
           <Typography
             sx={{
               fontSize: 14,
-              color: secondaryText,
+              color: "text.secondary",
               mt: 0.5,
               lineHeight: 1.5,
             }}
@@ -217,8 +211,8 @@ function ActionRow({
       {!onExternalClick && isOpen && (
         <Box
           sx={{
-            borderTop: `1px solid ${subtleBorder}`,
-            background: expandedBackground,
+            borderTop: (t) => `1px solid ${t.palette.divider}`,
+            bgcolor: (t) => t.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "#FAFBFC",
             px: { xs: 2, sm: 2.5 },
             py: 2,
           }}
@@ -227,7 +221,7 @@ function ActionRow({
         </Box>
       )}
 
-      {!isLast && <Divider sx={{ borderColor: subtleBorder }} />}
+      {!isLast && <Divider />}
     </Box>
   );
 }
@@ -422,7 +416,7 @@ useEffect(() => {
           sx={{
             fontSize: { xs: 28, sm: 30 },
             fontWeight: 900,
-            color: primaryText,
+            color: "text.primary",
             lineHeight: 1.15,
             letterSpacing: "-0.02em",
           }}
@@ -432,7 +426,7 @@ useEffect(() => {
 
         <Typography
           sx={{
-            color: secondaryText,
+            color: "text.secondary",
             mt: 1,
             fontSize: 16,
             lineHeight: 1.6,
@@ -446,8 +440,8 @@ useEffect(() => {
       <Stack spacing={2.5} sx={{ maxWidth: 760 }}>
         <Box
           sx={{
-            background: "#FFFFFF",
-            border: `1px solid ${border}`,
+            bgcolor: "background.paper",
+            border: (t) => `1px solid ${t.palette.divider}`,
             borderRadius: 3,
             overflow: "hidden",
           }}
@@ -465,7 +459,7 @@ useEffect(() => {
                   fontWeight: 800,
                   letterSpacing: "0.04em",
                   textTransform: "uppercase",
-                  color: secondaryText,
+                  color: "text.secondary",
                 }}
               >
                 Recent Sign-Ins
@@ -480,12 +474,12 @@ useEffect(() => {
                 {loginHistory.map((item) => (
                   <ContentCard key={item.id}>
                     <Typography
-                      sx={{ fontSize: 14, fontWeight: 700, color: primaryText }}
+                      sx={{ fontSize: 14, fontWeight: 700, color: "text.primary" }}
                     >
                       {item.deviceLabel}
                     </Typography>
                     <Typography
-                      sx={{ fontSize: 13, color: secondaryText, mt: 0.5 }}
+                      sx={{ fontSize: 13, color: "text.secondary", mt: 0.5 }}
                     >
                       {item.locationLabel} • {item.timestampLabel}
                     </Typography>
@@ -517,7 +511,7 @@ useEffect(() => {
                     fontWeight: 800,
                     letterSpacing: "0.04em",
                     textTransform: "uppercase",
-                    color: secondaryText,
+                    color: "text.secondary",
                   }}
                 >
                   Current Devices
@@ -575,7 +569,7 @@ useEffect(() => {
                             sx={{
                               fontSize: 14,
                               fontWeight: 700,
-                              color: primaryText,
+                              color: "text.primary",
                             }}
                           >
                             {session.deviceLabel}
@@ -596,7 +590,7 @@ useEffect(() => {
                         </Box>
 
                         <Typography
-                          sx={{ fontSize: 13, color: secondaryText, mt: 0.5 }}
+                          sx={{ fontSize: 13, color: "text.secondary", mt: 0.5 }}
                         >
                           {session.detailLabel}
                         </Typography>

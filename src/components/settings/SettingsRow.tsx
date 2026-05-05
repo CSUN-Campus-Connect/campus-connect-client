@@ -60,11 +60,11 @@ export function SettingsRow({ icon, title, description, action, tint = "brand", 
           }}
         >
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 600, fontSize: "0.9375rem", color: "#1F2937", letterSpacing: "-0.01em" }}>
+            <Typography sx={{ fontWeight: 600, fontSize: "0.9375rem", color: "text.primary", letterSpacing: "-0.01em" }}>
               {title}
             </Typography>
             {description ? (
-              <Typography sx={{ fontSize: "0.8125rem", color: "#6B7280", mt: 0.35, lineHeight: 1.45 }}>{description}</Typography>
+              <Typography sx={{ fontSize: "0.8125rem", color: "text.secondary", mt: 0.35, lineHeight: 1.45 }}>{description}</Typography>
             ) : null}
           </Box>
           <Box
@@ -79,7 +79,7 @@ export function SettingsRow({ icon, title, description, action, tint = "brand", 
           </Box>
         </Box>
       </Box>
-      {divider ? <Box sx={{ height: "1px", bgcolor: "#E2E5EC", ml: `${inset}px`, mr: 2 }} /> : null}
+      {divider ? <Box sx={{ height: "1px", bgcolor: "divider", ml: `${inset}px`, mr: 2 }} /> : null}
     </Box>
   );
 }

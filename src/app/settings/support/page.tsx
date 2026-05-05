@@ -20,10 +20,41 @@ import CloseIcon from "@mui/icons-material/Close";
 import { api } from "../../../lib/axios";
 
 const red = "#B11226";
-const border = "#E5E7EB";
-const subtleBorder = "#F3F4F6";
-const primaryText = "#111827";
-const secondaryText = "#6B7280";
+
+const faqs: { q: string; a: string }[] = [
+  {
+    q: "How do I change my password?",
+    a: "Go to Settings → Account → Change Password. You'll need to enter your current password and then choose a new one that meets the requirements.",
+  },
+  {
+    q: "Why can't I log in?",
+    a: "Make sure you're using your full @my.csun.edu email address and the correct password. If you've forgotten your password, use the 'Forgot password' link on the login page to reset it.",
+  },
+  {
+    q: "Who can see my profile?",
+    a: "By default, your profile is visible to everyone on Campus Connect. You can change this to 'Friends only' under Settings → Privacy → Who can view my account.",
+  },
+  {
+    q: "How do I block someone?",
+    a: "You can block a user from their profile page, or manage your full blocked list under Settings → Privacy → Blocked Users. Blocked users cannot view your profile or send you messages.",
+  },
+  {
+    q: "How do I manage my notifications?",
+    a: "Go to Settings → Notifications to turn on or off notifications for clubs, campus events, the marketplace, academic updates, and follow requests.",
+  },
+  {
+    q: "I think someone accessed my account — what should I do?",
+    a: "Go to Settings → Security → Active Sessions and end any sessions you don't recognize. Then immediately change your password under Settings → Account. If you're still concerned, contact us at support@campusconnect.com.",
+  },
+  {
+    q: "Can I change my email address?",
+    a: "At this time, your email address cannot be changed because it is tied to your CSUN credentials used at registration. If you have a concern about your account email, contact support.",
+  },
+  {
+    q: "How do I delete my account?",
+    a: "Go to Settings → Account → Danger Zone and click 'Delete my account'. You'll be asked to confirm by typing DELETE and entering your password. This action is permanent and cannot be undone.",
+  },
+];
 
 type BugFormData = {
   title: string;
@@ -126,19 +157,19 @@ function ActionRow({
           py: 2.5,
           cursor: "pointer",
           transition: "background-color 0.15s ease",
-          "&:hover": { backgroundColor: "#F6F7F9" },
+          "&:hover": { bgcolor: "action.hover" },
           "&:focus-visible": {
-            outline: "2px solid #E5E7EB",
+            outline: (t) => `2px solid ${t.palette.divider}`,
             outlineOffset: "-2px",
           },
         }}
       >
         <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontWeight: 700, color: primaryText }}>
+          <Typography sx={{ fontWeight: 700, color: "text.primary" }}>
             {title}
           </Typography>
 
-          <Typography sx={{ fontSize: 14, color: secondaryText, mt: 0.5 }}>
+          <Typography sx={{ fontSize: 14, color: "text.secondary", mt: 0.5 }}>
             {description}
           </Typography>
         </Box>
@@ -162,21 +193,22 @@ function ActionRow({
             px: 2.5,
             pb: 2.5,
             pt: 2,
-            borderTop: `1px solid ${subtleBorder}`,
-            background: "#FAFAFA",
+            borderTop: (t) => `1px solid ${t.palette.divider}`,
+            bgcolor: (t) => t.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "#FAFAFA",
           }}
         >
           {children}
         </Box>
       )}
 
-      {!isLast && <Divider sx={{ borderColor: subtleBorder }} />}
+      {!isLast && <Divider />}
     </Box>
   );
 }
 
 export default function HelpSupportPage() {
   const [helpOpen, setHelpOpen] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [contactOpen, setContactOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [reportSubmitted, setReportSubmitted] = useState(false);
@@ -304,11 +336,11 @@ setReportSubmitted(true);
       >
         <Box>
           <Box sx={{ mb: 3 }}>
-            <Typography sx={{ fontSize: 26, fontWeight: 900, color: primaryText }}>
+            <Typography sx={{ fontSize: 26, fontWeight: 900, color: "text.primary" }}>
               Help & Support
             </Typography>
 
-            <Typography sx={{ color: secondaryText, mt: 0.5 }}>
+            <Typography sx={{ color: "text.secondary", mt: 0.5 }}>
               Get help, find answers, or contact support
             </Typography>
           </Box>
@@ -316,8 +348,8 @@ setReportSubmitted(true);
           <Stack spacing={1} sx={{ maxWidth: 760 }}>
             <Box
               sx={{
-                background: "#fff",
-                border: `1px solid ${border}`,
+                bgcolor: "background.paper",
+                border: (t) => `1px solid ${t.palette.divider}`,
                 borderRadius: 2,
                 overflow: "hidden",
               }}
@@ -328,10 +360,64 @@ setReportSubmitted(true);
                 isOpen={helpOpen}
                 onToggle={() => setHelpOpen((prev) => !prev)}
               >
-                {/* TODO: Replace this placeholder with the final help-center content or link. */}
-                <Typography sx={{ fontSize: 14, color: secondaryText }}>
-                  FAQ drop down (or link)
-                </Typography>
+                <Stack spacing={1}>
+                  {faqs.map((faq, i) => (
+                    <Box
+                      key={i}
+                      sx={{
+                        border: (t) => `1px solid ${t.palette.divider}`,
+                        borderRadius: 2,
+                        overflow: "hidden",
+                      }}
+                    >
+                      <Box
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpenFaq(openFaq === i ? null : i); }
+                        }}
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          gap: 2,
+                          px: 2,
+                          py: 1.75,
+                          cursor: "pointer",
+                          "&:hover": { bgcolor: "action.hover" },
+                        }}
+                      >
+                        <Typography sx={{ fontSize: 14, fontWeight: 700, color: "text.primary", flex: 1 }}>
+                          {faq.q}
+                        </Typography>
+                        <ExpandMoreIcon
+                          sx={{
+                            color: "text.secondary",
+                            flexShrink: 0,
+                            fontSize: 20,
+                            transform: openFaq === i ? "rotate(180deg)" : "rotate(0deg)",
+                            transition: "transform 0.2s ease",
+                          }}
+                        />
+                      </Box>
+                      {openFaq === i && (
+                        <Box
+                          sx={{
+                            px: 2,
+                            py: 1.75,
+                            borderTop: (t) => `1px solid ${t.palette.divider}`,
+                            bgcolor: (t) => t.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "#FAFBFC",
+                          }}
+                        >
+                          <Typography sx={{ fontSize: 14, color: "text.secondary", lineHeight: 1.65 }}>
+                            {faq.a}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  ))}
+                </Stack>
               </ActionRow>
 
               <ActionRow
@@ -370,14 +456,14 @@ setReportSubmitted(true);
                         sx={{
                           fontSize: 20,
                           fontWeight: 800,
-                          color: primaryText,
+                          color: "text.primary",
                           mb: 1,
                         }}
                       >
                         Bug Report Submitted
                       </Typography>
 
-                      <Typography sx={{ color: secondaryText, fontSize: 14 }}>
+                      <Typography sx={{ color: "text.secondary", fontSize: 14 }}>
                         Thank you for helping us improve CampusConnect.
                       </Typography>
                     </Box>
@@ -387,8 +473,8 @@ setReportSubmitted(true);
                     component="form"
                     onSubmit={handleBugSubmit}
                     sx={{
-                      background: "#FFFFFF",
-                      border: `1px solid ${border}`,
+                      bgcolor: "background.paper",
+                      border: (t) => `1px solid ${t.palette.divider}`,
                       borderRadius: 2,
                       p: { xs: 2, sm: 3 },
 
@@ -405,7 +491,7 @@ setReportSubmitted(true);
                             width: 40,
                             height: 40,
                             borderRadius: 2,
-                            backgroundColor: "#ffffff",
+                            bgcolor: "background.paper",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -420,7 +506,7 @@ setReportSubmitted(true);
                             sx={{
                               fontSize: 18,
                               fontWeight: 800,
-                              color: primaryText,
+                              color: "text.primary",
                               lineHeight: 1.25,
                             }}
                           >
@@ -429,7 +515,7 @@ setReportSubmitted(true);
                           <Typography
                             sx={{
                               fontSize: 14,
-                              color: secondaryText,
+                              color: "text.secondary",
                               mt: 0.5,
                               lineHeight: 1.5,
                             }}
@@ -528,7 +614,7 @@ setReportSubmitted(true);
                           fullWidth
                         />
                         <Typography
-                          sx={{ fontSize: 12, color: secondaryText, mt: 1 }}
+                          sx={{ fontSize: 12, color: "text.secondary", mt: 1 }}
                         >
                           Step-by-step instructions help fix the issue faster.
                         </Typography>
@@ -544,14 +630,14 @@ setReportSubmitted(true);
 
                       <Box>
                         <Typography
-                          sx={{ fontWeight: 700, color: primaryText, mb: 1 }}
+                          sx={{ fontWeight: 700, color: "text.primary", mb: 1 }}
                         >
                           Screenshots (Optional but helpful)
                         </Typography>
 
                         <Box
                           sx={{
-                            border: `2px dashed ${border}`,
+                            border: (t) => `2px dashed ${t.palette.divider}`,
                             borderRadius: 2,
                             p: 3,
                             textAlign: "center",
@@ -579,7 +665,7 @@ setReportSubmitted(true);
                             <Typography
                               sx={{
                                 fontSize: 14,
-                                color: primaryText,
+                                color: "text.primary",
                                 fontWeight: 600,
                               }}
                             >
@@ -588,7 +674,7 @@ setReportSubmitted(true);
                             <Typography
                               sx={{
                                 fontSize: 12,
-                                color: secondaryText,
+                                color: "text.secondary",
                                 mt: 0.5,
                               }}
                             >
@@ -610,14 +696,14 @@ setReportSubmitted(true);
                                   px: 1.5,
                                   py: 1,
                                   borderRadius: 2,
-                                  backgroundColor: "#F9FAFB",
-                                  border: `1px solid ${subtleBorder}`,
+                                  bgcolor: (t) => t.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "#F9FAFB",
+                                  border: (t) => `1px solid ${t.palette.divider}`,
                                 }}
                               >
                                 <Typography
                                   sx={{
                                     fontSize: 14,
-                                    color: primaryText,
+                                    color: "text.primary",
                                     minWidth: 0,
                                     flex: 1,
                                     overflow: "hidden",
@@ -659,11 +745,10 @@ setReportSubmitted(true);
                             textTransform: "none",
                             fontWeight: 600,
                             borderRadius: 2,
-                            borderColor: border,
-                            color: primaryText,
+                            borderColor: (t) => t.palette.divider,
+                            color: "text.primary",
                             "&:hover": {
-                              borderColor: "#D1D5DB",
-                              backgroundColor: "#F9FAFB",
+                              bgcolor: "action.hover",
                             },
                           }}
                         >
@@ -699,19 +784,16 @@ setReportSubmitted(true);
                 description="Read our terms and policies"
                 external
                 isLast
-                onExternalClick={() => {
-                  
-                  window.open("/terms", "_blank");
-                }}
+                onExternalClick={() => window.open("/terms-of-service", "_blank")}
               />
             </Box>
           </Stack>
         </Box>
 
         <Box sx={{ mt: "auto", pt: 6 }}>
-          <Divider sx={{ mb: 3, borderColor: "#EEF1F5" }} />
+          <Divider sx={{ mb: 3 }} />
 
-          <Box sx={{ textAlign: "center", color: secondaryText }}>
+          <Box sx={{ textAlign: "center", color: "text.secondary" }}>
            
             {} 
             <Typography sx={{ fontSize: 13, fontWeight: 500 }}>

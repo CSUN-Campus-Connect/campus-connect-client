@@ -26,7 +26,7 @@ const textFieldSx = {
 };
 
 const fieldLabel = (text: string) => (
-  <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151", mb: 0.5 }}>
+  <Typography sx={{ fontSize: 13, fontWeight: 600, color: "text.primary", mb: 0.5 }}>
     {text}
   </Typography>
 );
@@ -118,7 +118,7 @@ function DeleteAccountSection() {
             <Typography sx={{ fontWeight: 700, color: "#DC2626", fontSize: 15, mb: 0.25 }}>
               Delete account
             </Typography>
-            <Typography sx={{ color: "#6B7280", fontSize: 13 }}>
+            <Typography sx={{ color: "text.secondary", fontSize: 13 }}>
               Permanently remove your account and all associated data. This action cannot be undone.
             </Typography>
           </Box>
@@ -150,7 +150,7 @@ function DeleteAccountSection() {
         <>
           <Divider sx={{ borderColor: "rgba(220,38,38,0.15)" }} />
           <Box sx={{ px: 3, py: 2.5, background: "rgba(220,38,38,0.02)" }}>
-            <Typography sx={{ fontSize: 13, color: "#6B7280", mb: 2 }}>
+            <Typography sx={{ fontSize: 13, color: "text.secondary", mb: 2 }}>
               Type{" "}
               <Box component="span" sx={{ fontFamily: "monospace", fontWeight: 700, color: "#DC2626" }}>
                 {CONFIRM_TEXT}
@@ -194,13 +194,13 @@ function DeleteAccountSection() {
                   onClick={closeAndReset}
                   disabled={isDeleting}
                   sx={{
-                    borderColor: "#D1D5DB",
-                    color: "#374151",
+                    borderColor: (t) => t.palette.divider,
+                    color: "text.primary",
                     textTransform: "none",
                     fontWeight: 600,
                     borderRadius: "20px",
                     fontSize: 13,
-                    "&:hover": { borderColor: "#9CA3AF", background: "#F9FAFB" },
+                    "&:hover": { borderColor: "text.disabled", bgcolor: "action.hover" },
                   }}
                 >
                   Cancel
@@ -324,10 +324,10 @@ export default function AccountPage() {
     <Box sx={{ maxWidth: 640 }}>
       {/* Page header */}
       <Box sx={{ mb: 4 }}>
-        <Typography sx={{ fontSize: { xs: 28, sm: 30 }, fontWeight: 900, color: "#111827", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
+        <Typography sx={{ fontSize: { xs: 28, sm: 30 }, fontWeight: 900, color: "text.primary", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
           Account
         </Typography>
-        <Typography sx={{ color: "#6B7280", mt: 1, fontSize: 16, lineHeight: 1.6 }}>
+        <Typography sx={{ color: "text.secondary", mt: 1, fontSize: 16, lineHeight: 1.6 }}>
           Manage your password and account settings.
         </Typography>
       </Box>
@@ -336,29 +336,29 @@ export default function AccountPage() {
         {/* ── Change password ── */}
         <Box
           sx={{
-            border: "1px solid #E5E7EB",
+            border: (t) => `1px solid ${t.palette.divider}`,
             borderRadius: 2,
-            background: "#FFFFFF",
+            bgcolor: "background.paper",
             overflow: "hidden",
           }}
         >
           {/* Section header */}
           <Box sx={{ px: 3, py: 2.5 }}>
-            <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>
+            <Typography sx={{ fontSize: 15, fontWeight: 700, color: "text.primary" }}>
               Change password
             </Typography>
-            <Typography sx={{ fontSize: 14, color: "#6B7280", mt: 0.5, lineHeight: 1.5 }}>
+            <Typography sx={{ fontSize: 14, color: "text.secondary", mt: 0.5, lineHeight: 1.5 }}>
               Choose a strong password you don't use anywhere else.
             </Typography>
           </Box>
 
-          <Divider sx={{ borderColor: "#F3F4F6" }} />
+          <Divider />
 
           {/* Form content */}
           <Box
             component="form"
             onSubmit={(e) => { e.preventDefault(); handleChangePassword(); }}
-            sx={{ px: 3, pt: 2, pb: 3, background: "#FAFBFC" }}
+            sx={{ px: 3, pt: 2, pb: 3, bgcolor: (t) => t.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "#FAFBFC" }}
           >
             <Stack spacing={1.5}>
               {errors.general && (
@@ -464,25 +464,25 @@ export default function AccountPage() {
         {/* ── Danger zone ── */}
         <Box
           sx={{
-            border: "1px solid #E5E7EB",
+            border: (t) => `1px solid ${t.palette.divider}`,
             borderRadius: 2,
-            background: "#FFFFFF",
+            bgcolor: "background.paper",
             overflow: "hidden",
           }}
         >
           {/* Section header */}
           <Box sx={{ px: 3, py: 2.5 }}>
-            <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>
+            <Typography sx={{ fontSize: 15, fontWeight: 700, color: "text.primary" }}>
               Danger zone
             </Typography>
-            <Typography sx={{ fontSize: 14, color: "#6B7280", mt: 0.5, lineHeight: 1.5 }}>
+            <Typography sx={{ fontSize: 14, color: "text.secondary", mt: 0.5, lineHeight: 1.5 }}>
               Irreversible actions for your account.
             </Typography>
           </Box>
 
-          <Divider sx={{ borderColor: "#F3F4F6" }} />
+          <Divider />
 
-          <Box sx={{ px: 3, py: 3, background: "#FAFBFC" }}>
+          <Box sx={{ px: 3, py: 3, bgcolor: (t) => t.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "#FAFBFC" }}>
             <DeleteAccountSection />
           </Box>
         </Box>

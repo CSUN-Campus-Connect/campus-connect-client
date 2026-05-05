@@ -18,12 +18,6 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { api } from "../../../lib/axios";
 
 const red = "#B11226";
-const pageBackground = "#FFFFFF";
-const cardBackground = "#FFFFFF";
-const border = "#E5E7EB";
-const subtleBorder = "#F1F5F9";
-const primaryText = "#111827";
-const secondaryText = "#6B7280";
 
 type AccountVisibility = "everyone" | "friends";
 type WhoCanMessage = "everyone" | "friends" | "nobody";
@@ -53,18 +47,10 @@ const defaultSettings: PrivacySettings = {
 const selectSx = {
   minWidth: 180,
   borderRadius: 2,
-  backgroundColor: "#FFFFFF",
   "& .MuiSelect-select": {
     py: 1.25,
     fontSize: 14,
     fontWeight: 500,
-    color: primaryText,
-  },
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: border,
-  },
-  "&:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "#D1D5DB",
   },
   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
     borderColor: red,
@@ -93,7 +79,7 @@ function SettingsRow({
         gap: 2,
         py: 2.5,
         flexDirection: { xs: "column", sm: "row" },
-        ...(isLast ? {} : { borderBottom: `1px solid ${subtleBorder}` }),
+        ...(isLast ? {} : { borderBottom: (t: any) => `1px solid ${t.palette.divider}` }),
       }}
     >
       <Box sx={{ minWidth: 0, pr: { sm: 2 }, flex: 1 }}>
@@ -101,7 +87,7 @@ function SettingsRow({
           sx={{
             fontSize: 15,
             fontWeight: 700,
-            color: primaryText,
+            color: "text.primary",
             lineHeight: 1.35,
           }}
         >
@@ -112,7 +98,7 @@ function SettingsRow({
           <Typography
             sx={{
               fontSize: 14,
-              color: secondaryText,
+              color: "text.secondary",
               mt: 0.5,
               lineHeight: 1.5,
             }}
@@ -148,8 +134,8 @@ function SectionCard({
   return (
     <Box
       sx={{
-        background: cardBackground,
-        border: `1px solid ${border}`,
+        bgcolor: "background.paper",
+        border: (t) => `1px solid ${t.palette.divider}`,
         borderRadius: 3,
         overflow: "hidden",
       }}
@@ -162,7 +148,7 @@ function SectionCard({
                 sx={{
                   fontSize: 16,
                   fontWeight: 800,
-                  color: primaryText,
+                  color: "text.primary",
                   lineHeight: 1.3,
                 }}
               >
@@ -175,7 +161,7 @@ function SectionCard({
                 sx={{
                   mt: 0.5,
                   fontSize: 14,
-                  color: secondaryText,
+                  color: "text.secondary",
                   lineHeight: 1.5,
                 }}
               >
@@ -184,7 +170,7 @@ function SectionCard({
             )}
           </Box>
 
-          <Divider sx={{ borderColor: border }} />
+          <Divider />
         </>
       )}
 
@@ -390,7 +376,6 @@ export default function PrivacyPage() {
       <Box
         sx={{
           minHeight: "100%",
-          background: pageBackground,
         }}
       >
         <Box
@@ -408,7 +393,7 @@ export default function PrivacyPage() {
               sx={{
                 fontSize: { xs: 28, sm: 30 },
                 fontWeight: 900,
-                color: primaryText,
+                color: "text.primary",
                 lineHeight: 1.15,
                 letterSpacing: "-0.02em",
               }}
@@ -418,7 +403,7 @@ export default function PrivacyPage() {
 
             <Typography
               sx={{
-                color: secondaryText,
+                color: "text.secondary",
                 mt: 1,
                 fontSize: 16,
                 lineHeight: 1.6,
@@ -493,8 +478,8 @@ export default function PrivacyPage() {
           {/* Blocked Users */}
           <Box
             sx={{
-              background: cardBackground,
-              border: `1px solid ${border}`,
+              bgcolor: "background.paper",
+              border: (t) => `1px solid ${t.palette.divider}`,
               borderRadius: 3,
               overflow: "hidden",
             }}
@@ -519,19 +504,19 @@ export default function PrivacyPage() {
                 py: 2.5,
                 cursor: "pointer",
                 transition: "background-color 0.15s ease",
-                "&:hover": { backgroundColor: "#F6F7F9" },
+                "&:hover": { bgcolor: "action.hover" },
                 "&:focus-visible": {
-                  outline: `2px solid ${border}`,
+                  outline: (t: any) => `2px solid ${t.palette.divider}`,
                   outlineOffset: "-2px",
                 },
                 flexDirection: { xs: "column", sm: "row" },
               }}
             >
               <Box sx={{ minWidth: 0, flex: 1 }}>
-                <Typography sx={{ fontSize: 15, fontWeight: 700, color: primaryText, lineHeight: 1.35 }}>
+                <Typography sx={{ fontSize: 15, fontWeight: 700, color: "text.primary", lineHeight: 1.35 }}>
                   Blocked Users
                 </Typography>
-                <Typography sx={{ fontSize: 14, color: secondaryText, mt: 0.5, lineHeight: 1.5 }}>
+                <Typography sx={{ fontSize: 14, color: "text.secondary", mt: 0.5, lineHeight: 1.5 }}>
                   Review and manage accounts you have blocked.
                 </Typography>
               </Box>
@@ -549,19 +534,19 @@ export default function PrivacyPage() {
             {/* Expanded blocked users list */}
             {blockedOpen && (
               <>
-                <Divider sx={{ borderColor: "#F3F4F6" }} />
-                <Box sx={{ px: { xs: 2, sm: 3 }, py: 2, background: "#FAFBFC" }}>
+                <Divider />
+                <Box sx={{ px: { xs: 2, sm: 3 }, py: 2, bgcolor: (t) => t.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "#FAFBFC" }}>
                   {blockedLoading ? (
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <CircularProgress size={16} />
-                      <Typography sx={{ fontSize: 14, color: secondaryText }}>Loading...</Typography>
+                      <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Loading...</Typography>
                     </Box>
                   ) : blockedError ? (
                     <Typography sx={{ fontSize: 14, color: "#991B1B" }}>{blockedError}</Typography>
                   ) : blockedUsers.length === 0 ? (
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                       <PersonOffOutlinedIcon sx={{ fontSize: 20, color: "#D1D5DB" }} />
-                      <Typography sx={{ fontSize: 14, color: secondaryText }}>
+                      <Typography sx={{ fontSize: 14, color: "text.secondary" }}>
                         You haven't blocked anyone.
                       </Typography>
                     </Box>
@@ -576,21 +561,21 @@ export default function PrivacyPage() {
                             justifyContent: "space-between",
                             gap: 2,
                             p: 1.75,
-                            border: `1px solid ${border}`,
+                            border: (t) => `1px solid ${t.palette.divider}`,
                             borderRadius: 2,
-                            background: "#FFFFFF",
+                            bgcolor: "background.paper",
                           }}
                         >
                           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
                             <Avatar
                               src={user.profilePicture ?? undefined}
                               alt={`${user.firstName} ${user.lastName}`}
-                              sx={{ width: 38, height: 38, fontSize: 14, bgcolor: "#E5E7EB", color: primaryText }}
+                              sx={{ width: 38, height: 38, fontSize: 14, bgcolor: "action.selected", color: "text.primary" }}
                             >
                               {user.firstName[0]}{user.lastName[0]}
                             </Avatar>
                             <Box sx={{ minWidth: 0 }}>
-                              <Typography sx={{ fontSize: 14, fontWeight: 700, color: primaryText, lineHeight: 1.3 }}>
+                              <Typography sx={{ fontSize: 14, fontWeight: 700, color: "text.primary", lineHeight: 1.3 }}>
                                 {user.firstName} {user.lastName}
                               </Typography>
                             </Box>

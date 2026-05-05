@@ -21,7 +21,7 @@ function useMuiTheme() {
           ...(mode === "dark"
             ? {
                 background: { default: "#12141a", paper: "#1c1f28" },
-                divider: "rgba(255,255,255,0.08)",
+                divider: "rgba(255,255,255,0.12)",
               }
             : {
                 background: { default: "#f8fafc", paper: "#ffffff" },
