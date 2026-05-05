@@ -20,7 +20,7 @@ export const loadProfile = (): Profile => {
       linkedin: user?.linkedin || null,
       interests: user?.interests || null,
       portfolio: user?.websites || null, // Google Drive or direct PDF URL
-      avatar: user?.avatar || null,
+      avatar: user?.profilePicture || user?.avatar || null,
       banner: user?.banner || null,
       background: user?.background || null,
       followers: user?.followers || 0,

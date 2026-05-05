@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Profile } from "@/app/profile/page";
 import { loadProfile } from "@/lib/load-profile";
+import ProfileDrawer from "@/components/profile/ProfileDrawer";
+
 
 import {
   Box,
@@ -76,8 +78,9 @@ type SidebarProps = {
 export default function DashboardSidebar({ onLogout, onWidthChange }: SidebarProps) {
   const pathname = usePathname();
   const [isHydrated, setIsHydrated] = React.useState(false);
-  const [profile] = React.useState<Profile>(loadProfile());
+  const [profile, setProfile] = React.useState<Profile | null>(null);
   const name = `${profile?.first ?? ""} ${profile?.last ?? ""}`.trim();
+  const [profileOpen, setProfileOpen] = React.useState(false);
 
   const [collapsed, setCollapsed] = React.useState(false);
   const width = collapsed ? 0 : EXPANDED_WIDTH;
@@ -86,6 +89,7 @@ export default function DashboardSidebar({ onLogout, onWidthChange }: SidebarPro
 
   React.useEffect(() => {
     setIsHydrated(true);
+    setProfile(loadProfile());
   }, []);
 
   React.useEffect(() => {
@@ -183,10 +187,16 @@ export default function DashboardSidebar({ onLogout, onWidthChange }: SidebarPro
           }}>
             <Box sx={{ width: EXPANDED_WIDTH, p: 2, pt: 1, bgcolor: "#A80532" }}>
               <Button
-                component={Link}
-                href="/profile"
+                onClick={() => setProfileOpen(true)}
                 fullWidth
-                startIcon={<Avatar sx={{ bgcolor: "#e11d48" }}><PersonIcon /></Avatar>}
+                startIcon={
+                  <Avatar
+                    src={profile?.avatar || ""}
+                    sx={{ bgcolor: profile?.avatar ? "transparent" : "#e11d48" }}
+                  >
+                    {!profile?.avatar && <PersonIcon />}
+                  </Avatar>
+                }
                 sx={{
                   justifyContent: "flex-start",
                   textTransform: "none",
@@ -195,11 +205,13 @@ export default function DashboardSidebar({ onLogout, onWidthChange }: SidebarPro
                   borderRadius: 2,
                   px: 2,
                   py: 1.25,
+                  opacity: isHydrated ? 1 : 0,
+                  transition: "opacity 0.3s ease",
                   "&:hover": { bgcolor: "rgba(255,255,255,0.12)" },
                 }}
               >
                 <Box textAlign="left">
-                  <Typography variant="body2" fontWeight={700}>{isHydrated ? (name || "Profile") : "Profile"}</Typography>
+                  <Typography variant="body2" fontWeight={700}>{name || "You"}</Typography>
                   <Typography variant="caption" sx={{ opacity: 0.75 }}>View Profile</Typography>
                 </Box>
               </Button>
@@ -238,6 +250,7 @@ export default function DashboardSidebar({ onLogout, onWidthChange }: SidebarPro
       >
         {collapsed ? <ChevronRightIcon sx={{ fontSize: 16 }} /> : <ChevronLeftIcon sx={{ fontSize: 16 }} />}
       </Box>
+      <ProfileDrawer open={profileOpen} onClose={() => setProfileOpen(false)} />
     </>
   );
 }
