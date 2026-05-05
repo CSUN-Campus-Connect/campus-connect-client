@@ -50,9 +50,9 @@ export default function SettingsLayout({
               size="small"
               aria-label="Back to dashboard"
               sx={{
-                border: (t) => `1px solid ${t.palette.divider}`,
-                bgcolor: "background.paper",
-                "&:hover": { bgcolor: "action.hover" },
+                border: "1px solid rgba(255,255,255,0.3)",
+                bgcolor: "#FFFFFF",
+                "&:hover": { bgcolor: "rgba(255,255,255,0.85)" },
               }}
             >
               <ArrowBackIcon fontSize="small" sx={{ color: red }} />

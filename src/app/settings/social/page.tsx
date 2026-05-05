@@ -42,7 +42,7 @@ import {
 
 function ConnectionStatus({ connected }: { connected: boolean }) {
   return (
-    <Typography sx={{ fontSize: "0.875rem", fontWeight: 600, color: connected ? "#15803D" : "#767676" }}>
+    <Typography sx={{ fontSize: "0.875rem", fontWeight: 600, color: connected ? "#15803D" : "text.secondary" }}>
       {connected ? "Connected" : "Not connected"}
     </Typography>
   );
