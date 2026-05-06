@@ -282,18 +282,8 @@ export default function EventsNexusPage() {
       <div style={{ minHeight: '100vh', position: 'relative', color: '#111' }}>
         <PageBackground />
 
-        {/* ── Page content ── */
-        <Box sx={{
-          ml: `${sidebarWidth}px`,
-          flex: 1,
-          minWidth: 0,
-          minHeight: '100vh',
-          position: 'relative',
-          color: '#fff',
-          transition: 'margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
-        }}>
-          <PageBackground />
-
+        {/* ── Page content ── */}
+        <div style={{ flex: 1, minWidth: 0, minHeight: '100vh', position: 'relative', color: '#fff' }}>
           <div style={{ position: 'relative', zIndex: 1 }}>
             <NavBar activeSection={activeSection} onSection={setActiveSection} favoriteCount={favorites.size} />
 
@@ -399,8 +389,8 @@ export default function EventsNexusPage() {
             onConfirm={handleRegister}
             onOpenRelated={(ev) => { setRegisterEvent(null); openEvent(ev); }}
           />
-        </Box>
-      </Box>
+        </div>
+      </div>
     </>
   );
 }
