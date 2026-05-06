@@ -151,26 +151,37 @@ export default function EventGraph({ events, onSelectEvent }: Props) {
     ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, dims.w, dims.h);
 
-    // Subtle radial background rings (guide lines)
+    // Grid background — light dots for visual structure
+    const gridSize = 40;
+    ctx.fillStyle = 'rgba(204, 0, 51, 0.03)';
+    for (let x = 0; x < dims.w; x += gridSize) {
+      for (let y = 0; y < dims.h; y += gridSize) {
+        ctx.beginPath();
+        ctx.arc(x, y, 0.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Subtle radial background rings (guide lines) — red accent
     const cx = dims.w / 2;
     const cy = dims.h / 2;
     [0.2, 0.38, 0.56].forEach((frac) => {
       ctx.beginPath();
       ctx.arc(cx, cy, Math.min(dims.w, dims.h) * frac, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+      ctx.strokeStyle = 'rgba(204, 0, 51, 0.08)';
       ctx.lineWidth = 1;
       ctx.stroke();
     });
 
-    // Edges — curved bezier paths
+    // Edges — curved bezier paths with red accent
     edges.forEach(({ a, b, weight }) => {
       const mx = (a.x + b.x) / 2 + (cy - (a.y + b.y) / 2) * 0.15;
       const my = (a.y + b.y) / 2 + ((a.x + b.x) / 2 - cx) * 0.15;
       ctx.beginPath();
       ctx.moveTo(a.x, a.y);
       ctx.quadraticCurveTo(mx, my, b.x, b.y);
-      ctx.strokeStyle = `rgba(255,255,255,${weight})`;
-      ctx.lineWidth = weight > 0.25 ? 1.2 : 0.6;
+      ctx.strokeStyle = weight > 0.25 ? `rgba(204, 0, 51, ${weight * 0.6})` : `rgba(204, 0, 51, ${weight * 0.4})`;
+      ctx.lineWidth = weight > 0.25 ? 1.8 : 0.8;
       ctx.stroke();
     });
 
@@ -243,10 +254,10 @@ export default function EventGraph({ events, onSelectEvent }: Props) {
         <div style={{ fontSize: 9, letterSpacing: '3px', textTransform: 'uppercase', color: '#D22030', fontFamily: "'Syne', sans-serif", fontWeight: 700, marginBottom: 6 }}>
           Algorithmic Cluster View
         </div>
-        <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 24, color: '#111', marginBottom: 6 }}>
+        <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 28, color: '#CC0033', marginBottom: 6, textShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
           Event Engagement Graph
         </h2>
-        <p style={{ fontSize: 13, color: '#999', fontFamily: "'DM Sans', sans-serif", maxWidth: 560 }}>
+        <p style={{ fontSize: 13, color: '#666', fontFamily: "'DM Sans', sans-serif", maxWidth: 560 }}>
           Nodes sized by RSVP density, placed by engagement score. Edges connect events sharing a category or audience. Hover to inspect — click to open details.
         </p>
       </div>
@@ -267,10 +278,11 @@ export default function EventGraph({ events, onSelectEvent }: Props) {
       <div
         style={{
           position: 'relative',
-          background: '#ffffff',
-          border: '1px solid rgba(0,0,0,0.08)',
+          background: 'linear-gradient(135deg, #ffffff 0%, #f9f9f9 50%, #f5f5f5 100%)',
+          border: '2px solid #CC0033',
           borderRadius: 20,
           overflow: 'hidden',
+          boxShadow: '0 0 20px rgba(204, 0, 51, 0.1)',
         }}
       >
         <canvas

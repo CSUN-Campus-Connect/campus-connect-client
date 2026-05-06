@@ -278,10 +278,10 @@ export default function FavoritesPage({ allEvents, favorites, onOpen, onRemove, 
           Your Collection
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 28, color: '#fff', margin: 0 }}>
+          <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 32, color: '#CC0033', margin: 0, textShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
             Saved Events
             {favEvents.length > 0 && (
-              <span style={{ color: '#D22030', marginLeft: 10 }}>({favEvents.length})</span>
+              <span style={{ color: '#CC0033', marginLeft: 10 }}>({favEvents.length})</span>
             )}
           </h2>
 

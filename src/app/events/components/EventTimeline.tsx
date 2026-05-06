@@ -24,10 +24,10 @@ export default function EventTimeline({ events, onSelectEvent }: Props) {
         <div style={{ fontSize: 9, letterSpacing: '3px', textTransform: 'uppercase', color: '#D22030', fontFamily: "'Syne', sans-serif", fontWeight: 700, marginBottom: 6 }}>
           Chronological View
         </div>
-        <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 24, color: '#111', marginBottom: 6 }}>
+        <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 28, color: '#CC0033', marginBottom: 6, textShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
           Events Timeline
         </h2>
-        <p style={{ fontSize: 13, color: '#999', fontFamily: "'DM Sans', sans-serif" }}>
+        <p style={{ fontSize: 13, color: '#666', fontFamily: "'DM Sans', sans-serif" }}>
           Explore upcoming events organized by date. Click any event to see full details.
         </p>
       </div>
@@ -153,8 +153,8 @@ export default function EventTimeline({ events, onSelectEvent }: Props) {
                       style={{
                         fontFamily: "'Syne', sans-serif",
                         fontWeight: 800,
-                        fontSize: 14,
-                        color: '#fff',
+                        fontSize: 16,
+                        color: '#111',
                         marginBottom: 6,
                       }}
                     >
@@ -164,8 +164,8 @@ export default function EventTimeline({ events, onSelectEvent }: Props) {
                     <p
                       style={{
                         fontFamily: "'DM Sans', sans-serif",
-                        fontSize: 12,
-                        color: 'rgba(255,255,255,0.5)',
+                        fontSize: 13,
+                        color: '#666',
                         marginBottom: 8,
                       }}
                     >
@@ -174,8 +174,8 @@ export default function EventTimeline({ events, onSelectEvent }: Props) {
 
                     <div
                       style={{
-                        fontSize: 11,
-                        color: 'rgba(255,255,255,0.4)',
+                        fontSize: 12,
+                        color: '#999',
                         fontFamily: "'DM Sans', sans-serif",
                       }}
                     >

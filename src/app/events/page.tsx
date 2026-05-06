@@ -307,9 +307,9 @@ export default function EventsNexusPage() {
                     <div style={{ fontSize: 9, letterSpacing: '3px', textTransform: 'uppercase', color: '#D22030', fontFamily: "'Syne', sans-serif", fontWeight: 700, marginBottom: 4 }}>
                       Ranked by Engagement Score
                     </div>
-                    <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 20, color: '#fff', margin: 0 }}>
+                    <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 28, color: '#CC0033', margin: 0, textShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
                       {category === 'all' ? 'All Events' : CATEGORIES.find((c) => c.id === category)?.name}
-                      <span style={{ color: '#D22030', marginLeft: 8 }}>({filtered.length})</span>
+                      <span style={{ color: '#CC0033', marginLeft: 8 }}>({filtered.length})</span>
                     </h2>
                   </div>
                 </div>
