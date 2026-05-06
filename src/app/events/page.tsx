@@ -316,7 +316,7 @@ export default function EventsNexusPage() {
                     </div>
                   </div>
 
-                {/* Bento grid */
+                {/* Bento grid */}
                 <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 2rem 4rem' }}>
                   {filtered.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '60px 0', color: '#999' }}>
