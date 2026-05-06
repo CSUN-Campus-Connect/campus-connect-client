@@ -279,19 +279,10 @@ export default function EventsNexusPage() {
         select option{background:#fff;color:#111;}
       `}</style>
 
-<<<<<<< HEAD
       <div style={{ minHeight: '100vh', position: 'relative', color: '#111' }}>
         <PageBackground />
-=======
-      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-        {/* ── Sidebar ── */}
-        <DashboardSidebar
-          onLogout={() => router.push('/login')}
-          onWidthChange={setSidebarWidth}
-        />
->>>>>>> e8d01d5e907e6847908a9f2ba61206d1fdee4272
 
-        {/* ── Page content — offset by sidebar width ── */}
+        {/* ── Page content ── */
         <Box sx={{
           ml: `${sidebarWidth}px`,
           flex: 1,
@@ -323,17 +314,9 @@ export default function EventsNexusPage() {
                         <span style={{ color: '#D22030', marginLeft: 8 }}>({filtered.length})</span>
                       </h2>
                     </div>
-<<<<<<< HEAD
-                    <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 28, color: '#CC0033', margin: 0, textShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                      {category === 'all' ? 'All Events' : CATEGORIES.find((c) => c.id === category)?.name}
-                      <span style={{ color: '#CC0033', marginLeft: 8 }}>({filtered.length})</span>
-                    </h2>
-=======
->>>>>>> e8d01d5e907e6847908a9f2ba61206d1fdee4272
                   </div>
 
-<<<<<<< HEAD
-                {/* Bento grid */}
+                {/* Bento grid */
                 <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 2rem 4rem' }}>
                   {filtered.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '60px 0', color: '#999' }}>
@@ -360,34 +343,6 @@ export default function EventsNexusPage() {
                 </div>
               </motion.div>
             )}
-=======
-                  <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 2rem 4rem' }}>
-                    {filtered.length === 0 ? (
-                      <div style={{ textAlign: 'center', padding: '60px 0', color: 'rgba(255,255,255,0.28)' }}>
-                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 17, marginBottom: 6 }}>No events found</div>
-                        <div style={{ fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>Try adjusting your filters</div>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
-                        <AnimatePresence mode="popLayout">
-                          {filtered.map((event, idx) => (
-                            <EventBentoCard
-                              key={event.id}
-                              event={event}
-                              index={idx}
-                              isFavorite={isFavorite(event.id)}
-                              onOpen={openEvent}
-                              onToggleFav={toggleFavorite}
-                              onRegister={(ev) => setRegisterEvent(ev)}
-                            />
-                          ))}
-                        </AnimatePresence>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
->>>>>>> e8d01d5e907e6847908a9f2ba61206d1fdee4272
 
               {/* ── GRAPH ── */}
               {activeSection === 'graph' && (
