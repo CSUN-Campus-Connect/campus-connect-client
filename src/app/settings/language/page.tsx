@@ -36,8 +36,8 @@ export default function LanguageSettingsPage() {
   return (
     <Box>
       <Box sx={{ mb: 3 }}>
-        <Typography sx={{ fontSize: 26, fontWeight: 900, color: "#111827" }}>Website language</Typography>
-        <Typography sx={{ color: "#6B7280", mt: 0.5, fontSize: 16 }}>
+        <Typography sx={{ fontSize: 26, fontWeight: 900, color: "text.primary" }}>Website language</Typography>
+        <Typography sx={{ color: "text.secondary", mt: 0.5, fontSize: 16 }}>
           Translate the site with Google Translate. A full reload applies your choice everywhere.
         </Typography>
       </Box>
@@ -59,7 +59,7 @@ export default function LanguageSettingsPage() {
           </Select>
         </FormControl>
 
-        <Typography sx={{ fontSize: 13, color: "#6B7280", mt: 1.5 }}>
+        <Typography sx={{ fontSize: 13, color: "text.secondary", mt: 1.5 }}>
           Current selection: <strong>{labelForSiteLang(lang)}</strong>
         </Typography>
 

@@ -3,7 +3,6 @@
 import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "../../lib/axios";
-import DarkVeil from "@/components/Landingpage/DarkVeil";
 
 type Status = "verifying" | "verified" | "error";
 
@@ -67,7 +66,7 @@ function VerifyEmailContent() {
         alignItems: "center",
       }}
     >
-      <DarkVeil />
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, #0f0f0f 0%, #1a0a0e 50%, #0f0f0f 100%)", zIndex: 0 }} />
 
       <div
         style={{
@@ -155,7 +154,7 @@ function VerifyEmailContent() {
               <strong style={{ color: "crimson" }}>{countdown}</strong> seconds...
             </p>
             <button
-              onClick={() => router.push("/access/login")}
+              onClick={() => router.push("/login")}
               style={{
                 padding: "12px 40px",
                 backgroundColor: "crimson",
@@ -204,7 +203,7 @@ function VerifyEmailContent() {
               {message}
             </p>
             <button
-              onClick={() => router.push("/access/login")}
+              onClick={() => router.push("/login")}
               style={{
                 padding: "12px 40px",
                 backgroundColor: "crimson",
@@ -247,7 +246,7 @@ export default function VerifyEmailPage() {
         justifyContent: "center",
         alignItems: "center",
       }}>
-        <DarkVeil />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, #0f0f0f 0%, #1a0a0e 50%, #0f0f0f 100%)", zIndex: 0 }} />
         <div style={{ color: "white", fontSize: "1.2rem" }}>Loading...</div>
       </main>
     }>

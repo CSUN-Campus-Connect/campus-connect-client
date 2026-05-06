@@ -9,21 +9,26 @@ import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
+import Avatar from "@mui/material/Avatar";
+import CircularProgress from "@mui/material/CircularProgress";
 import { SettingsToggle } from "@/components/settings";
 import PersonOffOutlinedIcon from "@mui/icons-material/PersonOffOutlined";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 import { api } from "../../../lib/axios";
 
 const red = "#B11226";
-const pageBackground = "#FFFFFF";
-const cardBackground = "#FFFFFF";
-const border = "#E5E7EB";
-const subtleBorder = "#F1F5F9";
-const primaryText = "#111827";
-const secondaryText = "#6B7280";
 
 type AccountVisibility = "everyone" | "friends";
 type WhoCanMessage = "everyone" | "friends" | "nobody";
+
+type BlockedUser = {
+  id: string;
+  blockedId: string;
+  firstName: string;
+  lastName: string;
+  profilePicture: string | null;
+};
 
 type PrivacySettings = {
   accountVisibility: AccountVisibility;
@@ -42,18 +47,10 @@ const defaultSettings: PrivacySettings = {
 const selectSx = {
   minWidth: 180,
   borderRadius: 2,
-  backgroundColor: "#FFFFFF",
   "& .MuiSelect-select": {
     py: 1.25,
     fontSize: 14,
     fontWeight: 500,
-    color: primaryText,
-  },
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: border,
-  },
-  "&:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "#D1D5DB",
   },
   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
     borderColor: red,
@@ -61,21 +58,6 @@ const selectSx = {
   },
 };
 
-const outlineButtonSx = {
-  textTransform: "none",
-  borderRadius: 2,
-  px: 2,
-  py: 1,
-  borderColor: border,
-  color: primaryText,
-  fontWeight: 600,
-  boxShadow: "none",
-  "&:hover": {
-    borderColor: "#D1D5DB",
-    backgroundColor: "#F9FAFB",
-    boxShadow: "none",
-  },
-};
 
 function SettingsRow({
   label,
@@ -97,7 +79,7 @@ function SettingsRow({
         gap: 2,
         py: 2.5,
         flexDirection: { xs: "column", sm: "row" },
-        ...(isLast ? {} : { borderBottom: `1px solid ${subtleBorder}` }),
+        ...(isLast ? {} : { borderBottom: (t: any) => `1px solid ${t.palette.divider}` }),
       }}
     >
       <Box sx={{ minWidth: 0, pr: { sm: 2 }, flex: 1 }}>
@@ -105,7 +87,7 @@ function SettingsRow({
           sx={{
             fontSize: 15,
             fontWeight: 700,
-            color: primaryText,
+            color: "text.primary",
             lineHeight: 1.35,
           }}
         >
@@ -116,7 +98,7 @@ function SettingsRow({
           <Typography
             sx={{
               fontSize: 14,
-              color: secondaryText,
+              color: "text.secondary",
               mt: 0.5,
               lineHeight: 1.5,
             }}
@@ -152,8 +134,8 @@ function SectionCard({
   return (
     <Box
       sx={{
-        background: cardBackground,
-        border: `1px solid ${border}`,
+        bgcolor: "background.paper",
+        border: (t) => `1px solid ${t.palette.divider}`,
         borderRadius: 3,
         overflow: "hidden",
       }}
@@ -166,7 +148,7 @@ function SectionCard({
                 sx={{
                   fontSize: 16,
                   fontWeight: 800,
-                  color: primaryText,
+                  color: "text.primary",
                   lineHeight: 1.3,
                 }}
               >
@@ -179,7 +161,7 @@ function SectionCard({
                 sx={{
                   mt: 0.5,
                   fontSize: 14,
-                  color: secondaryText,
+                  color: "text.secondary",
                   lineHeight: 1.5,
                 }}
               >
@@ -188,7 +170,7 @@ function SectionCard({
             )}
           </Box>
 
-          <Divider sx={{ borderColor: border }} />
+          <Divider />
         </>
       )}
 
@@ -212,6 +194,13 @@ export default function PrivacyPage() {
   const [hasLoaded, setHasLoaded] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("loading");
   const [errorOpen, setErrorOpen] = useState(false);
+
+  // Blocked users
+  const [blockedOpen, setBlockedOpen] = useState(false);
+  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
+  const [blockedLoading, setBlockedLoading] = useState(false);
+  const [blockedError, setBlockedError] = useState<string | null>(null);
+  const [unblockingId, setUnblockingId] = useState<string | null>(null);
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const clearSavedStatusRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -337,12 +326,56 @@ export default function PrivacyPage() {
     };
   }, [accountVisibility, whoCanMessage, allowTagging, hasLoaded, initialSettings]);
 
+  // Fetches blocked users only when the section is first opened
+  useEffect(() => {
+    if (!blockedOpen) return;
+    if (blockedUsers.length > 0) return;
+
+    let isMounted = true;
+
+    const fetchBlocked = async () => {
+      setBlockedLoading(true);
+      setBlockedError(null);
+      try {
+        const token = localStorage.getItem("token");
+        const response = await api.get("/api/v1/settings/blocked", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!isMounted) return;
+        setBlockedUsers(response.data.data ?? []);
+      } catch {
+        if (!isMounted) return;
+        setBlockedError("Couldn't load blocked users. Please try again.");
+      } finally {
+        if (isMounted) setBlockedLoading(false);
+      }
+    };
+
+    fetchBlocked();
+    return () => { isMounted = false; };
+  }, [blockedOpen]);
+
+  const handleUnblock = async (blockedId: string) => {
+    setUnblockingId(blockedId);
+    try {
+      const token = localStorage.getItem("token");
+      await api.delete(`/api/v1/settings/blocked/${blockedId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Remove the user from the list immediately after unblocking
+      setBlockedUsers((prev) => prev.filter((u) => u.blockedId !== blockedId));
+    } catch {
+      // silently fail — user stays in the list
+    } finally {
+      setUnblockingId(null);
+    }
+  };
+
   return (
     <>
       <Box
         sx={{
           minHeight: "100%",
-          background: pageBackground,
         }}
       >
         <Box
@@ -360,7 +393,7 @@ export default function PrivacyPage() {
               sx={{
                 fontSize: { xs: 28, sm: 30 },
                 fontWeight: 900,
-                color: primaryText,
+                color: "text.primary",
                 lineHeight: 1.15,
                 letterSpacing: "-0.02em",
               }}
@@ -370,7 +403,7 @@ export default function PrivacyPage() {
 
             <Typography
               sx={{
-                color: secondaryText,
+                color: "text.secondary",
                 mt: 1,
                 fontSize: 16,
                 lineHeight: 1.6,
@@ -442,51 +475,140 @@ export default function PrivacyPage() {
             />
           </SectionCard>
 
-          <SectionCard>
+          {/* Blocked Users */}
+          <Box
+            sx={{
+              bgcolor: "background.paper",
+              border: (t) => `1px solid ${t.palette.divider}`,
+              borderRadius: 3,
+              overflow: "hidden",
+            }}
+          >
+            {/* Header row */}
             <Box
+              role="button"
+              tabIndex={0}
+              onClick={() => setBlockedOpen((prev) => !prev)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setBlockedOpen((prev) => !prev);
+                }
+              }}
               sx={{
                 display: "flex",
                 alignItems: { xs: "flex-start", sm: "center" },
                 justifyContent: "space-between",
                 gap: 2,
+                px: { xs: 2, sm: 3 },
                 py: 2.5,
+                cursor: "pointer",
+                transition: "background-color 0.15s ease",
+                "&:hover": { bgcolor: "action.hover" },
+                "&:focus-visible": {
+                  outline: (t: any) => `2px solid ${t.palette.divider}`,
+                  outlineOffset: "-2px",
+                },
                 flexDirection: { xs: "column", sm: "row" },
               }}
             >
               <Box sx={{ minWidth: 0, flex: 1 }}>
-                <Typography
-                  sx={{
-                    fontSize: 15,
-                    fontWeight: 700,
-                    color: primaryText,
-                    lineHeight: 1.35,
-                  }}
-                >
+                <Typography sx={{ fontSize: 15, fontWeight: 700, color: "text.primary", lineHeight: 1.35 }}>
                   Blocked Users
                 </Typography>
-
-                <Typography
-                  sx={{
-                    fontSize: 14,
-                    color: secondaryText,
-                    mt: 0.5,
-                    lineHeight: 1.5,
-                  }}
-                >
+                <Typography sx={{ fontSize: 14, color: "text.secondary", mt: 0.5, lineHeight: 1.5 }}>
                   Review and manage accounts you have blocked.
                 </Typography>
               </Box>
 
-              <Button
-                variant="outlined"
-                startIcon={<PersonOffOutlinedIcon />}
-                sx={outlineButtonSx}
-                
-              >
-                Manage Blocked
-              </Button>
+              <ExpandMoreIcon
+                sx={{
+                  color: "#9CA3AF",
+                  flexShrink: 0,
+                  transform: blockedOpen ? "rotate(180deg)" : "rotate(0deg)",
+                  transition: "transform 0.2s ease",
+                }}
+              />
             </Box>
-          </SectionCard>
+
+            {/* Expanded blocked users list */}
+            {blockedOpen && (
+              <>
+                <Divider />
+                <Box sx={{ px: { xs: 2, sm: 3 }, py: 2, bgcolor: (t) => t.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "#FAFBFC" }}>
+                  {blockedLoading ? (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <CircularProgress size={16} />
+                      <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Loading...</Typography>
+                    </Box>
+                  ) : blockedError ? (
+                    <Typography sx={{ fontSize: 14, color: "#991B1B" }}>{blockedError}</Typography>
+                  ) : blockedUsers.length === 0 ? (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                      <PersonOffOutlinedIcon sx={{ fontSize: 20, color: "#D1D5DB" }} />
+                      <Typography sx={{ fontSize: 14, color: "text.secondary" }}>
+                        You haven't blocked anyone.
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Stack spacing={1}>
+                      {blockedUsers.map((user) => (
+                        <Box
+                          key={user.blockedId}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: 2,
+                            p: 1.75,
+                            border: (t) => `1px solid ${t.palette.divider}`,
+                            borderRadius: 2,
+                            bgcolor: "background.paper",
+                          }}
+                        >
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
+                            <Avatar
+                              src={user.profilePicture ?? undefined}
+                              alt={`${user.firstName} ${user.lastName}`}
+                              sx={{ width: 38, height: 38, fontSize: 14, bgcolor: "action.selected", color: "text.primary" }}
+                            >
+                              {user.firstName[0]}{user.lastName[0]}
+                            </Avatar>
+                            <Box sx={{ minWidth: 0 }}>
+                              <Typography sx={{ fontSize: 14, fontWeight: 700, color: "text.primary", lineHeight: 1.3 }}>
+                                {user.firstName} {user.lastName}
+                              </Typography>
+                            </Box>
+                          </Box>
+
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            disabled={unblockingId === user.blockedId}
+                            onClick={(e) => { e.stopPropagation(); handleUnblock(user.blockedId); }}
+                            sx={{
+                              textTransform: "none",
+                              borderRadius: "20px",
+                              fontWeight: 700,
+                              fontSize: 13,
+                              px: 2.5,
+                              flexShrink: 0,
+                              borderColor: red,
+                              color: red,
+                              "&:hover": { borderColor: red, background: "rgba(177,18,38,0.05)" },
+                              "&.Mui-disabled": { borderColor: "#D1D5DB", color: "#9CA3AF" },
+                            }}
+                          >
+                            {unblockingId === user.blockedId ? "Unblocking..." : "Unblock"}
+                          </Button>
+                        </Box>
+                      ))}
+                    </Stack>
+                  )}
+                </Box>
+              </>
+            )}
+          </Box>
         </Stack>
       </Box>
     </>

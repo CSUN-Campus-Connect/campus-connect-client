@@ -96,7 +96,7 @@ export default function AcademicSettingsPage() {
           title="School email"
           description="Shown on file with your institution."
           action={
-            <Typography sx={{ fontSize: "0.875rem", fontWeight: 600, color: "#374151", maxWidth: 200 }} noWrap>
+            <Typography sx={{ fontSize: "0.875rem", fontWeight: 600, color: "text.primary", maxWidth: 200 }} noWrap>
               user@school.edu
             </Typography>
           }
@@ -107,7 +107,7 @@ export default function AcademicSettingsPage() {
           icon={<PhoneOutlinedIcon fontSize="small" />}
           title="Phone number"
           action={
-            <Typography sx={{ fontSize: "0.875rem", fontWeight: 600, color: "#6B7280", letterSpacing: "0.04em" }}>
+            <Typography sx={{ fontSize: "0.875rem", fontWeight: 600, color: "text.secondary", letterSpacing: "0.04em" }}>
               ********45
             </Typography>
           }

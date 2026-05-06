@@ -11,16 +11,15 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { api } from "../../../lib/axios";
 
 const red = "#B11226";
-const border = "#E5E7EB";
-const primaryText = "#111827";
-const secondaryText = "#6B7280";
 
+// Fields synced with the backend API
 type NotificationSettings = {
   clubsNotifications: boolean;
   campusEventsNotifications: boolean;
   marketplaceNotifications: boolean;
   academicNotifications: boolean;
   followRequestNotifications: boolean;
+  // messagesNotifications is intentionally omitted until the backend schema migration is added
 };
 
 type SaveStatus = "idle" | "loading" | "saving" | "saved";
@@ -53,12 +52,12 @@ function SettingsRow({
       }}
     >
       <Box sx={{ minWidth: 0, flex: 1 }}>
-        <Typography sx={{ fontWeight: 700, color: primaryText }}>
+        <Typography sx={{ fontWeight: 700, color: "text.primary" }}>
           {label}
         </Typography>
 
         {description && (
-          <Typography sx={{ fontSize: 14, color: secondaryText, mt: 0.5 }}>
+          <Typography sx={{ fontSize: 14, color: "text.secondary", mt: 0.5 }}>
             {description}
           </Typography>
         )}
@@ -76,8 +75,8 @@ function SaveStatusChip({ status }: { status: SaveStatus }) {
         label="Loading..."
         size="small"
         sx={{
-          backgroundColor: "#F3F4F6",
-          color: secondaryText,
+          bgcolor: "action.hover",
+          color: "text.secondary",
           fontWeight: 600,
         }}
       />
@@ -121,6 +120,8 @@ export default function NotificationsPage() {
   const [followRequestNotifications, setFollowRequestNotifications] = useState(
     defaultNotificationSettings.followRequestNotifications
   );
+  // Local-only until backend schema adds messagesNotifications column
+  const [messagesNotifications, setMessagesNotifications] = useState(true);
 
   const [initialSettings, setInitialSettings] =
     useState<NotificationSettings | null>(null);
@@ -284,10 +285,10 @@ export default function NotificationsPage() {
         }}
       >
         <Box>
-          <Typography sx={{ fontSize: 26, fontWeight: 900, color: primaryText }}>
+          <Typography sx={{ fontSize: 26, fontWeight: 900, color: "text.primary" }}>
             Notifications
           </Typography>
-          <Typography sx={{ color: secondaryText, mt: 0.5 }}>
+          <Typography sx={{ color: "text.secondary", mt: 0.5 }}>
             Choose which categories you want to be notified about
           </Typography>
         </Box>
@@ -297,14 +298,14 @@ export default function NotificationsPage() {
 
       <Box
         sx={{
-          background: "#fff",
-          border: `1px solid ${border}`,
+          bgcolor: "background.paper",
+          border: (t) => `1px solid ${t.palette.divider}`,
           borderRadius: 2,
           overflow: "hidden",
           maxWidth: 760,
         }}
       >
-        <Divider sx={{ borderColor: border }} />
+        <Divider />
 
         <Box sx={{ px: 3 }}>
           <SettingsRow
@@ -320,7 +321,7 @@ export default function NotificationsPage() {
             }
           />
 
-          <Divider sx={{ borderColor: border }} />
+          <Divider />
 
           <SettingsRow
             label="Campus Events + Reminders"
@@ -335,7 +336,7 @@ export default function NotificationsPage() {
             }
           />
 
-          <Divider sx={{ borderColor: border }} />
+          <Divider />
 
           <SettingsRow
             label="Marketplace"
@@ -350,7 +351,7 @@ export default function NotificationsPage() {
             }
           />
 
-          <Divider sx={{ borderColor: border }} />
+          <Divider />
 
           <SettingsRow
             label="Academic"
@@ -365,7 +366,7 @@ export default function NotificationsPage() {
             }
           />
 
-          <Divider sx={{ borderColor: border }} />
+          <Divider />
 
           <SettingsRow
             label="Follow Requests + Mentions"
@@ -376,6 +377,21 @@ export default function NotificationsPage() {
                 onChange={setFollowRequestNotifications}
                 disabled={!hasLoaded}
                 inputProps={{ "aria-label": "Follow requests and mentions notifications" }}
+              />
+            }
+          />
+
+          <Divider />
+
+          <SettingsRow
+            label="Messages"
+            description="New messages and group chat activity"
+            right={
+              <SettingsToggle
+                checked={messagesNotifications}
+                onChange={setMessagesNotifications}
+                disabled={!hasLoaded}
+                inputProps={{ "aria-label": "Messages notifications" }}
               />
             }
           />

@@ -44,7 +44,6 @@ import {
   SettingsToggle,
   SettingsInsetDivider,
   SettingsChevron,
-  settingsIconTints,
 } from "@/components/settings";
 
 const BUYER_CATEGORIES = ["Books", "Tech", "Furniture", "Housing", "Services", "Other"] as const;
@@ -138,42 +137,25 @@ export default function MarketplaceSettingsPage() {
 
       <SettingsSectionLabel>Default meetup when selling</SettingsSectionLabel>
       <SettingsCard>
-        <Box sx={{ display: "flex", gap: 1.5, px: 2, py: 1.5, alignItems: "flex-start" }}>
-          <Box
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Typography sx={{ fontWeight: 600, fontSize: "0.9375rem", color: "text.primary" }}>Meetup address</Typography>
+          <Typography sx={{ fontSize: "0.8125rem", color: "text.secondary", mt: 0.35, mb: 1.25 }}>
+            Pre-fills on new listings so buyers know where you usually hand off items. You can still change it per listing.
+          </Typography>
+          <TextField
+            fullWidth
+            multiline
+            minRows={2}
+            size="small"
+            label="Address or meeting point"
+            placeholder="e.g. Student Center east entrance, 123 Campus Dr, or a public spot you prefer"
+            value={sellerDefaultMeetupAddress}
+            onChange={(e) => setSellerDefaultMeetupAddress(e.target.value)}
+            inputProps={{ "aria-label": "Default meetup address when selling" }}
             sx={{
-              width: 40,
-              height: 40,
-              borderRadius: "10px",
-              bgcolor: settingsIconTints.orange.bg,
-              color: settingsIconTints.orange.fg,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
+              "& .MuiOutlinedInput-root": { borderRadius: "10px", bgcolor: (t: any) => t.palette.mode === "dark" ? "rgba(255,255,255,0.04)" : "#F9FAFB" },
             }}
-          >
-            <PinDropOutlinedIcon fontSize="small" />
-          </Box>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 600, fontSize: "0.9375rem", color: "#1F2937" }}>Meetup address</Typography>
-            <Typography sx={{ fontSize: "0.8125rem", color: "#6B7280", mt: 0.35, mb: 1.25 }}>
-              Pre-fills on new listings so buyers know where you usually hand off items. You can still change it per listing.
-            </Typography>
-            <TextField
-              fullWidth
-              multiline
-              minRows={2}
-              size="small"
-              label="Address or meeting point"
-              placeholder="e.g. Student Center east entrance, 123 Campus Dr, or a public spot you prefer"
-              value={sellerDefaultMeetupAddress}
-              onChange={(e) => setSellerDefaultMeetupAddress(e.target.value)}
-              inputProps={{ "aria-label": "Default meetup address when selling" }}
-              sx={{
-                "& .MuiOutlinedInput-root": { borderRadius: "10px", bgcolor: "#F9FAFB" },
-              }}
-            />
-          </Box>
+          />
         </Box>
       </SettingsCard>
 
@@ -184,20 +166,18 @@ export default function MarketplaceSettingsPage() {
             sx={{
               width: 40,
               height: 40,
-              borderRadius: "10px",
-              bgcolor: settingsIconTints.amber.bg,
-              color: settingsIconTints.amber.fg,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
+              color: "text.secondary",
             }}
           >
             <CategoryOutlinedIcon fontSize="small" />
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 600, fontSize: "0.9375rem", color: "#1F2937" }}>Preferred categories</Typography>
-            <Typography sx={{ fontSize: "0.8125rem", color: "#6B7280", mt: 0.35 }}>Highlight listings that match your interests.</Typography>
+            <Typography sx={{ fontWeight: 600, fontSize: "0.9375rem", color: "text.primary" }}>Preferred categories</Typography>
+            <Typography sx={{ fontSize: "0.8125rem", color: "text.secondary", mt: 0.35 }}>Highlight listings that match your interests.</Typography>
             <Stack direction="row" gap={1} flexWrap="wrap" useFlexGap sx={{ mt: 1.5 }}>
               {BUYER_CATEGORIES.map((c) => (
                 <Chip

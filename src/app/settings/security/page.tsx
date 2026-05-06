@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -13,13 +14,10 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
 import { api } from "../../../lib/axios";
 
-const border = "#E5E7EB";
-const subtleBorder = "#F3F4F6";
-const primaryText = "#111827";
-const secondaryText = "#6B7280";
-const hoverBackground = "#F6F7F9";
-const expandedBackground = "#FAFBFC";
 const red = "#B11226";
+
+// Polls /users/me every 30s to detect if this session was revoked from another device
+const session_poll_interval = 30_000;
 
 type LoginHistoryItem = {
   id: string;
@@ -43,9 +41,9 @@ function ContentCard({ children }: { children: React.ReactNode }) {
   return (
     <Box
       sx={{
-        border: `1px solid ${border}`,
+        border: (t) => `1px solid ${t.palette.divider}`,
         borderRadius: 2,
-        background: "#FFFFFF",
+        bgcolor: "background.paper",
         p: 1.75,
       }}
     >
@@ -74,11 +72,11 @@ function SectionStatus({
           display: "flex",
           alignItems: "center",
           gap: 1,
-          color: secondaryText,
+          color: "text.secondary",
         }}
       >
         <CircularProgress size={16} />
-        <Typography sx={{ fontSize: 14, color: secondaryText }}>
+        <Typography sx={{ fontSize: 14, color: "text.secondary" }}>
           Loading...
         </Typography>
       </Box>
@@ -95,7 +93,7 @@ function SectionStatus({
 
   if (!hasItems) {
     return (
-      <Typography sx={{ fontSize: 14, color: secondaryText, lineHeight: 1.5 }}>
+      <Typography sx={{ fontSize: 14, color: "text.secondary", lineHeight: 1.5 }}>
         {emptyMessage}
       </Typography>
     );
@@ -112,6 +110,7 @@ function ActionRow({
   onExternalClick,
   children,
   isLast = false,
+  ariaLabel,
 }: {
   title: string;
   description: string;
@@ -120,6 +119,7 @@ function ActionRow({
   onExternalClick?: () => void;
   children?: React.ReactNode;
   isLast?: boolean;
+  ariaLabel?: string;
 }) {
   const handleClick = () => {
     if (onExternalClick) {
@@ -138,6 +138,7 @@ function ActionRow({
         role="button"
         tabIndex={0}
         aria-expanded={onExternalClick ? undefined : isOpen}
+        aria-label={ariaLabel}
         onClick={handleClick}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -155,10 +156,10 @@ function ActionRow({
           cursor: "pointer",
           transition: "background-color 0.15s ease",
           "&:hover": {
-            backgroundColor: hoverBackground,
+            bgcolor: "action.hover",
           },
           "&:focus-visible": {
-            outline: `2px solid ${border}`,
+            outline: (t) => `2px solid ${t.palette.divider}`,
             outlineOffset: "-2px",
           },
         }}
@@ -167,7 +168,7 @@ function ActionRow({
           <Typography
             sx={{
               fontWeight: 700,
-              color: primaryText,
+              color: "text.primary",
               fontSize: 15,
               lineHeight: 1.35,
             }}
@@ -178,7 +179,7 @@ function ActionRow({
           <Typography
             sx={{
               fontSize: 14,
-              color: secondaryText,
+              color: "text.secondary",
               mt: 0.5,
               lineHeight: 1.5,
             }}
@@ -210,8 +211,8 @@ function ActionRow({
       {!onExternalClick && isOpen && (
         <Box
           sx={{
-            borderTop: `1px solid ${subtleBorder}`,
-            background: expandedBackground,
+            borderTop: (t) => `1px solid ${t.palette.divider}`,
+            bgcolor: (t) => t.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "#FAFBFC",
             px: { xs: 2, sm: 2.5 },
             py: 2,
           }}
@@ -220,7 +221,7 @@ function ActionRow({
         </Box>
       )}
 
-      {!isLast && <Divider sx={{ borderColor: subtleBorder }} />}
+      {!isLast && <Divider />}
     </Box>
   );
 }
@@ -243,6 +244,40 @@ export default function SecurityPage() {
 
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
+  const router = useRouter();
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const forceLogout = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("sessionId");
+  if (pollRef.current) clearInterval(pollRef.current);
+  router.replace("/login");
+};
+
+useEffect(() => {
+  const checkSession = async () => {
+    try {
+      await api.get("/api/v1/users/me", getAuthHeaders());
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const message = err?.response?.data?.message ?? "";
+      if (
+        status === 401 &&
+        (message === "Session has been invalidated" ||
+          message === "Token expired" ||
+          message === "No token provided")
+      ) {
+        forceLogout();
+      }
+    }
+  };
+
+  pollRef.current = setInterval(checkSession, session_poll_interval);
+  return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  
+}, []);
+
   // Fetches login history only when the section is first opened
   useEffect(() => {
     if (!loginHistoryOpen) return;
@@ -259,14 +294,22 @@ export default function SecurityPage() {
           getAuthHeaders()
         );
 
-        const mappedData: LoginHistoryItem[] = response.data.history.map((item) => ({
-          id: item.id,
-          deviceLabel: item.deviceLabel,
-          locationLabel: item.location || item.ipAddress || "Unknown location",
-          timestampLabel: new Date(item.createdAt).toLocaleDateString("en-US", {
-            month: "short", day: "numeric", year: "numeric",
-          }),
-        }));
+        // Keep only the most recent login per device (history is already sorted newest-first)
+        const seen = new Set<string>();
+        const mappedData: LoginHistoryItem[] = response.data.history
+          .filter((item) => {
+            if (seen.has(item.deviceLabel)) return false;
+            seen.add(item.deviceLabel);
+            return true;
+          })
+          .map((item) => ({
+            id: item.id,
+            deviceLabel: item.deviceLabel,
+            locationLabel: item.location || "Unknown location",
+            timestampLabel: new Date(item.createdAt).toLocaleDateString("en-US", {
+              month: "short", day: "numeric", year: "numeric",
+            }),
+          }));
 
         if (!isMounted) return;
         setLoginHistory(mappedData);
@@ -335,22 +378,19 @@ export default function SecurityPage() {
   }, [activeSessionsOpen]);
 
   const handleRevokeSession = async (sessionId: string) => {
-    try {
-      setRevokingSessionId(sessionId);
-      const token = localStorage.getItem("token");
-      await api.post(
-        "/api/v1/users/logout",
-        { sessionId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      // Removes the revoked session from the list without refetching
-      setActiveSessions((prev) => prev.filter((session) => session.id !== sessionId));
-    } catch (error) {
-      console.error("Failed to revoke session", error);
-    } finally {
-      setRevokingSessionId(null);
-    }
-  };
+  try {
+    setRevokingSessionId(sessionId);
+    await api.delete(
+      `/api/v1/users/sessions/${sessionId}`,
+      getAuthHeaders()
+    );
+    setActiveSessions((prev) => prev.filter((s) => s.id !== sessionId));
+  } catch (error) {
+    console.error("Failed to revoke session", error);
+  } finally {
+    setRevokingSessionId(null);
+  }
+};
 
   const handleRevokeAllOtherSessions = async () => {
     try {
@@ -376,7 +416,7 @@ export default function SecurityPage() {
           sx={{
             fontSize: { xs: 28, sm: 30 },
             fontWeight: 900,
-            color: primaryText,
+            color: "text.primary",
             lineHeight: 1.15,
             letterSpacing: "-0.02em",
           }}
@@ -386,7 +426,7 @@ export default function SecurityPage() {
 
         <Typography
           sx={{
-            color: secondaryText,
+            color: "text.secondary",
             mt: 1,
             fontSize: 16,
             lineHeight: 1.6,
@@ -400,8 +440,8 @@ export default function SecurityPage() {
       <Stack spacing={2.5} sx={{ maxWidth: 760 }}>
         <Box
           sx={{
-            background: "#FFFFFF",
-            border: `1px solid ${border}`,
+            bgcolor: "background.paper",
+            border: (t) => `1px solid ${t.palette.divider}`,
             borderRadius: 3,
             overflow: "hidden",
           }}
@@ -419,7 +459,7 @@ export default function SecurityPage() {
                   fontWeight: 800,
                   letterSpacing: "0.04em",
                   textTransform: "uppercase",
-                  color: secondaryText,
+                  color: "text.secondary",
                 }}
               >
                 Recent Sign-Ins
@@ -434,12 +474,12 @@ export default function SecurityPage() {
                 {loginHistory.map((item) => (
                   <ContentCard key={item.id}>
                     <Typography
-                      sx={{ fontSize: 14, fontWeight: 700, color: primaryText }}
+                      sx={{ fontSize: 14, fontWeight: 700, color: "text.primary" }}
                     >
                       {item.deviceLabel}
                     </Typography>
                     <Typography
-                      sx={{ fontSize: 13, color: secondaryText, mt: 0.5 }}
+                      sx={{ fontSize: 13, color: "text.secondary", mt: 0.5 }}
                     >
                       {item.locationLabel} • {item.timestampLabel}
                     </Typography>
@@ -471,7 +511,7 @@ export default function SecurityPage() {
                     fontWeight: 800,
                     letterSpacing: "0.04em",
                     textTransform: "uppercase",
-                    color: secondaryText,
+                    color: "text.secondary",
                   }}
                 >
                   Current Devices
@@ -529,7 +569,7 @@ export default function SecurityPage() {
                             sx={{
                               fontSize: 14,
                               fontWeight: 700,
-                              color: primaryText,
+                              color: "text.primary",
                             }}
                           >
                             {session.deviceLabel}
@@ -550,7 +590,7 @@ export default function SecurityPage() {
                         </Box>
 
                         <Typography
-                          sx={{ fontSize: 13, color: secondaryText, mt: 0.5 }}
+                          sx={{ fontSize: 13, color: "text.secondary", mt: 0.5 }}
                         >
                           {session.detailLabel}
                         </Typography>
@@ -582,6 +622,7 @@ export default function SecurityPage() {
           <ActionRow
             title="Privacy Policy"
             description="Read our privacy policy"
+            ariaLabel="Open Privacy Policy in new tab"
             onExternalClick={() => {
               window.open("/privacy-policy", "_blank");
             }}

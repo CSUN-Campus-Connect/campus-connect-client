@@ -13,7 +13,7 @@ export function SettingsSectionLabel({ children }: { children: React.ReactNode }
         fontWeight: 700,
         letterSpacing: "0.1em",
         textTransform: "uppercase",
-        color: "#9CA3AF",
+        color: "text.secondary",
         lineHeight: 1.4,
       }}
     >
