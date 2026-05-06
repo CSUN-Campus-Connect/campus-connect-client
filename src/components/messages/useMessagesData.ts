@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { api } from "@/lib/axios";
-import type { ID, Message, Note, Thread, User, Attachment } from "@/types/messages";
+import type { ID, Message, Note, Thread, User, Attachment, AttachmentType } from "@/types/messages";
+const PENDING_THREAD_ID = "pending";
 
 function toThread(conv: any): Thread {
   return {
@@ -19,7 +20,7 @@ function toUser(participant: any): User {
   const u = participant.User || participant;
   return {
     id: u.id,
-    username: u.firstName?.toLowerCase() + (u.lastName ? u.lastName.toLowerCase() : ""),
+    username: u.username || `${u.firstName || ""}${u.lastName || ""}`.toLowerCase(),
     displayName: `${u.firstName || ""} ${u.lastName || ""}`.trim(),
     avatarUrl: u.profilePicture || "",
     lastActiveAt: u.lastActiveAt ? new Date(u.lastActiveAt).getTime() : Date.now(),
@@ -74,7 +75,9 @@ export function useMessagesData() {
   const [hasMoreByThread, setHasMoreByThread] = useState<Record<string, boolean>>({});
   const [loadingMoreByThread, setLoadingMoreByThread] = useState<Record<string, boolean>>({});
   const [groupPictureByThreadId, setGroupPictureByThreadId] = useState<Record<string, string>>({});
-
+  const [loadingThreadId, setLoadingThreadId] = useState<string | null>(null);
+  const [blockedUserIds, setBlockedUserIds] = useState<Set<ID>>(new Set());
+  const [pendingThreadUserId, setPendingThreadUserId] = useState<ID | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const meIdRef = useRef<string>("");
@@ -86,11 +89,11 @@ export function useMessagesData() {
 
   const me: User = useMemo(() => ({
     id: meId,
-    username: storedUser?.firstName?.toLowerCase() || "me",
+    username: storedUser?.username || storedUser?.firstName?.toLowerCase() || "me",
     displayName: `${storedUser?.firstName || ""} ${storedUser?.lastName || ""}`.trim() || "You",
     avatarUrl: storedUser?.profilePicture || "",
     lastActiveAt: Date.now(),
-  }), [meId, storedUser?.firstName, storedUser?.lastName, storedUser?.profilePicture]);
+  }), [meId, storedUser?.username, storedUser?.firstName, storedUser?.lastName, storedUser?.profilePicture]);
 
   const usersWithMe = useMemo(() => {
     if (users.some((u) => u.id === meId)) return users;
@@ -102,6 +105,17 @@ export function useMessagesData() {
     () => (selectedThreadId ? messagesByThread[selectedThreadId] ?? [] : []),
     [selectedThreadId, messagesByThread]
   );
+
+  const threadsWithPending = useMemo(() => {
+    if (!pendingThreadUserId) return threads;
+    const pendingThread: Thread = {
+      id: PENDING_THREAD_ID,
+      participantIds: [meId, pendingThreadUserId],
+      updatedAt: Date.now(),
+      isRequest: false,
+    };
+    return [pendingThread, ...threads];
+  }, [threads, pendingThreadUserId, meId]);
 
   const fetchConversations = useCallback(async () => {
     const token = getToken();
@@ -160,7 +174,15 @@ export function useMessagesData() {
     const token = getToken();
     if (!token) return;
 
-    setMessagesByThread((prev) => ({ ...prev, [threadId]: [] }));
+    const existing = messagesByThread[threadId];
+    if (existing && existing.length > 0) return;
+    if (existing && existing.length === 0) {
+      // Empty thread — no need to load, just clear loading state
+      setLoadingThreadId(null);
+      return;
+    }
+
+    setLoadingThreadId(threadId);
 
     try {
       const res = await api.get(`/api/v1/messages/conversations/${threadId}/messages`, {
@@ -189,8 +211,10 @@ export function useMessagesData() {
       setReactionsByMessage((prev) => ({ ...prev, ...reactions }));
     } catch (err) {
       console.error("Failed to fetch messages:", err);
+    } finally {
+      setLoadingThreadId(null);
     }
-  }, []);
+  }, [messagesByThread]);
 
   const fetchOlderMessages = useCallback(async (threadId: string) => {
     const token = getToken();
@@ -233,12 +257,57 @@ export function useMessagesData() {
     }
   }, [messagesByThread]);
 
-  useEffect(() => {
-    fetchConversations();
-  }, [fetchConversations]);
+    // Block settings
+  const fetchBlockedUsers = useCallback(async () => {
+  const token = getToken();
+  if (!token) return;
+  try {
+    const res = await api.get("/api/v1/settings/blocked", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setBlockedUserIds(new Set(res.data.data.map((u: any) => u.blockedId)));
+  } catch (err) {
+    console.error("Failed to fetch blocked users:", err);
+  }
+}, []);
+
+const blockUser = useCallback(async (userId: ID) => {
+  const token = getToken();
+  if (!token) return;
+  try {
+    await api.post(`/api/v1/settings/blocked/${userId}`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setBlockedUserIds((prev) => new Set([...prev, userId]));
+  } catch (err) {
+    console.error("Failed to block user:", err);
+  }
+}, []);
+
+const unblockUser = useCallback(async (userId: ID) => {
+  const token = getToken();
+  if (!token) return;
+  try {
+    await api.delete(`/api/v1/settings/blocked/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setBlockedUserIds((prev) => {
+      const next = new Set(prev);
+      next.delete(userId);
+      return next;
+    });
+  } catch (err) {
+    console.error("Failed to unblock user:", err);
+  }
+}, []);
 
   useEffect(() => {
-    if (selectedThreadId) {
+    fetchConversations();
+    fetchBlockedUsers();
+  }, [fetchConversations, fetchBlockedUsers]);
+
+  useEffect(() => {
+    if (selectedThreadId && selectedThreadId !== PENDING_THREAD_ID) {
       fetchMessages(selectedThreadId);
       if (socketRef.current?.connected) {
         socketRef.current.emit("conversation:join", { conversationId: selectedThreadId });
@@ -272,7 +341,7 @@ export function useMessagesData() {
     });
 
     socket.on("message:new", (msg: any) => {
-      const mapped = toMessage(msg);
+      const mapped = { ...toMessage(msg), status: "delivered" as const };
       setMessagesByThread((prev) => {
         const existing = prev[mapped.threadId] ?? [];
         if (existing.some((m) => m.id === mapped.id)) return prev;
@@ -328,6 +397,15 @@ export function useMessagesData() {
       }));
     });
 
+    socket.on("message:blocked", (data: { conversationId: string }) => {
+      setMessagesByThread((prev) => ({
+        ...prev,
+        [data.conversationId]: (prev[data.conversationId] ?? []).map((m) =>
+          m.status === "pending" ? { ...m, status: "failed" as const } : m
+        ),
+      }));
+    });
+
     socket.on("connect_error", (err: Error) => {
       console.error("Socket connection error:", err.message);
     });
@@ -344,32 +422,117 @@ export function useMessagesData() {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const onSend = useCallback(async (threadId: string, text: string, attachmentUrls?: string[]) => {
-    if (!text.trim() || !socketRef.current?.connected) {
+  const onSend = useCallback(async (threadId: string, text: string, attachments?: { type: string; fileName: string; fileUrl: string; fileSize: number }[]) => {
+    const hasContent = text.trim() || (attachments && attachments.length > 0);
+    if (!hasContent) return;
+
+    // If pending thread, create conversation first
+    let realThreadId = threadId;
+    if (threadId === PENDING_THREAD_ID && pendingThreadUserId) {
       const token = getToken();
       if (!token) return;
       try {
         const res = await api.post(
-          `/api/v1/messages/conversations/${threadId}/messages`,
-          { content: text.trim() },
+          "/api/v1/messages/conversations",
+          { isGroup: false, participantIds: [pendingThreadUserId] },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        const mapped = toMessage(res.data);
+        const newThread = toThread(res.data);
+        setThreads((prev) => prev.filter((t) => t.id !== PENDING_THREAD_ID));
+        setThreads((prev) => [newThread, ...prev]);
+        setSelectedThreadId(newThread.id);
+        setPendingThreadUserId(null);
+        realThreadId = newThread.id;
+
+        for (const p of res.data.Participants) {
+          if (p.userId !== meIdRef.current) {
+            setUsers((prev) => {
+              if (prev.some((u) => u.id === p.userId)) return prev;
+              return [...prev, toUser(p)];
+            });
+          }
+        }
+
+        if (socketRef.current?.connected) {
+          socketRef.current.emit("conversation:join", { conversationId: newThread.id });
+        }
+      } catch (err) {
+        console.error("Failed to create conversation:", err);
+        return;
+      }
+    }
+
+    // Optimistic message
+    const tempId = `temp_${Date.now()}`;
+    const optimisticAttachments = attachments?.map((a, i) => ({
+      id: `opt-att-${Date.now()}-${i}`,
+      type: (a.type === "audio" ? "audio" : a.type === "image" ? "image" : "file") as AttachmentType,
+      name: a.fileName,
+      url: a.fileUrl,
+      size: a.fileSize,
+    }));
+    const optimistic: Message = {
+      id: tempId,
+      threadId: realThreadId,
+      fromUserId: meIdRef.current,
+      text: text.trim(),
+      createdAt: Date.now(),
+      status: "pending",
+      seenByUserIds: [],
+      ...(optimisticAttachments?.length ? { attachments: optimisticAttachments } : {}),
+    };
+
+    setMessagesByThread((prev) => ({
+      ...prev,
+      [realThreadId]: [...(prev[realThreadId] ?? []), optimistic],
+    }));
+    setThreads((prev) => prev.map((t) => (t.id === realThreadId ? { ...t, updatedAt: Date.now() } : t)));
+
+    if (!socketRef.current?.connected) {
+      const token = getToken();
+      if (!token) {
         setMessagesByThread((prev) => ({
           ...prev,
-          [threadId]: [...(prev[threadId] ?? []), mapped],
+          [realThreadId]: (prev[realThreadId] ?? []).map((m) => m.id === tempId ? { ...m, status: "failed" as const } : m),
         }));
-        setThreads((prev) =>
-          prev.map((t) => (t.id === threadId ? { ...t, updatedAt: Date.now() } : t))
+        return;
+      }
+      try {
+        const res = await api.post(
+          `/api/v1/messages/conversations/${realThreadId}/messages`,
+          { content: text.trim(), attachments },
+          { headers: { Authorization: `Bearer ${token}` } }
         );
+        const mapped = { ...toMessage(res.data), status: "delivered" as const };
+        setMessagesByThread((prev) => ({
+          ...prev,
+          [realThreadId]: (prev[realThreadId] ?? []).map((m) => m.id === tempId ? mapped : m),
+        }));
       } catch (err) {
         console.error("Failed to send message via REST fallback:", err);
+        setMessagesByThread((prev) => ({
+          ...prev,
+          [realThreadId]: (prev[realThreadId] ?? []).map((m) => m.id === tempId ? { ...m, status: "failed" as const } : m),
+        }));
       }
       return;
     }
 
-    socketRef.current.emit("message:send", { conversationId: threadId, content: text.trim() });
-  }, []);
+    socketRef.current.emit("message:send", {
+      conversationId: realThreadId,
+      content: text.trim(),
+      attachments,
+    });
+
+    socketRef.current.once("message:new", (msg: any) => {
+      const mapped = toMessage(msg);
+      if (mapped.threadId !== realThreadId) return;
+      setMessagesByThread((prev) => ({
+        ...prev,
+        [realThreadId]: (prev[realThreadId] ?? []).filter((m) => m.id !== tempId),
+      }));
+    });
+  }, [pendingThreadUserId]);
 
   const onEditMessage = useCallback(async (messageId: string, newText: string) => {
     if (!newText.trim() || !socketRef.current) return;
@@ -409,43 +572,20 @@ export function useMessagesData() {
 
   const onPickUser = useCallback(async (userId: ID) => {
     if (userId === meIdRef.current) return;
-    const token = getToken();
-    if (!token) return;
 
+    // Check if existing real thread
     const existing = threads.find(
       (t) => !t.isRequest && t.participantIds.includes(meIdRef.current) && t.participantIds.includes(userId)
     );
     if (existing) {
+      setPendingThreadUserId(null);
       setSelectedThreadId(existing.id);
       return;
     }
 
-    try {
-      const res = await api.post(
-        "/api/v1/messages/conversations",
-        { isGroup: false, participantIds: [userId] },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      const newThread = toThread(res.data);
-      setThreads((prev) => [newThread, ...prev]);
-      setSelectedThreadId(newThread.id);
-
-      for (const p of res.data.Participants) {
-        if (p.userId !== meIdRef.current) {
-          setUsers((prev) => {
-            if (prev.some((u) => u.id === p.userId)) return prev;
-            return [...prev, toUser(p)];
-          });
-        }
-      }
-
-      if (socketRef.current?.connected) {
-        socketRef.current.emit("conversation:join", { conversationId: newThread.id });
-      }
-    } catch (err) {
-      console.error("Failed to create conversation:", err);
-    }
+    // Set as pending — don't create conversation yet
+    setPendingThreadUserId(userId);
+    setSelectedThreadId(PENDING_THREAD_ID);
   }, [threads]);
 
   const onCreateGroup = useCallback(async (participantIds: ID[], name: string, groupPictureUrl?: string) => {
@@ -492,6 +632,26 @@ export function useMessagesData() {
     }
   }, []);
 
+  const uploadAttachment = useCallback(async (threadId: string, file: File): Promise<{ fileUrl: string; fileName: string; fileSize: number; type: string } | null> => {
+  const token = getToken();
+  if (!token) return null;
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const res = await api.post(
+      `/api/v1/messages/conversations/${threadId}/attachments`,
+      formData,
+      { headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" } }
+    );
+    return res.data;
+  } catch (err) {
+    console.error("Attachment upload failed:", err);
+    return null;
+  }
+}, []);
+
   const refresh = useCallback(() => {
     setLoading(true);
     fetchConversations();
@@ -504,15 +664,37 @@ export function useMessagesData() {
       const res = await api.get(`/api/v1/users/search?q=${encodeURIComponent(q.trim())}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      return res.data.map((u: any) => toUser(u));
+      const found: User[] = res.data.map((u: any) => toUser(u));
+      // Cache search results in users state so pending thread can resolve them
+      setUsers((prev) => {
+        const existing = new Set(prev.map((u) => u.id));
+        const newUsers = found.filter((u) => !existing.has(u.id));
+        return newUsers.length ? [...prev, ...newUsers] : prev;
+      });
+      return found;
     } catch (err) {
       console.error("User search failed:", err);
       return [];
     }
   }, []);
 
+  // Participants leaving group
+  const onLeaveGroup = useCallback(async (threadId: string) => {
+    const token = getToken();
+    if (!token) return;
+    try {
+      await api.delete(`/api/v1/messages/conversations/${threadId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setThreads((prev) => prev.filter((t) => t.id !== threadId));
+      setSelectedThreadId(null);
+    } catch (err) {
+      console.error("Failed to leave group:", err);
+    }
+  }, []);
+
   return {
-    threads,
+    threads: threadsWithPending,
     usersWithMe,
     notes,
     allMessages,
@@ -540,5 +722,12 @@ export function useMessagesData() {
     hasMoreByThread,
     loadingMoreByThread,
     fetchOlderMessages,
+    uploadAttachment,
+    onLeaveGroup,
+    loadingThreadId,
+    blockedUserIds,
+    blockUser,
+    unblockUser,
+    pendingThreadUserId,
   };
 }

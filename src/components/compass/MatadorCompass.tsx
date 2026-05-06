@@ -31,6 +31,7 @@ import {
   type StudentYear,
   type MilestoneCategory,
 } from './compass.data';
+import { WidgetHeader } from '../widgets/WidgetHeader';
 
 // ─── Storage ─────────────────────────────────────────────────────────────────
 
@@ -350,9 +351,10 @@ function OnboardingScreen({ onSelect }: { onSelect: (y: StudentYear) => void }) 
 
 interface Props {
   compact?: boolean;  // For dashboard widget mode
+  onDelete?: () => void;
 }
 
-export default function MatadorCompass({ compact = false }: Props) {
+export default function MatadorCompass({ compact = false, onDelete }: Props) {
   const [state, setState] = useState<CompassState>({ year: 'freshman', statuses: {}, onboarded: false });
   const [filter, setFilter] = useState<MilestoneCategory | 'all'>('all');
   const [showDone, setShowDone] = useState(true);
@@ -408,6 +410,8 @@ export default function MatadorCompass({ compact = false }: Props) {
     const urgentItems = milestones.filter((m) => m.priority === 'critical' && !['done','skipped'].includes(state.statuses[m.id] ?? 'todo')).slice(0, 3);
     return (
       <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+        <WidgetHeader title="Matador Compass" onDelete={onDelete} />
+
         {/* Header */}
         <div style={{ background: 'linear-gradient(135deg, #D22030 0%, #8b1220 100%)', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
           <ProgressRing pct={pct} size={40} color="#fff" />

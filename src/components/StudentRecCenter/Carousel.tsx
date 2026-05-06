@@ -43,8 +43,8 @@ export default function Carousel({ slides }: { slides: Slide[] }) {
   const arrowBtn = {
     width: 44, height: 44, flexShrink: 0,
     bgcolor: "rgba(255,255,255,0.18)",
-    border: "1.5px solid rgba(255,255,255,0.45)",
-    color: "#fff",
+    border: "1.5px solid rgb(255, 0, 0)",
+    color: "#ff0000",
     backdropFilter: "blur(10px)",
     "&:hover": { bgcolor: "rgba(255,255,255,0.3)" },
   };
@@ -150,11 +150,11 @@ export default function Carousel({ slides }: { slides: Slide[] }) {
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setCurrent(i); } }}
             animate={{
               width: i === current ? 22 : 7,
-              backgroundColor: i === current ? "#ffffff" : "rgba(255,255,255,0.32)",
+              backgroundColor: i === current ? "#ff0000" : "rgba(255, 0, 0, 0.32)",
             }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
             style={{ height: 7, borderRadius: 999, cursor: "pointer" }}
-            whileHover={{ backgroundColor: "rgba(255,255,255,0.65)" }}
+            whileHover={{ backgroundColor: "rgba(228, 47, 47, 0.65)" }}
           />
         ))}
       </Box>

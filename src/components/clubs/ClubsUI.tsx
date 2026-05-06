@@ -89,17 +89,17 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
         "&:active": { transform: "scale(0.92)" },
         ...(active
           ? {
-              bgcolor: accent ?? "rgba(255,255,255,0.92)",
+              bgcolor: accent ?? "#B4002E",
               color: "white",
-              border: `1px solid ${accent ?? "rgba(255,255,255,0.6)"}`,
-              boxShadow: `0 4px 16px ${accent ?? "rgba(255,255,255,0.2)"}44`,
-              "&:hover": { filter: "brightness(1.12)", transform: "translateY(-2px)" },
+              border: `1px solid ${accent ?? "#B4002E"}`,
+              boxShadow: `0 4px 16px ${accent ?? "rgba(180,0,46,0.3)"}44`,
+              "&:hover": { filter: "brightness(1.10)", transform: "translateY(-2px)" },
             }
           : {
-              bgcolor: "rgba(255,255,255,0.07)",
-              color: "rgba(255,255,255,0.78)",
-              border: "1px solid rgba(255,255,255,0.14)",
-              "&:hover": { bgcolor: "rgba(255,255,255,0.13)", transform: "translateY(-2px)", boxShadow: "0 4px 12px rgba(0,0,0,0.3)" },
+              bgcolor: "rgba(255,255,255,0.10)",
+              color: "rgba(255,210,215,0.85)",
+              border: "1px solid rgba(255,255,255,0.18)",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.18)", transform: "translateY(-2px)", boxShadow: "0 4px 12px rgba(0,0,0,0.20)" },
             }),
       }}
     />
@@ -177,34 +177,6 @@ export default function ClubsUI({ clubs: clubsProp, mode, club }: Props) {
   return (
     <AuroraBackground>
       <Box sx={{ position: "relative", minHeight: "100vh" }}>
-        {/* ── BACK BUTTON ───────────────────────────────────────────────────── */}
-        <Box sx={{ px: { xs: 3, md: 8, lg: 14 }, pt: 3, position: "relative", zIndex: 1 }}>
-          <Button
-            onClick={() => router.push("/dashboard")}
-            startIcon={<ArrowBackIcon sx={{ fontSize: 16 }} />}
-            sx={{
-              color: "white",
-              bgcolor: "rgba(255,255,255,0.12)",
-              border: "1px solid rgba(255,255,255,0.25)",
-              borderRadius: 999,
-              px: 2.2,
-              py: 0.8,
-              fontWeight: 800,
-              fontSize: 13,
-              letterSpacing: 0.3,
-              textTransform: "none",
-              backdropFilter: "blur(10px)",
-              transition: "all 0.2s ease",
-              "&:hover": {
-                bgcolor: "rgba(255,255,255,0.22)",
-                borderColor: "rgba(255,255,255,0.50)",
-                transform: "translateX(-2px)",
-              },
-            }}
-          >
-            Back to Dashboard
-          </Button>
-        </Box>
 
         {/* ── HERO ──────────────────────────────────────────────────────────── */}
         <Box
@@ -223,12 +195,11 @@ export default function ClubsUI({ clubs: clubsProp, mode, club }: Props) {
           {/* Title */}
           <Typography
             sx={{
-              color: "white",
+              color: "#B4002E",
               fontSize: { xs: 52, md: 80 },
               fontWeight: 900,
               lineHeight: 0.95,
               letterSpacing: -2,
-              textShadow: "0 4px 40px rgba(220,20,40,0.55), 0 0 80px rgba(255,0,40,0.25)",
               fontFamily: "'Arial Black', 'Impact', sans-serif",
             }}
           >
@@ -236,7 +207,7 @@ export default function ClubsUI({ clubs: clubsProp, mode, club }: Props) {
           </Typography>
           <Typography
             sx={{
-              color: "rgba(255,255,255,0.60)",
+              color: "rgba(80,0,20,0.55)",
               mt: 2,
               fontSize: { xs: 15, md: 18 },
               maxWidth: 520,
@@ -253,21 +224,80 @@ export default function ClubsUI({ clubs: clubsProp, mode, club }: Props) {
 
           {/* Tabs — below gallery */}
           <Box sx={{ display: "flex", gap: 1.2, mt: 3, flexWrap: "wrap", justifyContent: "center" }}>
-            <Button onClick={() => setTab("discover")} sx={tab === "discover" ? { ...btnPrimary, px: 2.8 } : { ...btnGhost, px: 2.8 }}>
+            <Button
+              onClick={() => setTab("discover")}
+              sx={{
+                px: 3.2, py: 1.1,
+                borderRadius: 999,
+                fontWeight: 800,
+                fontSize: 13,
+                letterSpacing: 0.6,
+                textTransform: "uppercase",
+                transition: "all 0.22s cubic-bezier(0.34,1.56,0.64,1)",
+                ...(tab === "discover"
+                  ? {
+                      background: "linear-gradient(135deg, #c0002e 0%, #8a0020 100%)",
+                      color: "white",
+                      border: "1.5px solid transparent",
+                      boxShadow: "0 6px 20px rgba(180,0,46,0.40), 0 2px 6px rgba(0,0,0,0.12)",
+                      "&:hover": { transform: "translateY(-2px)", boxShadow: "0 10px 28px rgba(180,0,46,0.50)" },
+                    }
+                  : {
+                      background: "white",
+                      color: "#B4002E",
+                      border: "1.5px solid #B4002E",
+                      boxShadow: "0 2px 8px rgba(180,0,46,0.12)",
+                      "&:hover": { background: "rgba(180,0,46,0.06)", transform: "translateY(-2px)", boxShadow: "0 6px 16px rgba(180,0,46,0.20)" },
+                    }),
+              }}
+            >
               Discover
             </Button>
-            <Button onClick={() => setTab("mine")} sx={tab === "mine" ? { ...btnPrimary, px: 2.8 } : { ...btnGhost, px: 2.8 }}>
+            <Button
+              onClick={() => setTab("mine")}
+              sx={{
+                px: 3.2, py: 1.1,
+                borderRadius: 999,
+                fontWeight: 800,
+                fontSize: 13,
+                letterSpacing: 0.6,
+                textTransform: "uppercase",
+                transition: "all 0.22s cubic-bezier(0.34,1.56,0.64,1)",
+                ...(tab === "mine"
+                  ? {
+                      background: "linear-gradient(135deg, #c0002e 0%, #8a0020 100%)",
+                      color: "white",
+                      border: "1.5px solid transparent",
+                      boxShadow: "0 6px 20px rgba(180,0,46,0.40), 0 2px 6px rgba(0,0,0,0.12)",
+                      "&:hover": { transform: "translateY(-2px)", boxShadow: "0 10px 28px rgba(180,0,46,0.50)" },
+                    }
+                  : {
+                      background: "white",
+                      color: "#B4002E",
+                      border: "1.5px solid #B4002E",
+                      boxShadow: "0 2px 8px rgba(180,0,46,0.12)",
+                      "&:hover": { background: "rgba(180,0,46,0.06)", transform: "translateY(-2px)", boxShadow: "0 6px 16px rgba(180,0,46,0.20)" },
+                    }),
+              }}
+            >
               My Clubs
             </Button>
             <Button
               component={Link}
               href="/clubs/create-club"
               sx={{
-                ...btnGhost, px: 2.8,
-                background: "rgba(180,0,46,0.18)",
-                border: "1px solid rgba(180,0,46,0.45)",
-                color: "rgba(255,180,180,0.95)",
-                "&:hover": { background: "rgba(180,0,46,0.32)", transform: "translateY(-2px)" },
+                px: 3.2, py: 1.1,
+                borderRadius: 999,
+                fontWeight: 800,
+                fontSize: 13,
+                letterSpacing: 0.6,
+                textTransform: "uppercase",
+                transition: "all 0.22s cubic-bezier(0.34,1.56,0.64,1)",
+                background: "linear-gradient(135deg, #c0002e 0%, #8a0020 100%)",
+                color: "white",
+                border: "1.5px solid transparent",
+                boxShadow: "0 6px 20px rgba(180,0,46,0.40), 0 2px 6px rgba(0,0,0,0.12)",
+                "&:hover": { transform: "translateY(-2px)", boxShadow: "0 10px 28px rgba(180,0,46,0.50)", background: "linear-gradient(135deg, #d4003a 0%, #a0002a 100%)" },
               }}
             >
               + Create Club
@@ -288,13 +318,13 @@ export default function ClubsUI({ clubs: clubsProp, mode, club }: Props) {
                 InputProps={{
                   sx: {
                     borderRadius: 999,
-                    bgcolor: "rgba(255, 255, 255, 0.08)",
+                    bgcolor: "rgba(255,255,255,0.10)",
                     color: "white",
                     px: 1.2,
-                    "& input::placeholder": { color: "rgba(255,255,255,0.45)", opacity: 1 },
-                    "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.45)" },
-                    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.95)", boxShadow: "0 0 0 3px rgba(255,255,255,0.12), 0 0 16px rgba(255,255,255,0.10)" },
-                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,1)", boxShadow: "0 0 0 3px rgba(255,255,255,0.15), 0 0 20px rgba(255,255,255,0.12)" },
+                    "& input::placeholder": { color: "rgba(255,200,210,0.55)", opacity: 1 },
+                    "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.25)" },
+                    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.65)", boxShadow: "0 0 0 3px rgba(255,255,255,0.08)" },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.90)", boxShadow: "0 0 0 3px rgba(255,255,255,0.12)" },
                   },
                 }}
               />
@@ -315,10 +345,10 @@ export default function ClubsUI({ clubs: clubsProp, mode, club }: Props) {
             </Box>
 
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mt: 1.5 }}>
-              <Typography sx={{ color: "rgba(255,255,255,0.55)", fontWeight: 700, fontSize: 13 }}>
+              <Typography sx={{ color: "rgba(255,200,210,0.75)", fontWeight: 700, fontSize: 13 }}>
                 {filtered.length} club{filtered.length !== 1 ? "s" : ""}
               </Typography>
-              <Typography sx={{ color: "rgba(255, 255, 255, 0.35)", fontWeight: 600, fontSize: 11 }}>
+              <Typography sx={{ color: "rgba(255,200,210,0.45)", fontWeight: 600, fontSize: 11 }}>
                 Click a card to flip it
               </Typography>
             </Box>
@@ -327,11 +357,11 @@ export default function ClubsUI({ clubs: clubsProp, mode, club }: Props) {
 
         {/* ── GRID ──────────────────────────────────────────────────────────── */}
         <Box sx={{ px: { xs: 2, md: 6, lg: 12 }, pb: 8, position: "relative", zIndex: 1 }}>
-          <Divider sx={{ borderColor: "rgba(255,255,255,0.07)", mb: 2.5 }} />
+          <Divider sx={{ borderColor: "rgba(180,0,46,0.10)", mb: 2.5 }} />
 
           {filtered.length === 0 ? (
             <Box sx={{ textAlign: "center", py: 10 }}>
-              <Typography sx={{ color: "rgba(255, 0, 0, 0.4)", fontSize: 16 }}>No clubs match your search.</Typography>
+              <Typography sx={{ color: "rgba(180,0,46,0.45)", fontSize: 16 }}>No clubs match your search.</Typography>
               <Button onClick={() => { setSearch(""); setActiveCategories(new Set()); }} sx={{ ...btnGhost, mt: 2 }}>Clear filters</Button>
             </Box>
           ) : (

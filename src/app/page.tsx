@@ -291,6 +291,10 @@ function LookbookScatter() {
 }
 
 export default function LandingPage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem("token"));
+  }, []);
   const { scrollY } = useScroll();
   const heroClip = useTransform(
     scrollY,
@@ -332,12 +336,15 @@ export default function LandingPage() {
           <Image src="/ToroConnectLP.png" alt="" width={26} height={26} className="w-[26px] h-[26px]" />
           <span className="text-[13px] font-semibold tracking-tight">Toro Campus Connect</span>
         </div>
-        <Link
-          href="/register"
-          className="text-[12px] font-semibold text-[#CC0033] hover:underline underline-offset-4"
-        >
-          Sign up &rarr;
-        </Link>
+        {isLoggedIn ? (
+          <Link href="/dashboard" className="text-[12px] font-semibold text-[#CC0033] hover:underline underline-offset-4">
+            Dashboard →
+          </Link>
+        ) : (
+          <Link href="/register" className="text-[12px] font-semibold text-[#CC0033] hover:underline underline-offset-4">
+            Sign up →
+          </Link>
+        )}
       </motion.nav>
       <motion.section
         style={{ clipPath: heroClip, opacity: heroOpacity }}
@@ -370,12 +377,15 @@ export default function LandingPage() {
             transition={{ duration: 1, delay: 0.4 }}
             className="flex items-center gap-5"
           >
-            <Link
-              href="/register"
-              className="text-[13px] font-semibold text-[#CC0033] hover:underline underline-offset-4 decoration-[#CC0033]"
-            >
-              Sign up
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard" className="text-[13px] font-semibold text-[#CC0033] hover:underline underline-offset-4 decoration-[#CC0033]">
+                Dashboard
+              </Link>
+            ) : (
+              <Link href="/register" className="text-[13px] font-semibold text-[#CC0033] hover:underline underline-offset-4 decoration-[#CC0033]">
+                Sign up
+              </Link>
+            )}
             <button
               onClick={scrollToVideo}
               className="text-[13px] hover:text-[#555] transition-colors"
@@ -593,13 +603,17 @@ export default function LandingPage() {
           </FadeUp>
 
           <FadeUp delay={0.15}>
-            <Link
-              href="/register"
-              className="group inline-flex items-center gap-3 bg-white text-[#CC0033] px-8 py-4 text-[14px] font-semibold hover:bg-[#f5f5f5] transition-colors"
-            >
-              Sign up
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1.5" />
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard" className="group inline-flex items-center gap-3 bg-white text-[#CC0033] px-8 py-4 text-[14px] font-semibold hover:bg-[#f5f5f5] transition-colors">
+                Go to Dashboard
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1.5" />
+              </Link>
+            ) : (
+              <Link href="/register" className="group inline-flex items-center gap-3 bg-white text-[#CC0033] px-8 py-4 text-[14px] font-semibold hover:bg-[#f5f5f5] transition-colors">
+                Sign up
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1.5" />
+              </Link>
+            )}
           </FadeUp>
         </div>
       </section>

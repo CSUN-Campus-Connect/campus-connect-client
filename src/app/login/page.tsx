@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -11,10 +11,12 @@ import { PublicUser } from '@/types/profile';
 import { loginSchema, LoginInput } from '@/lib/validators/auth.validators';
 import { z } from 'zod';
 
+
 const smooth: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 export default function LoginPage() {
   const router = useRouter();
+  
   React.useEffect(() => {
     const user = localStorage.getItem('user');
     const token = localStorage.getItem('token');
@@ -83,6 +85,7 @@ export default function LoginPage() {
       setIsSubmitting(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-white text-[#111] flex flex-col">

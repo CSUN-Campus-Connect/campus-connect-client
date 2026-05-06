@@ -9,17 +9,13 @@
  *   Timeline   – chronological list grouped by month
  *   Calendar   – monthly grid calendar
  *   Favorites  – heart-saved events with crimson shimmer
- *
- * Key behaviours:
- *   - Filter chip press → Framer Motion `layout` reorders cards with spring physics (fast)
- *   - Heart press → useFavorites (localStorage-persisted) + count badge in nav
- *   - Register → EventRegisterModal → success screen with related events panel
- *   - All csunUrl links go to the specific event on news.csun.edu (no fabricated slugs)
- *   - Zero emojis anywhere in this file or child components
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Box } from '@mui/material';
+import { useRouter } from 'next/navigation';
+import DashboardSidebar from '@/components/dashboard/sidebar';
 import type { CategoryId, AudienceId, EventItem, NavSection } from './types';
 import { CATEGORIES, AUDIENCES, NAV_SECTIONS } from './data/constants';
 import { useEventRanking } from './hooks/useEventRanking';
@@ -74,7 +70,6 @@ function NavBar({ activeSection, onSection, favoriteCount }: NavBarProps) {
   return (
     <div style={{ position: 'sticky', top: 0, zIndex: 50, backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', background: 'rgba(255, 255, 255, 0.92)', borderBottom: '1px solid rgba(0, 0, 0, 0.05)' }}>
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', height: 54 }}>
-        {/* Brand mark */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginRight: '1.5rem' }}>
           <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(135deg, #CC0033 0%, #9a0029 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ width: 9, height: 9, borderRadius: '50%', background: 'rgba(255,255,255,0.9)' }} />
@@ -108,12 +103,7 @@ function NavBar({ activeSection, onSection, favoriteCount }: NavBarProps) {
             >
               {s.label}
               {showBadge && (
-                <span style={{
-                  position: 'absolute', top: -4, right: -4,
-                  width: 16, height: 16, borderRadius: '50%',
-                  background: '#D22030', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 9, fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#fff',
-                }}>
+                <span style={{ position: 'absolute', top: -4, right: -4, width: 16, height: 16, borderRadius: '50%', background: '#D22030', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#fff' }}>
                   {favoriteCount > 9 ? '9+' : favoriteCount}
                 </span>
               )}
@@ -121,7 +111,6 @@ function NavBar({ activeSection, onSection, favoriteCount }: NavBarProps) {
           );
         })}
 
-        {/* Live indicator */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#16c878', boxShadow: '0 0 7px rgba(22,200,120,0.7)', animation: 'livePulse 2s ease-in-out infinite' }} />
           <span style={{ fontSize: 11, color: '#999', fontFamily: "'DM Sans', sans-serif" }}>Live</span>
@@ -174,9 +163,9 @@ function HeroSection({ totalEvents, search, onSearch }: { totalEvents: number; s
         style={{ display: 'flex', gap: 0, flexWrap: 'wrap' }}>
         {[
           { value: String(totalEvents), label: 'Active events', accent: true },
-          { value: '7',   label: 'Categories' },
+          { value: '7',     label: 'Categories' },
           { value: '5.2K+', label: 'Registered students' },
-          { value: 'Free', label: 'Admission — most events' },
+          { value: 'Free',  label: 'Admission — most events' },
         ].map((stat, i, arr) => (
           <React.Fragment key={stat.label}>
             <div style={{ paddingRight: 24 }}>
@@ -219,9 +208,9 @@ function FilterBar({ category, audience, showFree, showTrending, onCategory, onA
         <div style={{ width: 1, height: 22, background: 'rgba(0,0,0,0.08)', margin: '0 2px', flexShrink: 0 }} />
 
         {[
-          { label: 'Trending', active: showTrending, onClick: onTrending, color: '#D22030', activeColor: '#D22030' },
-          { label: 'Free',     active: showFree,     onClick: onFree,     color: '#16c878', activeColor: '#16c878' },
-        ].map(({ label, active, onClick, color, activeColor }) => (
+          { label: 'Trending', active: showTrending, onClick: onTrending, activeColor: '#D22030' },
+          { label: 'Free',     active: showFree,     onClick: onFree,     activeColor: '#16c878' },
+        ].map(({ label, active, onClick, activeColor }) => (
           <button key={label} onClick={onClick}
             style={{ padding: '0.45rem 0.875rem', borderRadius: 20, border: active ? `1px solid ${activeColor}` : '1px solid rgba(0,0,0,0.08)', background: active ? `${activeColor}12` : 'rgba(0,0,0,0.02)', color: active ? activeColor : '#777', fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: active ? 600 : 400, cursor: 'pointer', transition: 'all 0.18s' }}>
             {label}
@@ -240,22 +229,24 @@ function FilterBar({ category, audience, showFree, showTrending, onCategory, onA
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function EventsNexusPage() {
-  const [activeSection, setActiveSection] = useState<NavSection>('discover');
-  const [category,     setCategory]     = useState<CategoryId>('all');
-  const [audience,     setAudience]     = useState<AudienceId>('all');
-  const [showFree,     setShowFree]     = useState(false);
-  const [showTrending, setShowTrending] = useState(false);
-  const [search,       setSearch]       = useState('');
-  const [events,       setEvents]       = useState<EventItem[]>(SEED_EVENTS);
-  const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
-  const [drawerOpen,    setDrawerOpen]    = useState(false);
-  const [registerEvent, setRegisterEvent] = useState<EventItem | null>(null);
+  const router = useRouter();
+  const [sidebarWidth, setSidebarWidth] = useState(220);
+
+  const [activeSection,  setActiveSection]  = useState<NavSection>('discover');
+  const [category,       setCategory]       = useState<CategoryId>('all');
+  const [audience,       setAudience]       = useState<AudienceId>('all');
+  const [showFree,       setShowFree]       = useState(false);
+  const [showTrending,   setShowTrending]   = useState(false);
+  const [search,         setSearch]         = useState('');
+  const [events,         setEvents]         = useState<EventItem[]>(SEED_EVENTS);
+  const [selectedEvent,  setSelectedEvent]  = useState<EventItem | null>(null);
+  const [drawerOpen,     setDrawerOpen]     = useState(false);
+  const [registerEvent,  setRegisterEvent]  = useState<EventItem | null>(null);
 
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
   const { rankedEvents } = useEventRanking(events);
   const relatedEvents = useRelatedEvents(registerEvent, rankedEvents);
 
-  // ── Filter pipeline ─────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rankedEvents.filter((ev) => {
@@ -288,32 +279,60 @@ export default function EventsNexusPage() {
         select option{background:#fff;color:#111;}
       `}</style>
 
+<<<<<<< HEAD
       <div style={{ minHeight: '100vh', position: 'relative', color: '#111' }}>
         <PageBackground />
+=======
+      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+        {/* ── Sidebar ── */}
+        <DashboardSidebar
+          onLogout={() => router.push('/login')}
+          onWidthChange={setSidebarWidth}
+        />
+>>>>>>> e8d01d5e907e6847908a9f2ba61206d1fdee4272
 
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <NavBar activeSection={activeSection} onSection={setActiveSection} favoriteCount={favorites.size} />
+        {/* ── Page content — offset by sidebar width ── */}
+        <Box sx={{
+          ml: `${sidebarWidth}px`,
+          flex: 1,
+          minWidth: 0,
+          minHeight: '100vh',
+          position: 'relative',
+          color: '#fff',
+          transition: 'margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}>
+          <PageBackground />
 
-          <AnimatePresence mode="wait">
-            {/* ── DISCOVER ──────────────────────────────────────────────────── */}
-            {activeSection === 'discover' && (
-              <motion.div key="discover" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
-                <HeroSection totalEvents={filtered.length} search={search} onSearch={setSearch} />
-                <FilterBar category={category} audience={audience} showFree={showFree} showTrending={showTrending} onCategory={setCategory} onAudience={setAudience} onFree={() => setShowFree((v) => !v)} onTrending={() => setShowTrending((v) => !v)} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <NavBar activeSection={activeSection} onSection={setActiveSection} favoriteCount={favorites.size} />
 
-                {/* Section heading */}
-                <div style={{ maxWidth: 1400, margin: '0 auto', padding: '2rem 2rem 1rem', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ fontSize: 9, letterSpacing: '3px', textTransform: 'uppercase', color: '#D22030', fontFamily: "'Syne', sans-serif", fontWeight: 700, marginBottom: 4 }}>
-                      Ranked by Engagement Score
+            <AnimatePresence mode="wait">
+              {/* ── DISCOVER ── */}
+              {activeSection === 'discover' && (
+                <motion.div key="discover" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
+                  <HeroSection totalEvents={filtered.length} search={search} onSearch={setSearch} />
+                  <FilterBar category={category} audience={audience} showFree={showFree} showTrending={showTrending} onCategory={setCategory} onAudience={setAudience} onFree={() => setShowFree((v) => !v)} onTrending={() => setShowTrending((v) => !v)} />
+
+                  <div style={{ maxWidth: 1400, margin: '0 auto', padding: '2rem 2rem 1rem', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontSize: 9, letterSpacing: '3px', textTransform: 'uppercase', color: '#D22030', fontFamily: "'Syne', sans-serif", fontWeight: 700, marginBottom: 4 }}>
+                        Ranked by Engagement Score
+                      </div>
+                      <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 20, color: '#fff', margin: 0 }}>
+                        {category === 'all' ? 'All Events' : CATEGORIES.find((c) => c.id === category)?.name}
+                        <span style={{ color: '#D22030', marginLeft: 8 }}>({filtered.length})</span>
+                      </h2>
                     </div>
+<<<<<<< HEAD
                     <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 28, color: '#CC0033', margin: 0, textShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
                       {category === 'all' ? 'All Events' : CATEGORIES.find((c) => c.id === category)?.name}
                       <span style={{ color: '#CC0033', marginLeft: 8 }}>({filtered.length})</span>
                     </h2>
+=======
+>>>>>>> e8d01d5e907e6847908a9f2ba61206d1fdee4272
                   </div>
-                </div>
 
+<<<<<<< HEAD
                 {/* Bento grid */}
                 <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 2rem 4rem' }}>
                   {filtered.length === 0 ? (
@@ -341,63 +360,92 @@ export default function EventsNexusPage() {
                 </div>
               </motion.div>
             )}
+=======
+                  <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 2rem 4rem' }}>
+                    {filtered.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '60px 0', color: 'rgba(255,255,255,0.28)' }}>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 17, marginBottom: 6 }}>No events found</div>
+                        <div style={{ fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>Try adjusting your filters</div>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+                        <AnimatePresence mode="popLayout">
+                          {filtered.map((event, idx) => (
+                            <EventBentoCard
+                              key={event.id}
+                              event={event}
+                              index={idx}
+                              isFavorite={isFavorite(event.id)}
+                              onOpen={openEvent}
+                              onToggleFav={toggleFavorite}
+                              onRegister={(ev) => setRegisterEvent(ev)}
+                            />
+                          ))}
+                        </AnimatePresence>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+>>>>>>> e8d01d5e907e6847908a9f2ba61206d1fdee4272
 
-            {/* ── GRAPH ─────────────────────────────────────────────────────── */}
-            {activeSection === 'graph' && (
-              <motion.div key="graph" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
-                <EventGraph events={rankedEvents} onSelectEvent={openEvent} />
-              </motion.div>
-            )}
+              {/* ── GRAPH ── */}
+              {activeSection === 'graph' && (
+                <motion.div key="graph" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
+                  <EventGraph events={rankedEvents} onSelectEvent={openEvent} />
+                </motion.div>
+              )}
 
-            {/* ── TIMELINE ──────────────────────────────────────────────────── */}
-            {activeSection === 'timeline' && (
-              <motion.div key="timeline" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
-                <EventTimeline events={events} onSelectEvent={openEvent} />
-              </motion.div>
-            )}
+              {/* ── TIMELINE ── */}
+              {activeSection === 'timeline' && (
+                <motion.div key="timeline" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
+                  <EventTimeline events={events} onSelectEvent={openEvent} />
+                </motion.div>
+              )}
 
-            {/* ── CALENDAR ──────────────────────────────────────────────────── */}
-            {activeSection === 'calendar' && (
-              <motion.div key="calendar" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
-                <EventCalendarView events={events} onSelectEvent={openEvent} />
-              </motion.div>
-            )}
+              {/* ── CALENDAR ── */}
+              {activeSection === 'calendar' && (
+                <motion.div key="calendar" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
+                  <EventCalendarView events={events} onSelectEvent={openEvent} />
+                </motion.div>
+              )}
 
-            {/* ── FAVORITES ─────────────────────────────────────────────────── */}
-            {activeSection === 'favorites' && (
-              <motion.div key="favorites" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
-                <FavoritesPage
-                  allEvents={rankedEvents}
-                  favorites={favorites}
-                  onOpen={openEvent}
-                  onRemove={toggleFavorite}
-                  onDiscover={() => setActiveSection('discover')}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+              {/* ── FAVORITES ── */}
+              {activeSection === 'favorites' && (
+                <motion.div key="favorites" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
+                  <FavoritesPage
+                    allEvents={rankedEvents}
+                    favorites={favorites}
+                    onOpen={openEvent}
+                    onRemove={toggleFavorite}
+                    onDiscover={() => setActiveSection('discover')}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
-        {/* Details drawer */}
-        <EventDetailsDrawer
-          event={selectedEvent}
-          open={drawerOpen}
-          isFavorite={selectedEvent ? isFavorite(selectedEvent.id) : false}
-          onClose={() => setDrawerOpen(false)}
-          onToggleFav={toggleFavorite}
-          onRegister={(ev) => { setDrawerOpen(false); setRegisterEvent(ev); }}
-        />
+          {/* Details drawer */}
+          <EventDetailsDrawer
+            event={selectedEvent}
+            open={drawerOpen}
+            isFavorite={selectedEvent ? isFavorite(selectedEvent.id) : false}
+            onClose={() => setDrawerOpen(false)}
+            onToggleFav={toggleFavorite}
+            onRegister={(ev) => { setDrawerOpen(false); setRegisterEvent(ev); }}
+          />
 
-        {/* Register modal */}
-        <EventRegisterModal
-          event={registerEvent}
-          open={!!registerEvent}
-          relatedEvents={relatedEvents}
-          onClose={() => setRegisterEvent(null)}
-          onConfirm={handleRegister}
-          onOpenRelated={(ev) => { setRegisterEvent(null); openEvent(ev); }}
-        />
-      </div>
+          {/* Register modal */}
+          <EventRegisterModal
+            event={registerEvent}
+            open={!!registerEvent}
+            relatedEvents={relatedEvents}
+            onClose={() => setRegisterEvent(null)}
+            onConfirm={handleRegister}
+            onOpenRelated={(ev) => { setRegisterEvent(null); openEvent(ev); }}
+          />
+        </Box>
+      </Box>
     </>
   );
 }

@@ -10,69 +10,54 @@ export default function AuroraBackground({ children }: { children: React.ReactNo
         position: "relative",
         minHeight: "100vh",
         overflow: "hidden",
-        bgcolor: "#3a0010",
+        bgcolor: "#ffffff",
+
+        /* Subtle red glow — top-left and bottom-right corners only */
         "&::before": {
           content: '""',
-          position: "absolute",
-          inset: "-30%",
-          zIndex: 0,
-          background: [
-            "radial-gradient(ellipse 90% 65% at 10% 5%, rgba(230,20,50,0.90), transparent 55%)",
-            "radial-gradient(ellipse 80% 60% at 90% 8%, rgba(180,0,40,0.85), transparent 55%)",
-            "radial-gradient(ellipse 70% 55% at 50% 50%, rgba(210,30,60,0.60), transparent 60%)",
-            "radial-gradient(ellipse 75% 60% at 15% 90%, rgba(140,0,35,0.80), transparent 55%)",
-            "radial-gradient(ellipse 80% 65% at 85% 88%, rgba(200,10,40,0.75), transparent 55%)",
-            "radial-gradient(ellipse 60% 40% at 40% 30%, rgba(255,50,70,0.40), transparent 60%)",
-          ].join(","),
-          filter: "blur(55px) saturate(180%)",
-          animation: "auroraShift 20s ease-in-out infinite alternate",
-        },
-        "&::after": {
-          content: '""',
-          position: "absolute",
-          inset: "-20%",
-          zIndex: 0,
-          background: [
-            "radial-gradient(ellipse 140% 35% at 25% 15%, rgba(255,80,100,0.28), transparent 55%)",
-            "radial-gradient(ellipse 120% 30% at 75% 80%, rgba(200,20,55,0.22), transparent 55%)",
-            "radial-gradient(ellipse 160% 20% at 50% 55%, rgba(190,0,40,0.18), transparent 60%)",
-          ].join(","),
-          filter: "blur(40px) saturate(160%)",
-          animation: "auroraStreaks 26s ease-in-out infinite alternate-reverse",
-          pointerEvents: "none",
-        },
-        "@keyframes auroraShift": {
-          "0%":   { transform: "translate(-4%, -5%) scale(1.03) rotate(0deg)" },
-          "25%":  { transform: "translate(5%, -3%) scale(1.08) rotate(0.5deg)" },
-          "50%":  { transform: "translate(3%, 6%) scale(1.05) rotate(-0.5deg)" },
-          "75%":  { transform: "translate(-5%, 4%) scale(1.07) rotate(0.3deg)" },
-          "100%": { transform: "translate(-2%, -2%) scale(1.04) rotate(0deg)" },
-        },
-        "@keyframes auroraStreaks": {
-          "0%":   { transform: "translate(4%, 3%) scale(1.04)" },
-          "33%":  { transform: "translate(-5%, -4%) scale(1.09)" },
-          "66%":  { transform: "translate(3%, -2%) scale(1.06)" },
-          "100%": { transform: "translate(-3%, 5%) scale(1.05)" },
-        },
-        "& > .aurora-shimmer": {
           position: "absolute",
           inset: 0,
           zIndex: 0,
           background: [
-            "radial-gradient(ellipse 50% 30% at 70% 20%, rgba(255,100,120,0.15), transparent 60%)",
-            "radial-gradient(ellipse 40% 25% at 30% 75%, rgba(220,40,70,0.12), transparent 60%)",
+            "radial-gradient(ellipse 55% 40% at 0% 0%, rgba(210,30,50,0.09), transparent 70%)",
+            "radial-gradient(ellipse 50% 35% at 100% 100%, rgba(200,20,40,0.07), transparent 70%)",
           ].join(","),
-          animation: "shimmerPulse 8s ease-in-out infinite alternate",
+          animation: "gentlePulse 12s ease-in-out infinite alternate",
           pointerEvents: "none",
         },
-        "@keyframes shimmerPulse": {
-          "0%":   { opacity: 0.4 },
+
+        /* Single thin red streak — diagonal, barely visible */
+        "&::after": {
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          zIndex: 0,
+          background:
+            "radial-gradient(ellipse 120% 8% at 50% 50%, rgba(210,30,50,0.045), transparent 70%)",
+          transform: "rotate(-8deg)",
+          animation: "streakDrift 18s ease-in-out infinite alternate",
+          pointerEvents: "none",
+        },
+
+        "@keyframes gentlePulse": {
+          "0%":   { opacity: 0.7 },
           "50%":  { opacity: 1 },
-          "100%": { opacity: 0.5 },
+          "100%": { opacity: 0.75 },
+        },
+
+        "@keyframes streakDrift": {
+          "0%":   { transform: "rotate(-8deg) translateY(-2%)" },
+          "50%":  { transform: "rotate(-6deg) translateY(2%)" },
+          "100%": { transform: "rotate(-9deg) translateY(-1%)" },
+        },
+
+        "@keyframes dotPulse": {
+          "0%, 100%": { transform: "scale(1)", opacity: 0.55 },
+          "50%":      { transform: "scale(1.6)", opacity: 1 },
         },
       }}
     >
-      <Box className="aurora-shimmer" />
+      <Box className="aurora-dot" />
       <Box sx={{ position: "relative", zIndex: 1 }}>{children}</Box>
     </Box>
   );
