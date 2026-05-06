@@ -198,13 +198,13 @@ export default function EventGraph({ events, onSelectEvent }: Props) {
         ctx.stroke();
       }
 
-      // Node gradient fill
+      // Node gradient fill — more vibrant colors
       const grad = ctx.createRadialGradient(
         node.x - node.r * 0.3, node.y - node.r * 0.3, 0,
         node.x, node.y, node.r
       );
-      grad.addColorStop(0, isHov ? node.color             : `${node.color}dd`);
-      grad.addColorStop(1, isHov ? `${node.color}aa`      : `${node.color}55`);
+      grad.addColorStop(0, isHov ? node.color             : `${node.color}ff`);
+      grad.addColorStop(1, isHov ? `${node.color}cc`      : `${node.color}dd`);
 
       ctx.beginPath();
       ctx.arc(node.x, node.y, node.r, 0, Math.PI * 2);
@@ -217,14 +217,19 @@ export default function EventGraph({ events, onSelectEvent }: Props) {
       ctx.stroke();
 
       // Label — abbreviated, scaled to node size
-      const maxChars = Math.floor(node.r / 3.5);
+      const maxChars = Math.floor(node.r / 3);
       const raw      = node.event.title.split(' ').slice(0, 2).join(' ');
       const label    = raw.length > maxChars ? raw.slice(0, maxChars - 1) + '…' : raw;
 
-      ctx.fillStyle = '#ffffffee';
-      ctx.font      = `700 ${Math.max(8, node.r * 0.3)}px 'Syne', sans-serif`;
+      // Text shadow for better readability
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      ctx.font      = `700 ${Math.max(9, node.r * 0.35)}px 'Syne', sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
+      ctx.fillText(label, node.x + 0.5, node.y + 0.5);
+
+      // White text on top
+      ctx.fillStyle = '#ffffff';
       ctx.fillText(label, node.x, node.y);
     });
   }, [nodes, edges, hovered, dims]);

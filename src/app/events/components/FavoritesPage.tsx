@@ -68,6 +68,9 @@ function FavCard({ event, onOpen, onRemove }: FavCardProps) {
           borderRadius: 20,
           overflow: 'hidden',
           transition: 'border-color 0.25s',
+          height: 360,
+          display: 'flex',
+          flexDirection: 'column',
         }}
         onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = `${catColor}44`; }}
         onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0,0,0,0.08)'; }}
@@ -122,7 +125,7 @@ function FavCard({ event, onOpen, onRemove }: FavCardProps) {
         </div>
 
         {/* Body */}
-        <div style={{ padding: '14px 16px 16px' }}>
+        <div style={{ padding: '14px 16px 16px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 14, color: '#111', marginBottom: 5, lineHeight: 1.3 }}>
             {event.title}
           </div>
