@@ -242,11 +242,7 @@ export default function AcademicsView() {
 
         {data.tab === 1 && (
           <DueDateElement
-            assignments={data.upcomingAssignments as any}
-            exams={data.upcomingExams as any}
-            onToggleAssignment={data.toggleAssignment}
-            courses={data.selectedSemester?.courses as any ?? []}
-            expanded
+            courses={data.selectedSemester?.courses ?? []}
           />
         )}
 

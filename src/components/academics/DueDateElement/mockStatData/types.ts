@@ -1,66 +1,129 @@
-/**
- * mockStatData/types.ts
- *
- * Shared TypeScript types for the DueDateElement component.
- * These extend the base Assignment/ExamItem from shared/constants
- * with additional fields (weight, points, starred, courseId).
- *
- * BACKEND NOTE:
- * When integrating a real API, your Assignment model should include:
- *   - weight: determines sort order in "by weight" filter
- *   - points: used for "most points" sort and meter graph weighting
- *   - starred: persisted per user (PATCH /api/assignments/:id/star)
- *   - completed: toggled via PATCH /api/assignments/:id
- */
-
-export type AssignmentWeight = "exam" | "quiz" | "project" | "homework";
-
-export interface MockCourse {
+export interface CourseRef {
   id: string;
   subject: string;
   number: string;
-  name: string; // Full course name e.g. "Intro to Computer Science"
+  title?: string;
+  cardColor?: string;
+  colorAccent?: string;
 }
 
-export interface MockAssignment {
+export type AssignmentWeight = "exam" | "quiz" | "project" | "homework" | "lab" | "discussion";
+export type AssignmentPriority = "low" | "medium" | "high" | "critical";
+
+export interface SubTask {
   id: string;
-  courseCode: string;   // e.g. "CS 101"
-  courseId: string;     // e.g. "cs101"  — matches MockCourse.id
+  assignmentId: string;
   title: string;
-  dueDate: string;      // ISO date string
-  weight: AssignmentWeight;
-  points: number;       // max points this assignment is worth
+  dueDay?: string;
   completed: boolean;
-  starred: boolean;     // user-flagged as important
+  estimatedMinutes?: number;
+  notes?: string;
+  createdAt: string;
 }
 
-export interface MockExam {
+export interface TrackerAssignment {
   id: string;
-  courseCode: string;
   courseId: string;
+  courseCode: string;
+  courseColor: string;
   title: string;
-  date: string;         // ISO date string
-  type: "exam" | "quiz" | "final";
-  location?: string;
+  description?: string;
+  dueDate: string;
+  weight: AssignmentWeight;
+  points: number;
+  priority: AssignmentPriority;
+  completed: boolean;
+  starred: boolean;
+  subtasks: SubTask[];
+  createdAt: string;
+  updatedAt: string;
 }
 
-// ─── Filter / sort options surfaced to the UI ────────────────────────────────
+export type ResourceType = "link" | "pdf" | "image" | "note";
+
+export interface ConceptResource {
+  id: string;
+  conceptId: string;
+  type: ResourceType;
+  label: string;
+  url?: string;
+  fileData?: string;
+  fileName?: string;
+  createdAt: string;
+}
+
+export interface ExamConcept {
+  id: string;
+  examId: string;
+  title: string;
+  category?: string;
+  masteryLevel: 0 | 1 | 2 | 3;
+  notes?: string;
+  resources: ConceptResource[];
+  completed: boolean;
+  createdAt: string;
+}
+
+export type ExamType = "midterm" | "final" | "quiz" | "practical" | "presentation";
+
+export interface TrackerExam {
+  id: string;
+  courseId: string;
+  courseCode: string;
+  courseColor: string;
+  title: string;
+  date: string;
+  type: ExamType;
+  location?: string;
+  duration?: number;
+  concepts: ExamConcept[];
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type PlannerBlockType = "class" | "study" | "work" | "leisure" | "assignment" | "break" | "other";
+
+export interface DayPlannerBlock {
+  id: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  type: PlannerBlockType;
+  title: string;
+  courseId?: string;
+  courseColor?: string;
+  assignmentId?: string;
+  description?: string;
+  color?: string;
+  createdAt: string;
+}
+
 export type FilterOption =
-  | "due-soon"    // within 2 days
-  | "due-today"   // due today
-  | "upcoming"    // more than 2 days away
-  | "done";       // completed === true
+  | "all"
+  | "due-today"
+  | "due-soon"
+  | "upcoming"
+  | "overdue"
+  | "completed"
+  | "starred";
 
 export type SortOption =
-  | "most-points"
   | "due-date"
-  | "group-by-class"
-  | "weight-high-to-low"  // exam → quiz → project → homework
-  | "weight-low-to-high"; // homework → project → quiz → exam
+  | "priority"
+  | "most-points"
+  | "course"
+  | "weight";
 
-// ─── Reminder payload (POST /api/reminders) ─────────────────────────────────
+export interface DailyProgress {
+  date: string;
+  completed: number;
+  total: number;
+}
+
 export interface ReminderPayload {
-  assignmentId: string;
+  targetId: string;
+  targetType: "assignment" | "exam";
   email: string;
-  reminderDate: string; // ISO date — when to send the reminder email
+  reminderDate: string;
 }
